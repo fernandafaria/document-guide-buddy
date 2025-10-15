@@ -1,8 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import maplibregl from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
-import { MapPin } from 'lucide-react';
+import { Loader } from '@googlemaps/js-api-loader';
 import { LocationUsersSheet } from './LocationUsersSheet';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+// Extend Loader type to include load method
+declare module '@googlemaps/js-api-loader' {
+  interface Loader {
+    load(): Promise<typeof google>;
+  }
+}
 
 interface Location {
   id: string;
@@ -24,59 +31,92 @@ interface MapViewProps {
 
 export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<maplibregl.Map | null>(null);
-  const markers = useRef<maplibregl.Marker[]>([]);
+  const map = useRef<google.maps.Map | null>(null);
+  const markers = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<{ id: string; name: string } | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  const defaultCenter: [number, number] = userLocation 
-    ? [userLocation.longitude, userLocation.latitude] 
-    : [-46.6333, -23.5505]; // São Paulo as default (lng, lat)
+  const defaultCenter: google.maps.LatLngLiteral = userLocation 
+    ? { lat: userLocation.latitude, lng: userLocation.longitude }
+    : { lat: -23.5505, lng: -46.6333 }; // São Paulo as default
 
+  // Initialize Google Maps
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
+    const initMap = async () => {
+      if (!mapContainer.current || map.current) return;
 
-    // Initialize map
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: {
-        version: 8,
-        sources: {
-          'osm-tiles': {
-            type: 'raster',
-            tiles: [
-              'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-              'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-              'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            ],
-            tileSize: 256,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          }
-        },
-        layers: [
-          {
-            id: 'osm-tiles-layer',
-            type: 'raster',
-            source: 'osm-tiles',
-            minzoom: 0,
-            maxzoom: 19
-          }
-        ]
-      },
-      center: defaultCenter,
-      zoom: 13
-    });
+      try {
+        console.log('Fetching Google Maps API key...');
+        const { data, error } = await supabase.functions.invoke('get-google-maps-key');
+        
+        if (error) {
+          console.error('Error fetching Google Maps API key:', error);
+          toast({
+            title: "Erro ao carregar mapa",
+            description: "Não foi possível obter a chave da API do Google Maps",
+            variant: "destructive"
+          });
+          return;
+        }
 
-    // Add navigation controls
-    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+        const apiKey = data?.apiKey;
+        if (!apiKey) {
+          console.error('No API key returned');
+          return;
+        }
+
+        console.log('Loading Google Maps API...');
+        const loader = new Loader({
+          apiKey: apiKey,
+          version: 'weekly',
+          libraries: ['marker']
+        });
+
+        // Load the Google Maps API
+        const google = await loader.load();
+
+        // Access Map and AdvancedMarkerElement
+        const { Map } = google.maps;
+        const { AdvancedMarkerElement } = google.maps.marker;
+
+        // Store AdvancedMarkerElement in window for later use
+        (window as any).AdvancedMarkerElement = AdvancedMarkerElement;
+
+        console.log('Creating map instance...');
+        map.current = new Map(mapContainer.current, {
+          center: defaultCenter,
+          zoom: 13,
+          mapId: 'YO_MAP', // Required for AdvancedMarkerElement
+          zoomControl: true,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: true,
+          gestureHandling: 'greedy'
+        });
+
+        setIsLoading(false);
+        console.log('Google Maps initialized successfully');
+      } catch (error) {
+        console.error('Error initializing Google Maps:', error);
+        toast({
+          title: "Erro ao carregar mapa",
+          description: "Ocorreu um erro ao inicializar o Google Maps",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+      }
+    };
+
+    initMap();
 
     return () => {
       // Clean up markers
-      markers.current.forEach(marker => marker.remove());
+      markers.current.forEach(marker => {
+        marker.map = null;
+      });
       markers.current = [];
-      
-      // Remove map
-      map.current?.remove();
       map.current = null;
     };
   }, []);
@@ -84,17 +124,17 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
   // Update map center when user location changes
   useEffect(() => {
     if (map.current && userLocation) {
-      map.current.flyTo({
-        center: [userLocation.longitude, userLocation.latitude],
-        zoom: 13,
-        essential: true
-      });
+      map.current.panTo({ lat: userLocation.latitude, lng: userLocation.longitude });
+      map.current.setZoom(13);
     }
   }, [userLocation]);
 
   // Add user location marker
   useEffect(() => {
-    if (!map.current || !userLocation) return;
+    if (!map.current || !userLocation || isLoading) return;
+
+    const AdvancedMarkerElement = (window as any).AdvancedMarkerElement;
+    if (!AdvancedMarkerElement) return;
 
     const el = document.createElement('div');
     el.className = 'user-location-marker';
@@ -124,35 +164,47 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
     `;
     el.appendChild(innerDot);
 
-    const userMarker = new maplibregl.Marker({ element: el })
-      .setLngLat([userLocation.longitude, userLocation.latitude])
-      .setPopup(
-        new maplibregl.Popup({ offset: 30, closeButton: false })
-          .setHTML(`
-            <div class="p-4 text-center">
-              <div class="text-3xl mb-2">📍</div>
-              <p class="font-semibold text-base text-gray-dark">Você está aqui</p>
-              <p class="text-xs text-gray-medium mt-1">Sua localização atual</p>
-            </div>
-          `)
-      )
-      .addTo(map.current);
+    const userMarker = new AdvancedMarkerElement({
+      map: map.current,
+      position: { lat: userLocation.latitude, lng: userLocation.longitude },
+      content: el,
+      title: 'Você está aqui'
+    });
+
+    // Create InfoWindow for user location
+    const infoWindow = new google.maps.InfoWindow({
+      content: `
+        <div class="p-4 text-center">
+          <div class="text-3xl mb-2">📍</div>
+          <p class="font-semibold text-base text-gray-dark">Você está aqui</p>
+          <p class="text-xs text-gray-medium mt-1">Sua localização atual</p>
+        </div>
+      `
+    });
+
+    el.addEventListener('click', () => {
+      infoWindow.open(map.current, userMarker);
+    });
 
     markers.current.push(userMarker);
 
     return () => {
-      userMarker.remove();
+      userMarker.map = null;
     };
-  }, [userLocation]);
+  }, [userLocation, isLoading]);
 
   // Add location markers
   useEffect(() => {
-    if (!map.current || locations.length === 0) return;
+    if (!map.current || locations.length === 0 || isLoading) return;
+
+    const AdvancedMarkerElement = (window as any).AdvancedMarkerElement;
+    if (!AdvancedMarkerElement) return;
 
     // Clear existing location markers (keep user marker)
     const userMarkerCount = userLocation ? 1 : 0;
     while (markers.current.length > userMarkerCount) {
-      markers.current.pop()?.remove();
+      const marker = markers.current.pop();
+      if (marker) marker.map = null;
     }
 
     locations.forEach((location) => {
@@ -349,6 +401,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
         e.preventDefault();
         e.stopPropagation();
         onCheckIn(location);
+        infoWindow.close();
       };
       
       popupContent.appendChild(button);
@@ -378,25 +431,27 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
           e.stopPropagation();
           setSelectedLocation({ id: location.id, name: location.name });
           setSheetOpen(true);
-          popup.remove();
+          infoWindow.close();
         };
         
         popupContent.appendChild(viewUsersButton);
       }
-      
 
-      const popup = new maplibregl.Popup({ 
-        offset: 30,
-        maxWidth: '320px',
-        closeButton: true,
-        closeOnClick: false,
-        className: 'modern-popup'
-      }).setDOMContent(popupContent);
+      const infoWindow = new google.maps.InfoWindow({
+        content: popupContent,
+        maxWidth: 320
+      });
 
-      const marker = new maplibregl.Marker({ element: el })
-        .setLngLat([location.longitude, location.latitude])
-        .setPopup(popup)
-        .addTo(map.current);
+      const marker = new AdvancedMarkerElement({
+        map: map.current,
+        position: { lat: location.latitude, lng: location.longitude },
+        content: el,
+        title: location.name
+      });
+
+      el.addEventListener('click', () => {
+        infoWindow.open(map.current, marker);
+      });
 
       markers.current.push(marker);
     });
@@ -404,7 +459,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
     return () => {
       // Cleanup handled by main cleanup
     };
-  }, [locations, onCheckIn, userLocation]);
+  }, [locations, onCheckIn, userLocation, isLoading]);
 
   return (
     <>
@@ -412,6 +467,14 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
         ref={mapContainer} 
         className="absolute inset-0 z-0 rounded-lg"
       />
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-dark font-medium">Carregando mapa...</p>
+          </div>
+        </div>
+      )}
       {selectedLocation && (
         <LocationUsersSheet
           open={sheetOpen}
