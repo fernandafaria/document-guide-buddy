@@ -298,12 +298,36 @@ const Map = () => {
 
   const handlePlaceSelect = (place: { lat: number; lng: number; name: string; address?: string }) => {
     setMapCenter({ lat: place.lat, lng: place.lng });
-    setSearchMarker(place);
     
-    // Clear marker after 5 seconds
+    // Calculate distance to validate if within 100 meters
+    if (latitude && longitude) {
+      const distance = calculateDistance(latitude, longitude, place.lat, place.lng);
+      console.log('Distance to searched place:', distance, 'meters');
+      
+      if (distance <= 100) {
+        // Within range - show check-in button
+        setSearchMarker(place);
+        toast({
+          title: "Local encontrado",
+          description: `${place.name} está a ${distance.toFixed(0)}m de você. Você pode fazer check-in!`,
+        });
+      } else {
+        // Too far - show marker but inform user
+        setSearchMarker(place);
+        toast({
+          title: "Local muito distante",
+          description: `${place.name} está a ${(distance / 1000).toFixed(2)}km de você. Aproxime-se para fazer check-in.`,
+          variant: "destructive",
+        });
+      }
+    } else {
+      setSearchMarker(place);
+    }
+    
+    // Clear marker after 8 seconds
     setTimeout(() => {
       setSearchMarker(null);
-    }, 5000);
+    }, 8000);
   };
 
   const filteredLocations = useMemo(() => {
@@ -422,26 +446,44 @@ const Map = () => {
             />
 
             {/* Acesso rápido ao check-in do local pesquisado */}
-            {searchMarker && !confirmDialogOpen && (
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-24 z-10">
-                <Button
-                  onClick={() =>
-                    handleCheckInRequest({
-                      id: `search_${searchMarker.lat}_${searchMarker.lng}`,
-                      name: searchMarker.name,
-                      address: null,
-                      latitude: searchMarker.lat,
-                      longitude: searchMarker.lng,
-                      active_users_count: 0,
-                      type: 'other',
-                    } as unknown as Location)
-                  }
-                  className="shadow-button"
-                >
-                  <MapPin className="mr-2 h-4 w-4" />
-                  Check-in em {searchMarker.name}
-                </Button>
-              </div>
+            {searchMarker && !confirmDialogOpen && latitude && longitude && (
+              (() => {
+                const distance = calculateDistance(latitude, longitude, searchMarker.lat, searchMarker.lng);
+                const isWithinRange = distance <= 100;
+                
+                return (
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-24 z-10 flex flex-col items-center gap-2">
+                    {isWithinRange ? (
+                      <Button
+                        onClick={() =>
+                          handleCheckInRequest({
+                            id: `search_${searchMarker.lat}_${searchMarker.lng}`,
+                            name: searchMarker.name,
+                            address: null,
+                            latitude: searchMarker.lat,
+                            longitude: searchMarker.lng,
+                            active_users_count: 0,
+                            type: 'other',
+                          } as unknown as Location)
+                        }
+                        className="shadow-button"
+                      >
+                        <MapPin className="mr-2 h-4 w-4" />
+                        Check-in em {searchMarker.name}
+                      </Button>
+                    ) : (
+                      <div className="bg-destructive/90 backdrop-blur-sm text-destructive-foreground px-4 py-2 rounded-lg shadow-button">
+                        <p className="text-sm font-medium">
+                          📍 {(distance / 1000).toFixed(2)}km de distância
+                        </p>
+                        <p className="text-xs opacity-90">
+                          Aproxime-se para fazer check-in
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()
             )}
           </>
         )}
