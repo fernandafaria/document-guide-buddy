@@ -1,67 +1,166 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { NearbyUsersCard } from "@/components/NearbyUsersCard";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Skeleton } from "@/components/ui/skeleton";
+import { LogOut } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+
+interface NearbyUser {
+  id: string;
+  name: string;
+  age: number;
+  profession: string | null;
+  photos: string[];
+}
+
+interface CheckInData {
+  location_id: string;
+  location_name: string;
+  checked_in_at: string;
+}
 
 const CheckInSuccess = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [users, setUsers] = useState<NearbyUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [locationName, setLocationName] = useState("");
 
   useEffect(() => {
-    // Auto navigate after 3 seconds
-    const timer = setTimeout(() => {
-      navigate("/discovery");
-    }, 3000);
+    if (user) {
+      fetchCheckInInfo();
+    }
+  }, [user]);
 
-    return () => clearTimeout(timer);
-  }, [navigate]);
+  useEffect(() => {
+    if (!user) return;
+
+    // Subscribe to realtime updates on profiles table
+    const channel = supabase
+      .channel('profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles',
+        },
+        () => {
+          fetchCheckInInfo();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  const fetchCheckInInfo = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+
+      // Get user's current check-in
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('current_check_in')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.current_check_in) {
+        navigate("/map");
+        return;
+      }
+
+      const checkInData = profile.current_check_in as unknown as CheckInData;
+      const locationId = checkInData.location_id;
+      setLocationName(checkInData.location_name);
+
+      // Get users at the same location
+      const { data, error } = await supabase.functions.invoke('get-users-at-location', {
+        body: { locationId },
+      });
+
+      if (error) throw error;
+
+      setUsers(data.users || []);
+    } catch (error) {
+      console.error('Error fetching check-in info:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckOut = async () => {
+    try {
+      const { error } = await supabase.functions.invoke('checkout');
+
+      if (error) throw error;
+
+      toast({
+        title: "Check-out realizado!",
+        description: "Você saiu do local",
+      });
+
+      navigate("/map");
+    } catch (error) {
+      console.error('Error checking out:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível fazer check-out.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 relative overflow-hidden">
-      {/* Animated Confetti Background */}
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute animate-bounce"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 2}s`,
-              animationDuration: `${2 + Math.random() * 2}s`,
-            }}
-          >
-            <span className="text-2xl">
-              {['🎉', '✨', '💫', '⭐'][Math.floor(Math.random() * 4)]}
-            </span>
+    <div className="min-h-screen bg-background flex flex-col">
+      <div className="flex-1 overflow-y-auto">
+        {/* Header */}
+        <div className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground p-6">
+          <div className="text-center space-y-4">
+            <div className="text-6xl mb-2">🎉</div>
+            <h1 className="text-3xl font-bold">Check-in realizado!</h1>
+            <p className="text-lg opacity-90">{locationName}</p>
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Logo */}
-      <h1 className="text-5xl font-bold text-coral mb-12">YO!</h1>
-
-      {/* Success Illustration */}
-      <div className="w-[300px] h-[300px] mb-8 relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-coral via-turquoise to-lavender rounded-full animate-pulse opacity-20"></div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-9xl animate-bounce">🎉</span>
+        {/* Content */}
+        <div className="p-6">
+          {loading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          ) : (
+            <NearbyUsersCard users={users} />
+          )}
         </div>
       </div>
 
-      {/* Success Message */}
-      <h2 className="text-3xl font-bold text-black-soft mb-3 text-center">
-        Check-in successful!
-      </h2>
-      <p className="text-lg text-gray-medium text-center mb-12 max-w-sm">
-        You are visible to other users for 30 minutes
-      </p>
-
-      {/* CTA Button */}
-      <Button
-        className="w-full max-w-md h-14"
-        onClick={() => navigate("/discovery")}
-      >
-        View Profiles
-      </Button>
+      {/* Bottom Actions */}
+      <div className="p-6 bg-background border-t space-y-3">
+        <Button
+          onClick={() => navigate("/discovery")}
+          className="w-full h-14"
+        >
+          Ver Todos os Perfis
+        </Button>
+        <Button
+          onClick={handleCheckOut}
+          variant="outline"
+          className="w-full h-14"
+        >
+          <LogOut className="mr-2 h-5 w-5" />
+          Fazer Check-out
+        </Button>
+      </div>
     </div>
   );
 };
