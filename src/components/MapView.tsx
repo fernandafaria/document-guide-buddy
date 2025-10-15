@@ -91,10 +91,9 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       if (!mapContainer.current || map.current || !apiInitialized) return;
 
       try {
-        console.log('Loading maps and marker libraries...');
+        console.log('Loading maps library...');
         const { Map } = await importLibrary('maps') as google.maps.MapsLibrary;
-        await importLibrary('marker');
-        console.log('Google Maps libraries loaded');
+        console.log('Maps library loaded successfully');
 
         console.log('Creating map instance...');
         map.current = new Map(mapContainer.current, {
@@ -147,7 +146,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
   useEffect(() => {
     if (!map.current || !userLocation) return;
 
-    console.log('Creating user location marker...');
+    console.log('Creating user location marker at:', userLocation);
 
     // Create user marker with custom icon
     const userMarker = new google.maps.Marker({
@@ -194,6 +193,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
     if (!map.current || locations.length === 0) return;
 
     console.log(`Creating ${locations.length} location markers...`);
+    console.log('Locations data:', locations.slice(0, 3)); // Log first 3 locations for debugging
 
     // Clear existing location markers (keep user marker)
     const userMarkerCount = userLocation ? 1 : 0;
@@ -417,6 +417,8 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       });
 
       // Create marker with classic google.maps.Marker
+      console.log(`Creating marker ${index + 1}/${locations.length}: ${location.name} (${isPOI ? 'POI' : 'User Location'})`);
+      
       const marker = new google.maps.Marker({
         map: map.current,
         position: { lat: location.latitude, lng: location.longitude },
@@ -425,6 +427,8 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
         label: markerLabel,
         zIndex: isPOI ? 900 : 1000
       });
+
+      console.log(`Marker created successfully for: ${location.name}`);
 
       // Add click listener to marker
       marker.addListener('click', () => {
