@@ -44,7 +44,7 @@ const CheckInHistory = () => {
         .from('profiles')
         .select('id')
         .eq('id', user?.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
