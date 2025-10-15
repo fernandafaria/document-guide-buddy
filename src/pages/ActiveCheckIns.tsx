@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { MapPin, Users, Clock } from "lucide-react";
+import { MapPin, Users, Clock, History } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
@@ -228,6 +228,13 @@ const ActiveCheckIns = () => {
         <button className="flex flex-col items-center gap-1 text-primary transition-transform hover:scale-110">
           <Users className="w-6 h-6" />
           <span className="text-xs font-medium">Check-ins</span>
+        </button>
+        <button 
+          className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
+          onClick={() => navigate("/checkin-history")}
+        >
+          <History className="w-6 h-6" />
+          <span className="text-xs font-medium">Histórico</span>
         </button>
         <button 
           className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"

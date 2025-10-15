@@ -1,8 +1,11 @@
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, LogOut, Users } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Search, MapPin, LogOut, Users, History } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapView } from "@/components/MapView";
+import { MapControls } from "@/components/MapControls";
+import { MapLegend } from "@/components/MapLegend";
+import { MapFilters } from "@/components/MapFilters";
 import { CheckInConfirmDialog } from "@/components/CheckInConfirmDialog";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +32,13 @@ const Map = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const [filters, setFilters] = useState({
+    bars: true,
+    restaurants: true,
+    parks: true,
+    sports: true,
+    activeUsers: true,
+  });
   const { latitude, longitude, error: geoError, loading: geoLoading } = useGeolocation();
 
   useEffect(() => {
@@ -222,10 +232,39 @@ const Map = () => {
     }
   };
 
-  const filteredLocations = locations.filter((location) =>
-    location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    location.address?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleFilterChange = (key: string, value: boolean) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const filteredLocations = useMemo(() => {
+    return locations.filter((location) => {
+      // Search filter
+      const matchesSearch = location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        location.address?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      if (!matchesSearch) return false;
+
+      // Type filters
+      const type = location.type;
+      
+      if (location.active_users_count > 0 && !filters.activeUsers) return false;
+      
+      if (type === 'bar' || type === 'pub' || type === 'nightclub') {
+        return filters.bars;
+      }
+      if (type === 'restaurant' || type === 'cafe') {
+        return filters.restaurants;
+      }
+      if (type === 'park') {
+        return filters.parks;
+      }
+      if (type === 'sports_centre') {
+        return filters.sports;
+      }
+      
+      return true;
+    });
+  }, [locations, searchQuery, filters]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -263,11 +302,28 @@ const Map = () => {
         {geoLoading ? (
           <Skeleton className="w-full h-full" />
         ) : (
-          <MapView
-            locations={filteredLocations}
-            userLocation={latitude && longitude ? { latitude, longitude } : null}
-            onCheckIn={handleCheckInRequest}
-          />
+          <>
+            <MapView
+              locations={filteredLocations}
+              userLocation={latitude && longitude ? { latitude, longitude } : null}
+              onCheckIn={handleCheckInRequest}
+            />
+            
+            <MapLegend />
+            <MapFilters filters={filters} onFilterChange={handleFilterChange} />
+            <MapControls
+              onZoomIn={() => {
+                // Will be implemented in MapView
+                console.log('Zoom in');
+              }}
+              onZoomOut={() => {
+                console.log('Zoom out');
+              }}
+              onCenterUser={() => {
+                console.log('Center on user');
+              }}
+            />
+          </>
         )}
         
         {/* Check-in Confirmation Dialog */}
@@ -297,6 +353,13 @@ const Map = () => {
         >
           <Users className="w-6 h-6" />
           <span className="text-xs font-medium">Check-ins</span>
+        </button>
+        <button 
+          className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
+          onClick={() => navigate("/checkin-history")}
+        >
+          <History className="w-6 h-6" />
+          <span className="text-xs font-medium">Histórico</span>
         </button>
         <button 
           className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
