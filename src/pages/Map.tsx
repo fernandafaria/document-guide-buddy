@@ -32,16 +32,21 @@ const Map = () => {
   useEffect(() => {
     if (geoError) {
       toast({
-        title: "Erro de localização",
-        description: "Não foi possível obter sua localização. Por favor, permita o acesso.",
-        variant: "destructive",
+        title: "Localização desativada",
+        description: "Mostrando locais próximos de São Paulo. Ative sua localização para ver locais perto de você.",
       });
     }
   }, [geoError]);
 
   useEffect(() => {
-    if (latitude && longitude && user) {
-      fetchNearbyLocations();
+    if (user) {
+      // Fetch locations even without geolocation
+      if (latitude && longitude) {
+        fetchNearbyLocations();
+      } else {
+        // Use default location (São Paulo) if geolocation is not available
+        fetchNearbyLocationsDefault();
+      }
       checkUserCheckInStatus();
     }
   }, [latitude, longitude, user]);
@@ -91,6 +96,32 @@ const Map = () => {
       setLoading(true);
       const { data, error } = await supabase.functions.invoke('get-nearby-locations', {
         body: { latitude, longitude, radius: 10 },
+      });
+
+      if (error) throw error;
+
+      setLocations(data.locations || []);
+    } catch (error) {
+      console.error('Error fetching nearby locations:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os locais próximos.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchNearbyLocationsDefault = async () => {
+    // Use São Paulo coordinates as default
+    const defaultLat = -23.5505;
+    const defaultLng = -46.6333;
+
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke('get-nearby-locations', {
+        body: { latitude: defaultLat, longitude: defaultLng, radius: 50 },
       });
 
       if (error) throw error;
@@ -205,7 +236,7 @@ const Map = () => {
 
       {/* Map Area */}
       <div className="flex-1 relative">
-        {geoLoading || loading ? (
+        {geoLoading ? (
           <Skeleton className="w-full h-full" />
         ) : (
           <MapView
