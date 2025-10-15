@@ -175,8 +175,46 @@ const Map = () => {
   const [selectedLocationForCheckIn, setSelectedLocationForCheckIn] = useState<Location | null>(null);
   const [checkingIn, setCheckingIn] = useState(false);
 
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371e3; // Earth radius in meters
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // Distance in meters
+  };
+
   const handleCheckInRequest = (location: Location) => {
     console.log('handleCheckInRequest called with location:', location);
+    
+    // Validate user is within 100 meters
+    if (latitude && longitude) {
+      const distance = calculateDistance(latitude, longitude, location.latitude, location.longitude);
+      console.log('Distance to location:', distance, 'meters');
+      
+      if (distance > 100) {
+        toast({
+          title: "Muito longe",
+          description: "Você precisa estar a no máximo 100 metros do local para fazer check-in.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      toast({
+        title: "Localização não disponível",
+        description: "Ative sua localização para fazer check-in.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setSelectedLocationForCheckIn(location);
     setConfirmDialogOpen(true);
     console.log('Dialog should open now');
@@ -200,6 +238,8 @@ const Map = () => {
           longitude: selectedLocationForCheckIn.longitude,
           name: selectedLocationForCheckIn.name,
           address: selectedLocationForCheckIn.address,
+          userLatitude: latitude,
+          userLongitude: longitude,
         },
       });
 

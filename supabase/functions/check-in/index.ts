@@ -38,13 +38,37 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { latitude, longitude, name, address }: CheckInRequest = await req.json();
+    const { latitude, longitude, name, address, userLatitude, userLongitude }: CheckInRequest & { userLatitude?: number; userLongitude?: number } = await req.json();
     
     if (!latitude || !longitude || !name) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
+    }
+
+    // Validate distance (max 100 meters)
+    if (userLatitude !== undefined && userLongitude !== undefined) {
+      const R = 6371e3; // Earth radius in meters
+      const φ1 = userLatitude * Math.PI / 180;
+      const φ2 = latitude * Math.PI / 180;
+      const Δφ = (latitude - userLatitude) * Math.PI / 180;
+      const Δλ = (longitude - userLongitude) * Math.PI / 180;
+
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distance = R * c;
+
+      console.log(`Distance from user to location: ${distance.toFixed(2)} meters`);
+
+      if (distance > 100) {
+        return new Response(
+          JSON.stringify({ error: 'You must be within 100 meters of the location to check in' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
     }
 
     console.log(`User ${user.id} checking in at ${name} (${latitude}, ${longitude})`);
