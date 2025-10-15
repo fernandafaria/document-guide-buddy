@@ -15,28 +15,28 @@ export const MapControls = ({ onZoomIn, onZoomOut, onCenterUser }: MapControlsPr
         size="icon"
         variant="secondary"
         onClick={onCenterUser}
-        className="h-10 w-10"
+        className="h-12 w-12 md:h-10 md:w-10 touch-manipulation"
         title="Centralizar em você"
       >
-        <Locate className="h-5 w-5" />
+        <Locate className="h-6 w-6 md:h-5 md:w-5" />
       </Button>
       <Button
         size="icon"
         variant="secondary"
         onClick={onZoomIn}
-        className="h-10 w-10"
+        className="h-12 w-12 md:h-10 md:w-10 touch-manipulation"
         title="Aumentar zoom"
       >
-        <ZoomIn className="h-5 w-5" />
+        <ZoomIn className="h-6 w-6 md:h-5 md:w-5" />
       </Button>
       <Button
         size="icon"
         variant="secondary"
         onClick={onZoomOut}
-        className="h-10 w-10"
+        className="h-12 w-12 md:h-10 md:w-10 touch-manipulation"
         title="Diminuir zoom"
       >
-        <ZoomOut className="h-5 w-5" />
+        <ZoomOut className="h-6 w-6 md:h-5 md:w-5" />
       </Button>
     </Card>
   );
