@@ -1,7 +1,6 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Button } from './ui/button';
 import { MapPin } from 'lucide-react';
 
 // Fix for default marker icons in react-leaflet
@@ -77,14 +76,13 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
               <p className="text-sm mb-3">
                 👋 <span className="font-semibold">{location.active_users_count}</span> {location.active_users_count === 1 ? 'pessoa ativa' : 'pessoas ativas'}
               </p>
-              <Button
+              <button
                 onClick={() => onCheckIn(location)}
-                className="w-full"
-                size="sm"
+                className="w-full inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 <MapPin className="mr-2 h-4 w-4" />
                 Check-in
-              </Button>
+              </button>
             </div>
           </Popup>
         </Marker>

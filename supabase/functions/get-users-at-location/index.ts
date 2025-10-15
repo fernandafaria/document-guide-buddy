@@ -31,8 +31,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    const url = new URL(req.url);
-    const locationId = url.searchParams.get('locationId');
+    // Support both JSON body and query params
+    let locationId: string | null = null;
+    try {
+      const body = await req.json();
+      if (body && body.locationId) {
+        locationId = String(body.locationId);
+      }
+    } catch (_) {
+      // ignore if no JSON body
+    }
+
+    if (!locationId) {
+      const url = new URL(req.url);
+      locationId = url.searchParams.get('locationId');
+    }
 
     if (!locationId) {
       return new Response(

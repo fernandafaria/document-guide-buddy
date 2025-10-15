@@ -34,10 +34,28 @@ Deno.serve(async (req) => {
       }
     );
 
-    const url = new URL(req.url);
-    const latitude = parseFloat(url.searchParams.get('latitude') || '0');
-    const longitude = parseFloat(url.searchParams.get('longitude') || '0');
-    const radius = parseFloat(url.searchParams.get('radius') || '10'); // default 10km
+    // Support both JSON body and query params
+    let latitude: number | null = null;
+    let longitude: number | null = null;
+    let radius: number = 10;
+
+    try {
+      const body = await req.json();
+      if (body) {
+        latitude = typeof body.latitude === 'number' ? body.latitude : parseFloat(String(body.latitude));
+        longitude = typeof body.longitude === 'number' ? body.longitude : parseFloat(String(body.longitude));
+        radius = body.radius ? (typeof body.radius === 'number' ? body.radius : parseFloat(String(body.radius))) : 10;
+      }
+    } catch (_) {
+      // ignore if no JSON body
+    }
+
+    if (latitude === null || Number.isNaN(latitude) || longitude === null || Number.isNaN(longitude)) {
+      const url = new URL(req.url);
+      latitude = parseFloat(url.searchParams.get('latitude') || '0');
+      longitude = parseFloat(url.searchParams.get('longitude') || '0');
+      radius = parseFloat(url.searchParams.get('radius') || String(radius));
+    }
 
     if (!latitude || !longitude) {
       return new Response(
