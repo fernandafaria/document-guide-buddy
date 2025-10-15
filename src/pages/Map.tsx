@@ -116,7 +116,7 @@ const Map = () => {
       .from('profiles')
       .select('current_check_in')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     setIsCheckedIn(!!profile?.current_check_in);
   };
@@ -333,7 +333,7 @@ const Map = () => {
           />
         )}
 
-        {isCheckedIn && (
+        {isCheckedIn ? (
           <div className="mt-3 flex items-center justify-between bg-white/20 backdrop-blur-sm p-3 rounded-lg border border-white/30">
             <span className="text-sm font-medium text-white flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-mint-green animate-pulse-soft"></span>
@@ -344,7 +344,12 @@ const Map = () => {
               Check-out
             </Button>
           </div>
+        ) : (
+          <div className="mt-3 bg-white/70 backdrop-blur-sm p-3 rounded-lg border border-white/50 text-gray-dark">
+            Toque em um local do mapa e selecione “Fazer Check-in”.
+          </div>
         )}
+
       </div>
 
       {/* Map Area */}
@@ -375,6 +380,29 @@ const Map = () => {
                 console.log('Center on user');
               }}
             />
+
+            {/* Acesso rápido ao check-in do local pesquisado */}
+            {searchMarker && !confirmDialogOpen && (
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-24 z-10">
+                <Button
+                  onClick={() =>
+                    handleCheckInRequest({
+                      id: `search_${searchMarker.lat}_${searchMarker.lng}`,
+                      name: searchMarker.name,
+                      address: null,
+                      latitude: searchMarker.lat,
+                      longitude: searchMarker.lng,
+                      active_users_count: 0,
+                      type: 'other',
+                    } as unknown as Location)
+                  }
+                  className="shadow-button"
+                >
+                  <MapPin className="mr-2 h-4 w-4" />
+                  Check-in em {searchMarker.name}
+                </Button>
+              </div>
+            )}
           </>
         )}
         
