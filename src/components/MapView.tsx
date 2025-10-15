@@ -128,14 +128,10 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
     initMap();
 
     return () => {
-      // Clean up markers
-      markers.current.forEach(marker => {
-        marker.setMap(null);
-      });
-      markers.current = [];
-      map.current = null;
+      // no-op cleanup; keep map instance across re-renders
+      // Markers are cleaned up by their own effects
     };
-  }, [apiInitialized, defaultCenter, toast]);
+  }, [apiInitialized]);
 
   // Update map center when user location changes
   useEffect(() => {
