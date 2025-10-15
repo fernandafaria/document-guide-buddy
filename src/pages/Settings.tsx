@@ -1,8 +1,29 @@
-import { ArrowLeft, ChevronRight, Bell, Shield, User, HelpCircle, FileText } from "lucide-react";
+import { ArrowLeft, ChevronRight, Bell, Shield, User, HelpCircle, FileText, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: "Erro ao sair",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Até logo!",
+        description: "Você foi desconectado com sucesso",
+      });
+      navigate("/login");
+    }
+  };
 
   const settingsOptions = [
     {
@@ -67,6 +88,21 @@ const Settings = () => {
             <ChevronRight className="w-6 h-6 text-gray-medium" />
           </button>
         ))}
+      </div>
+
+      {/* Logout Button */}
+      <div className="px-6 py-6">
+        <button
+          onClick={handleLogout}
+          className="w-full px-6 py-5 flex items-center gap-4 bg-gray-light hover:bg-gray-medium/20 transition-colors rounded-2xl"
+        >
+          <div className="bg-black-soft w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <LogOut className="w-6 h-6 text-white" />
+          </div>
+          <span className="flex-1 text-left text-lg font-semibold text-black-soft">
+            Sair
+          </span>
+        </button>
       </div>
 
       {/* App Version */}

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useLocation } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -15,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const SignupInfo = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
@@ -22,6 +24,8 @@ const SignupInfo = () => {
     gender: "",
     intentions: [] as string[],
   });
+
+  const { email, password } = location.state || {};
 
   const toggleIntention = (intention: string) => {
     setFormData({
@@ -33,6 +37,16 @@ const SignupInfo = () => {
   };
 
   const handleContinue = () => {
+    if (!email || !password) {
+      toast({
+        title: "Erro",
+        description: "Dados de autenticação não encontrados",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
+
     if (!formData.name || !formData.age || !formData.gender || formData.intentions.length === 0) {
       toast({
         title: "Preencha todos os campos",
@@ -41,7 +55,15 @@ const SignupInfo = () => {
       });
       return;
     }
-    navigate("/onboarding");
+    
+    navigate("/signup-photos", { 
+      state: { 
+        email, 
+        password, 
+        ...formData,
+        age: parseInt(formData.age)
+      } 
+    });
   };
 
   return (

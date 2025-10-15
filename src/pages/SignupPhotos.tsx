@@ -1,13 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { Camera, X } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Camera, X } from "lucide-react";
 
 const SignupPhotos = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  const { signUp } = useAuth();
   const [photos, setPhotos] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const userData = location.state || {};
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -34,16 +41,104 @@ const SignupPhotos = () => {
     setPhotos(photos.filter((_, i) => i !== index));
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (photos.length === 0) {
       toast({
-        title: "Adicione uma foto",
+        title: "Adicione pelo menos uma foto",
         description: "Você precisa adicionar pelo menos uma foto para continuar",
         variant: "destructive",
       });
       return;
     }
-    navigate("/signup-info");
+
+    try {
+      setLoading(true);
+
+      const { email, password, name, age, gender, intentions } = userData;
+
+      if (!email || !password) {
+        toast({
+          title: "Erro",
+          description: "Dados de cadastro incompletos",
+          variant: "destructive",
+        });
+        navigate("/login");
+        return;
+      }
+
+      // Create account
+      const { data: authData, error: signUpError } = await signUp(email, password, {
+        name,
+        age,
+        gender,
+        intentions,
+      });
+
+      if (signUpError) {
+        if (signUpError.message.includes("already registered")) {
+          throw new Error("Este email já está cadastrado");
+        }
+        throw signUpError;
+      }
+
+      if (!authData.user) {
+        throw new Error("Erro ao criar conta");
+      }
+
+      // Upload photos to storage
+      const uploadedPhotoUrls: string[] = [];
+      for (let i = 0; i < photos.length; i++) {
+        const photo = photos[i];
+        const fileName = `${authData.user.id}/photo-${i}-${Date.now()}.jpg`;
+        
+        const base64Data = photo.split(',')[1];
+        const blob = await fetch(photo).then(res => res.blob());
+        
+        const { error: uploadError } = await supabase.storage
+          .from('profile-photos')
+          .upload(fileName, blob);
+
+        if (uploadError) {
+          console.error("Error uploading photo:", uploadError);
+        } else {
+          const { data: urlData } = supabase.storage
+            .from('profile-photos')
+            .getPublicUrl(fileName);
+          uploadedPhotoUrls.push(urlData.publicUrl);
+        }
+      }
+
+      // Update profile with photos and additional data
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          name,
+          age,
+          gender,
+          intentions,
+          photos: uploadedPhotoUrls,
+        })
+        .eq('id', authData.user.id);
+
+      if (updateError) {
+        console.error("Error updating profile:", updateError);
+      }
+
+      toast({
+        title: "Conta criada com sucesso!",
+        description: "Bem-vindo ao YO!",
+      });
+
+      navigate("/map");
+    } catch (error: any) {
+      toast({
+        title: "Erro ao criar conta",
+        description: error.message || "Ocorreu um erro. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -108,8 +203,8 @@ const SignupPhotos = () => {
       <div className="flex-1" />
 
       {/* Continue Button */}
-      <Button className="w-full h-14" onClick={handleContinue}>
-        Continue
+      <Button className="w-full h-14" onClick={handleContinue} disabled={loading}>
+        {loading ? "Criando conta..." : "Criar conta"}
       </Button>
     </div>
   );

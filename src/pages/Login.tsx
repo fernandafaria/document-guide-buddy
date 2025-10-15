@@ -1,20 +1,94 @@
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { Mail } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z.string().trim().email({ message: "Email inválido" }),
+  password: z.string().min(6, { message: "Senha deve ter no mínimo 6 caracteres" }),
+});
 
 const Login = () => {
   const navigate = useNavigate();
+  const { signIn, user } = useAuth();
+  const { toast } = useToast();
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleGoogleLogin = () => {
-    // TODO: Implement Google OAuth
-    console.log("Google login");
-    navigate("/map");
+  useEffect(() => {
+    if (user) {
+      navigate("/map");
+    }
+  }, [user, navigate]);
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/map`
+        }
+      });
+      
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Erro ao fazer login",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleEmailLogin = () => {
-    // TODO: Implement email/password
-    console.log("Email login");
-    navigate("/map");
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      
+      const validation = loginSchema.safeParse({ email, password });
+      if (!validation.success) {
+        toast({
+          title: "Dados inválidos",
+          description: validation.error.errors[0].message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (isLogin) {
+        const { error } = await signIn(email, password);
+        
+        if (error) {
+          if (error.message.includes("Invalid login credentials")) {
+            throw new Error("Email ou senha incorretos");
+          }
+          throw error;
+        }
+        
+        toast({
+          title: "Login realizado!",
+          description: "Bem-vindo de volta ao YO!",
+        });
+        navigate("/map");
+      } else {
+        navigate("/signup-info", { state: { email, password } });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Ocorreu um erro. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -24,12 +98,71 @@ const Login = () => {
 
       {/* Title */}
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold text-black-soft mb-2">Welcome back</h2>
-        <p className="text-lg text-gray-medium">Choose how to continue</p>
+        <h2 className="text-3xl font-bold text-black-soft mb-2">
+          {isLogin ? "Bem-vindo de volta" : "Criar conta"}
+        </h2>
+        <p className="text-lg text-gray-medium">
+          {isLogin ? "Entre para continuar" : "Cadastre-se no YO!"}
+        </p>
       </div>
 
       {/* Auth Buttons */}
       <div className="w-full max-w-md space-y-4">
+        {/* Email Form */}
+        <div className="space-y-4 mb-6">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-base font-semibold text-black-soft">
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="h-14 bg-gray-light border-0 rounded-2xl text-base"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-base font-semibold text-black-soft">
+              Senha
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="h-14 bg-gray-light border-0 rounded-2xl text-base"
+            />
+          </div>
+
+          <Button
+            className="w-full h-14"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? "Carregando..." : (isLogin ? "Entrar" : "Continuar")}
+          </Button>
+
+          <button
+            className="w-full text-center text-sm text-gray-medium hover:text-coral transition-colors"
+            onClick={() => setIsLogin(!isLogin)}
+          >
+            {isLogin ? "Não tem conta? Cadastre-se" : "Já tem conta? Entre"}
+          </button>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-gray-light" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-2 text-gray-medium">Ou continue com</span>
+          </div>
+        </div>
+
         {/* Google */}
         <Button
           variant="secondary"
@@ -54,33 +187,13 @@ const Login = () => {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Continue with Google
-        </Button>
-
-        {/* Instagram */}
-        <Button
-          variant="gradient"
-          className="w-full h-14 bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white"
-          onClick={() => console.log("Instagram login")}
-        >
-          <span className="text-2xl mr-2">📷</span>
-          Continue with Instagram
-        </Button>
-
-        {/* Email */}
-        <Button
-          variant="outline"
-          className="w-full h-14"
-          onClick={handleEmailLogin}
-        >
-          <Mail className="mr-2" />
-          Continue with Email
+          Continue com Google
         </Button>
       </div>
 
       {/* Legal */}
       <p className="text-sm text-gray-medium text-center mt-8 max-w-md">
-        By continuing, you agree to our Terms of Service and Privacy Policy
+        Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade
       </p>
     </div>
   );
