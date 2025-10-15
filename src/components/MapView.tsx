@@ -147,7 +147,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
 
   // Add user location marker
   useEffect(() => {
-    if (!map.current || !userLocation || isLoading) return;
+    if (!map.current || !userLocation) return;
 
     console.log('Creating user location marker...');
 
@@ -193,7 +193,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
 
   // Add location markers
   useEffect(() => {
-    if (!map.current || locations.length === 0 || isLoading) return;
+    if (!map.current || locations.length === 0) return;
 
     console.log(`Creating ${locations.length} location markers...`);
 
