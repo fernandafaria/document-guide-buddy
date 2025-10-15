@@ -49,9 +49,25 @@ const Profile = () => {
         if (error) throw error;
 
         if (!data) {
-          // Perfil não existe, redirecionar para completar cadastro
-          console.log("Profile not found, redirecting to signup");
-          navigate("/signup-info");
+          // Perfil não existe: criar um perfil mínimo para exibir a página
+          console.log("Profile not found, creating minimal profile");
+          const defaultProfile = {
+            id: user.id,
+            email: user.email ?? null,
+            phone_number: (user as any).phone ?? null,
+            name: (user as any).user_metadata?.name ?? "Novo Usuário",
+            gender: "Outro",
+            age: 18,
+            intentions: ["friends"],
+            photos: [],
+          } as any;
+
+          const { error: insertError } = await supabase
+            .from("profiles")
+            .insert(defaultProfile);
+          if (insertError) throw insertError;
+
+          setProfile(defaultProfile);
           return;
         }
 
