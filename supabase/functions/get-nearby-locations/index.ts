@@ -66,43 +66,89 @@ Deno.serve(async (req) => {
 
     console.log(`Finding locations near ${latitude}, ${longitude} within ${radius}km`);
 
-    // Get all locations (in production, you'd want to add a bounding box filter first)
-    const { data: locations, error } = await supabaseClient
+    // Get locations from database (user check-ins)
+    const { data: dbLocations, error: dbError } = await supabaseClient
       .from('locations')
       .select('*')
-      .gt('active_users_count', 0); // Only show locations with active users
+      .gt('active_users_count', 0);
 
-    if (error) {
-      console.error('Error fetching locations:', error);
-      throw error;
+    if (dbError) {
+      console.error('Error fetching database locations:', dbError);
     }
 
-    // Filter by distance
-    const nearbyLocations = locations
-      ?.filter((location) => {
-        const distance = calculateDistance(
-          latitude,
-          longitude,
-          location.latitude,
-          location.longitude
-        );
+    // Fetch POIs from OpenStreetMap Overpass API
+    const overpassRadius = Math.min(radius * 1000, 5000); // Convert km to meters, max 5km
+    const overpassQuery = `
+      [out:json][timeout:25];
+      (
+        node["amenity"~"bar|pub|restaurant|cafe|nightclub"](around:${overpassRadius},${latitude},${longitude});
+        node["leisure"~"park|sports_centre"](around:${overpassRadius},${latitude},${longitude});
+        way["amenity"~"bar|pub|restaurant|cafe|nightclub"](around:${overpassRadius},${latitude},${longitude});
+        way["leisure"~"park|sports_centre"](around:${overpassRadius},${latitude},${longitude});
+      );
+      out center;
+    `;
+
+    let pois: any[] = [];
+    try {
+      const overpassResponse = await fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        body: overpassQuery,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+
+      if (overpassResponse.ok) {
+        const overpassData = await overpassResponse.json();
+        pois = overpassData.elements
+          .map((element: any) => {
+            const lat = element.lat || element.center?.lat;
+            const lon = element.lon || element.center?.lon;
+            if (!lat || !lon) return null;
+
+            const distance = calculateDistance(latitude, longitude, lat, lon);
+            const tags = element.tags || {};
+            
+            return {
+              id: `poi_${element.id}`,
+              name: tags.name || tags.amenity || tags.leisure || 'Local sem nome',
+              address: tags['addr:street'] 
+                ? `${tags['addr:street']}${tags['addr:housenumber'] ? ', ' + tags['addr:housenumber'] : ''}`
+                : null,
+              latitude: lat,
+              longitude: lon,
+              active_users_count: 0,
+              distance,
+              type: tags.amenity || tags.leisure || 'other',
+              cuisine: tags.cuisine,
+              opening_hours: tags.opening_hours,
+            };
+          })
+          .filter((poi: any) => poi !== null && poi.distance <= radius);
+
+        console.log(`Found ${pois.length} POIs from OpenStreetMap`);
+      }
+    } catch (error) {
+      console.error('Error fetching POIs from Overpass:', error);
+    }
+
+    // Combine database locations and POIs
+    const dbNearbyLocations = (dbLocations || [])
+      .filter((location) => {
+        const distance = calculateDistance(latitude, longitude, location.latitude, location.longitude);
         return distance <= radius;
       })
       .map((location) => ({
         ...location,
-        distance: calculateDistance(
-          latitude,
-          longitude,
-          location.latitude,
-          location.longitude
-        ),
-      }))
-      .sort((a, b) => a.distance - b.distance) || [];
+        distance: calculateDistance(latitude, longitude, location.latitude, location.longitude),
+        type: 'user_location',
+      }));
 
-    console.log(`Found ${nearbyLocations.length} nearby locations`);
+    const allLocations = [...dbNearbyLocations, ...pois].sort((a, b) => a.distance - b.distance);
+
+    console.log(`Found ${dbNearbyLocations.length} user locations and ${pois.length} POIs (total: ${allLocations.length})`);
 
     return new Response(
-      JSON.stringify({ locations: nearbyLocations }),
+      JSON.stringify({ locations: allLocations }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

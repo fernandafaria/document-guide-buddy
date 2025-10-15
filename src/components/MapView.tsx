@@ -10,6 +10,9 @@ interface Location {
   latitude: number;
   longitude: number;
   active_users_count: number;
+  type?: string;
+  cuisine?: string;
+  opening_hours?: string;
 }
 
 interface MapViewProps {
@@ -134,30 +137,72 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
 
       const el = document.createElement('div');
       el.className = 'location-marker';
-      el.style.width = '32px';
-      el.style.height = '32px';
+      
+      // Determine marker style based on type
+      const isPOI = location.type && location.type !== 'user_location';
+      const isBar = location.type === 'bar' || location.type === 'pub' || location.type === 'nightclub';
+      const isRestaurant = location.type === 'restaurant' || location.type === 'cafe';
+      
+      el.style.width = isPOI ? '28px' : '32px';
+      el.style.height = isPOI ? '28px' : '32px';
       el.style.borderRadius = '50%';
-      el.style.backgroundColor = 'hsl(var(--destructive))';
       el.style.border = '2px solid white';
       el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.4)';
       el.style.cursor = 'pointer';
       el.style.display = 'flex';
       el.style.alignItems = 'center';
       el.style.justifyContent = 'center';
-      el.style.color = 'white';
-      el.style.fontWeight = 'bold';
-      el.style.fontSize = '12px';
-      el.textContent = location.active_users_count.toString();
+      el.style.fontSize = isPOI ? '16px' : '12px';
+      
+      if (isPOI) {
+        // POI markers with emoji
+        if (isBar) {
+          el.textContent = '🍺';
+        } else if (isRestaurant) {
+          el.textContent = '🍽️';
+        } else if (location.type === 'park') {
+          el.textContent = '🌳';
+        } else if (location.type === 'sports_centre') {
+          el.textContent = '⚽';
+        } else {
+          el.textContent = '📍';
+        }
+        el.style.backgroundColor = 'white';
+      } else {
+        // User location markers
+        el.style.backgroundColor = 'hsl(var(--destructive))';
+        el.style.color = 'white';
+        el.style.fontWeight = 'bold';
+        el.textContent = location.active_users_count.toString();
+      }
 
       const popupContent = document.createElement('div');
       popupContent.className = 'p-2 min-w-[200px]';
-      popupContent.innerHTML = `
+      
+      let popupHTML = `
         <h3 class="font-bold text-base mb-1">${location.name}</h3>
-        ${location.address ? `<p class="text-sm text-gray-600 mb-2">${location.address}</p>` : ''}
-        <p class="text-sm mb-3">
-          👋 <span class="font-semibold">${location.active_users_count}</span> ${location.active_users_count === 1 ? 'pessoa ativa' : 'pessoas ativas'}
-        </p>
+        ${location.address ? `<p class="text-sm text-gray-600 mb-1">${location.address}</p>` : ''}
       `;
+      
+      if (isPOI) {
+        // POI info
+        if (location.cuisine) {
+          popupHTML += `<p class="text-sm text-gray-600 mb-1">🍴 ${location.cuisine}</p>`;
+        }
+        if (location.opening_hours) {
+          popupHTML += `<p class="text-sm text-gray-600 mb-2">🕐 ${location.opening_hours}</p>`;
+        }
+        popupHTML += `<p class="text-sm text-gray-500 mb-3">📍 Ponto de interesse</p>`;
+      } else {
+        // User location info
+        popupHTML += `
+          <p class="text-sm mb-3">
+            👋 <span class="font-semibold">${location.active_users_count}</span> ${location.active_users_count === 1 ? 'pessoa ativa' : 'pessoas ativas'}
+          </p>
+        `;
+      }
+      
+      popupContent.innerHTML = popupHTML;
 
       const button = document.createElement('button');
       button.className = 'w-full inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90';
