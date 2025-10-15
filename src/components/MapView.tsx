@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapPin } from 'lucide-react';
+import { LocationUsersSheet } from './LocationUsersSheet';
 
 interface Location {
   id: string;
@@ -25,6 +26,8 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markers = useRef<maplibregl.Marker[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<{ id: string; name: string } | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const defaultCenter: [number, number] = userLocation 
     ? [userLocation.longitude, userLocation.latitude] 
@@ -350,18 +353,49 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       
       popupContent.appendChild(button);
 
+      // Add "Ver Pessoas" button if there are active users
+      if (location.active_users_count && location.active_users_count > 0) {
+        const viewUsersButton = document.createElement('button');
+        viewUsersButton.className = 'w-full flex items-center justify-center gap-2 px-5 py-4 text-base font-semibold transition-all border-t hover:opacity-90';
+        viewUsersButton.style.cssText = `
+          background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+          color: white;
+          border: none;
+          cursor: pointer;
+        `;
+        viewUsersButton.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span>Ver ${location.active_users_count} ${location.active_users_count === 1 ? 'Pessoa' : 'Pessoas'}</span>
+        `;
+        
+        viewUsersButton.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setSelectedLocation({ id: location.id, name: location.name });
+          setSheetOpen(true);
+          popup.remove();
+        };
+        
+        popupContent.appendChild(viewUsersButton);
+      }
+      
+
+      const popup = new maplibregl.Popup({ 
+        offset: 30,
+        maxWidth: '320px',
+        closeButton: true,
+        closeOnClick: false,
+        className: 'modern-popup'
+      }).setDOMContent(popupContent);
+
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([location.longitude, location.latitude])
-        .setPopup(
-          new maplibregl.Popup({ 
-            offset: 30,
-            maxWidth: '320px',
-            closeButton: true,
-            closeOnClick: false,
-            className: 'modern-popup'
-          })
-            .setDOMContent(popupContent)
-        )
+        .setPopup(popup)
         .addTo(map.current);
 
       markers.current.push(marker);
@@ -373,9 +407,19 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
   }, [locations, onCheckIn, userLocation]);
 
   return (
-    <div 
-      ref={mapContainer} 
-      className="absolute inset-0 z-0 rounded-lg"
-    />
+    <>
+      <div 
+        ref={mapContainer} 
+        className="absolute inset-0 z-0 rounded-lg"
+      />
+      {selectedLocation && (
+        <LocationUsersSheet
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
+          locationId={selectedLocation.id}
+          locationName={selectedLocation.name}
+        />
+      )}
+    </>
   );
 };
