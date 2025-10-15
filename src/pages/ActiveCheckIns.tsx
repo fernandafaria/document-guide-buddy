@@ -189,8 +189,7 @@ const ActiveCheckIns = () => {
                   {users.map((checkIn) => (
                     <div
                       key={checkIn.id}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
-                      onClick={() => navigate(`/profile/${checkIn.user_id}`)}
+                      className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                     >
                       <Avatar className="w-12 h-12 border-2 border-primary">
                         <AvatarImage src={checkIn.user_photo || undefined} alt={checkIn.user_name} />
@@ -207,7 +206,11 @@ const ActiveCheckIns = () => {
                         </div>
                       </div>
 
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => navigate(`/profile/${checkIn.user_id}`)}
+                      >
                         Ver Perfil
                       </Button>
                     </div>
