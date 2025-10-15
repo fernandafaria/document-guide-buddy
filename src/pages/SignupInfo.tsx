@@ -56,7 +56,7 @@ const SignupInfo = () => {
       return;
     }
     
-    navigate("/signup-photos", { 
+    navigate("/signup-interests", { 
       state: { 
         email, 
         password, 

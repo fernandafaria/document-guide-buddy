@@ -54,7 +54,24 @@ const SignupPhotos = () => {
     try {
       setLoading(true);
 
-      const { email, password, name, age, gender, intentions } = userData;
+      const { 
+        email, 
+        password, 
+        name, 
+        age, 
+        gender, 
+        intentions,
+        profession,
+        education,
+        city,
+        state,
+        languages,
+        alcohol,
+        religion,
+        zodiac_sign,
+        musical_styles,
+        about_me
+      } = userData;
 
       if (!email || !password) {
         toast({
@@ -117,6 +134,16 @@ const SignupPhotos = () => {
           gender,
           intentions,
           photos: uploadedPhotoUrls,
+          profession: profession || null,
+          education: education || null,
+          city: city || null,
+          state: state || null,
+          languages: languages || [],
+          alcohol: alcohol || null,
+          religion: religion || null,
+          zodiac_sign: zodiac_sign || null,
+          musical_styles: musical_styles || [],
+          about_me: about_me || null,
         })
         .eq('id', authData.user.id);
 

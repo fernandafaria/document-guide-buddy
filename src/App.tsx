@@ -20,6 +20,7 @@ import Settings from "./pages/Settings";
 import Onboarding from "./pages/Onboarding";
 import SignupPhotos from "./pages/SignupPhotos";
 import SignupInfo from "./pages/SignupInfo";
+import SignupInterests from "./pages/SignupInterests";
 import EmptyState from "./pages/EmptyState";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup-info" element={<SignupInfo />} />
+          <Route path="/signup-interests" element={<SignupInterests />} />
           <Route path="/signup-photos" element={<SignupPhotos />} />
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
           <Route path="/map" element={<ProtectedRoute><Map /></ProtectedRoute>} />
