@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { importLibrary } from "@googlemaps/js-api-loader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -29,15 +30,28 @@ export const PlaceSearch = ({ onPlaceSelect, googleMapsApiKey }: PlaceSearchProp
   const debounceTimer = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
-    // Initialize Google Places services
-    if (googleMapsApiKey && window.google?.maps) {
-      autocompleteService.current = new google.maps.places.AutocompleteService();
+    const initPlacesServices = async () => {
+      if (!googleMapsApiKey) return;
       
-      // Create a dummy div for PlacesService
-      const dummyDiv = document.createElement('div');
-      const map = new google.maps.Map(dummyDiv);
-      placesService.current = new google.maps.places.PlacesService(map);
-    }
+      try {
+        // Load the places library
+        await importLibrary('places');
+        
+        // Now initialize the services
+        if (window.google?.maps?.places) {
+          autocompleteService.current = new google.maps.places.AutocompleteService();
+          
+          // Create a dummy div for PlacesService
+          const dummyDiv = document.createElement('div');
+          const map = new google.maps.Map(dummyDiv);
+          placesService.current = new google.maps.places.PlacesService(map);
+        }
+      } catch (error) {
+        console.error('Error loading Google Places library:', error);
+      }
+    };
+
+    initPlacesServices();
   }, [googleMapsApiKey]);
 
   const searchPlaces = async (searchQuery: string) => {
