@@ -191,8 +191,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
   return (
     <div 
       ref={mapContainer} 
-      style={{ height: '100%', width: '100%' }}
-      className="z-0 rounded-lg"
+      className="absolute inset-0 z-0 rounded-lg"
     />
   );
 };
