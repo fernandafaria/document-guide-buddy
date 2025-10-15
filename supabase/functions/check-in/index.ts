@@ -127,6 +127,28 @@ Deno.serve(async (req) => {
 
     if (!updatedProfile) {
       console.log('Profile not found; creating a new one for user', user.id);
+
+      // Map gender from metadata to allowed Portuguese values
+      const rawGender = ((user.user_metadata as any)?.gender ?? '').toString().toLowerCase();
+      let genderValue = 'Outro';
+      if (rawGender.includes('masc') || rawGender === 'male' || rawGender === 'm') {
+        genderValue = 'Masculino';
+      } else if (rawGender.includes('fem') || rawGender === 'female' || rawGender === 'f') {
+        genderValue = 'Feminino';
+      } else if (
+        rawGender.includes('não') || rawGender.includes('nao') ||
+        rawGender.includes('non') || rawGender.includes('non-binary') ||
+        rawGender.includes('nonbinary') || rawGender.includes('nb')
+      ) {
+        genderValue = 'Não-binário';
+      }
+
+      const ageValue = (user.user_metadata as any)?.age;
+      const safeAge = typeof ageValue === 'number' && ageValue >= 18 && ageValue <= 99 ? ageValue : 18;
+
+      const intentionsValue = (user.user_metadata as any)?.intentions;
+      const safeIntentions = Array.isArray(intentionsValue) && intentionsValue.length > 0 ? intentionsValue : ['friendship'];
+
       const { error: insertProfileError } = await supabaseClient
         .from('profiles')
         .insert({
@@ -134,9 +156,9 @@ Deno.serve(async (req) => {
           email: user.email ?? null,
           phone_number: (user as any).phone ?? null,
           name: (user.user_metadata as any)?.name ?? 'Novo Usuário',
-          gender: (user.user_metadata as any)?.gender ?? 'unspecified',
-          age: (user.user_metadata as any)?.age ?? 18,
-          intentions: (user.user_metadata as any)?.intentions ?? ['friendship'],
+          gender: genderValue,
+          age: safeAge,
+          intentions: safeIntentions,
           current_check_in: {
             location_id: location.location_id,
             location_name: name,
