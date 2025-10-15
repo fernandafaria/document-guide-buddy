@@ -342,7 +342,7 @@ const Map = () => {
       </div>
 
       {/* Tab Bar */}
-      <div className="h-16 bg-background border-t shadow-card flex items-center justify-around px-6">
+      <div className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t shadow-card flex items-center justify-around px-6 max-w-2xl mx-auto z-50">
         <button className="flex flex-col items-center gap-1 text-primary transition-transform hover:scale-110">
           <MapPin className="w-6 h-6" />
           <span className="text-xs font-medium">Mapa</span>
