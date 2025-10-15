@@ -2,38 +2,65 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Heart } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface ProfileData {
+  id: string;
+  name: string;
+  age?: number;
+  profession?: string | null;
+  photos?: string[] | null;
+  about_me?: string | null;
+  intentions?: string[] | null;
+  alcohol?: string | null;
+  education?: string | null;
+  religion?: string | null;
+  zodiac_sign?: string | null;
+}
 
 const ProfileDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [currentPhoto, setCurrentPhoto] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const mockUser = {
-    id: 1,
-    name: "Carlos",
-    age: 32,
-    profession: "Engineer",
-    photos: [
-      "https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos",
-      "https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos2",
-      "https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos3",
-    ],
-    about: "Love exploring new places and meeting interesting people. Always up for good conversation over coffee! ☕✨",
-    interests: ["Music", "Travel", "Sports", "Technology"],
-    lifestyle: {
-      alcohol: "Socialmente",
-      education: "Superior",
-      religion: "Católico",
-      zodiac: "Aquário",
-    },
-    lookingFor: "Date",
-  };
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!id) return;
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select(
+          "id, name, age, profession, photos, about_me, intentions, alcohol, education, religion, zodiac_sign"
+        )
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        console.error("Error loading profile", error);
+      }
+      setProfile(data as ProfileData | null);
+      setLoading(false);
+    };
+
+    loadProfile();
+  }, [id]);
 
   const handleLike = () => {
-    // TODO: Implement like logic
+    // Mantemos a navegação para a tela de match como no mock original
     navigate("/match");
   };
+
+  const photos = profile?.photos && profile.photos.length > 0
+    ? profile.photos
+    : [
+        `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
+          profile?.name || "User"
+        )}`,
+      ];
 
   return (
     <div className="min-h-screen bg-white pb-24">
@@ -41,122 +68,142 @@ const ProfileDetail = () => {
       <button
         onClick={() => navigate(-1)}
         className="fixed top-6 left-6 z-10 w-12 h-12 bg-white rounded-full shadow-elevated flex items-center justify-center hover:scale-105 transition-transform"
+        aria-label="Voltar"
       >
         <ArrowLeft className="w-6 h-6 text-black-soft" />
       </button>
 
       {/* Photo Gallery */}
       <div className="relative h-[400px] bg-gray-light overflow-hidden">
-        <div className="flex transition-transform duration-300" style={{ transform: `translateX(-${currentPhoto * 100}%)` }}>
-          {mockUser.photos.map((photo, idx) => (
-            <img
-              key={idx}
-              src={photo}
-              alt={`${mockUser.name} - ${idx + 1}`}
-              className="w-full h-[400px] object-cover flex-shrink-0"
-            />
-          ))}
-        </div>
-        
+        {loading ? (
+          <Skeleton className="w-full h-[400px]" />
+        ) : (
+          <div
+            className="flex transition-transform duration-300"
+            style={{ transform: `translateX(-${currentPhoto * 100}%)` }}
+          >
+            {photos.map((photo, idx) => (
+              <img
+                key={idx}
+                src={photo}
+                alt={`${profile?.name || "Usuário"} - ${idx + 1}`}
+                className="w-full h-[400px] object-cover flex-shrink-0"
+                loading={idx === 0 ? "eager" : "lazy"}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Photo Indicators */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-          {mockUser.photos.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentPhoto(idx)}
-              className={`h-2 rounded-full transition-all ${
-                idx === currentPhoto
-                  ? "w-8 bg-white"
-                  : "w-2 bg-white/50"
-              }`}
-            />
-          ))}
-        </div>
+        {!loading && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+            {photos.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentPhoto(idx)}
+                className={`h-2 rounded-full transition-all ${
+                  idx === currentPhoto ? "w-8 bg-white" : "w-2 bg-white/50"
+                }`}
+                aria-label={`Ir para foto ${idx + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <div className="px-6 py-8 space-y-8">
-        {/* Basic Info */}
-        <div className="pb-4">
-          <h1 className="text-[28px] font-bold text-black-soft mb-1">
-            {mockUser.name}, {mockUser.age}
-          </h1>
-          <p className="text-[17px] text-gray-medium">{mockUser.profession}</p>
-        </div>
-
-        {/* About Me */}
-        <div className="flex gap-4">
-          <div className="w-20 h-20 bg-gradient-to-br from-coral to-pink-deep rounded-2xl flex items-center justify-center flex-shrink-0">
-            <span className="text-4xl">🍵</span>
+        {loading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-24 w-full" />
           </div>
-          <div className="flex-1">
-            <h3 className="text-[22px] font-bold text-black-soft mb-2">
-              About me
-            </h3>
-            <p className="text-[17px] text-gray-dark leading-relaxed">{mockUser.about}</p>
-          </div>
-        </div>
+        ) : (
+          <>
+            {/* Basic Info */}
+            <div className="pb-4">
+              <h1 className="text-[28px] font-bold text-black-soft mb-1">
+                {profile?.name}
+                {profile?.age ? `, ${profile.age}` : ""}
+              </h1>
+              {profile?.profession && (
+                <p className="text-[17px] text-gray-medium">{profile.profession}</p>
+              )}
+            </div>
 
-        {/* Interests */}
-        <div>
-          <h3 className="text-[22px] font-bold text-black-soft mb-4">Interests</h3>
-          <div className="flex flex-wrap gap-2">
-            {mockUser.interests.map((interest, idx) => (
-              <Badge
-                key={idx}
-                className={`px-4 h-9 text-base rounded-[18px] ${
-                  idx === 0
-                    ? "bg-coral"
-                    : idx === 1
-                    ? "bg-turquoise"
-                    : idx === 2
-                    ? "bg-lavender"
-                    : "bg-mint"
-                } text-white`}
-              >
-                {interest}
-              </Badge>
-            ))}
-          </div>
-        </div>
+            {/* About Me */}
+            {profile?.about_me && (
+              <div className="flex gap-4">
+                <div className="w-20 h-20 bg-gradient-to-br from-coral to-pink-deep rounded-2xl flex items-center justify-center flex-shrink-0">
+                  <span className="text-4xl">💬</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-[22px] font-bold text-black-soft mb-2">
+                    Sobre mim
+                  </h3>
+                  <p className="text-[17px] text-gray-dark leading-relaxed">
+                    {profile.about_me}
+                  </p>
+                </div>
+              </div>
+            )}
 
-        {/* Lifestyle */}
-        <div>
-          <h3 className="text-[22px] font-bold text-black-soft mb-4">Lifestyle</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🍷</span>
-              <span className="text-[17px] text-gray-dark">Drinks socially</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🎓</span>
-              <span className="text-[17px] text-gray-dark">Bachelor's Degree</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">✝️</span>
-              <span className="text-[17px] text-gray-dark">Catholic</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">♒</span>
-              <span className="text-[17px] text-gray-dark">Aquarius</span>
-            </div>
-          </div>
-        </div>
+            {/* Interests / Intentions */}
+            {profile?.intentions && profile.intentions.length > 0 && (
+              <div>
+                <h3 className="text-[22px] font-bold text-black-soft mb-4">
+                  Intenções
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {profile.intentions.map((intent, idx) => (
+                    <Badge key={idx} className="px-4 h-9 text-base rounded-[18px] bg-coral text-white">
+                      {intent}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {/* Looking For */}
-        <div>
-          <h3 className="text-[22px] font-bold text-black-soft mb-4">
-            Looking for
-          </h3>
-          <Badge className="px-4 py-2 bg-pink-deep text-white text-base rounded-[18px]">
-            🔍 {mockUser.lookingFor}
-          </Badge>
-        </div>
+            {/* Lifestyle */}
+            {(profile?.alcohol || profile?.education || profile?.religion || profile?.zodiac_sign) && (
+              <div>
+                <h3 className="text-[22px] font-bold text-black-soft mb-4">Estilo de vida</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {profile?.alcohol && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">🍷</span>
+                      <span className="text-[17px] text-gray-dark">{profile.alcohol}</span>
+                    </div>
+                  )}
+                  {profile?.education && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">🎓</span>
+                      <span className="text-[17px] text-gray-dark">{profile.education}</span>
+                    </div>
+                  )}
+                  {profile?.religion && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">✝️</span>
+                      <span className="text-[17px] text-gray-dark">{profile.religion}</span>
+                    </div>
+                  )}
+                  {profile?.zodiac_sign && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">♒</span>
+                      <span className="text-[17px] text-gray-dark">{profile.zodiac_sign}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Like Button */}
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-light">
-        <Button className="w-full h-14" onClick={handleLike}>
+        <Button className="w-full h-14" onClick={handleLike} disabled={loading}>
           <Heart className="mr-2 fill-white" />
           Like
         </Button>
