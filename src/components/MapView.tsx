@@ -164,8 +164,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
         strokeColor: '#ffffff',
         strokeWeight: 3
       },
-      zIndex: 1000,
-      animation: google.maps.Animation.DROP
+      zIndex: 1000
     });
 
     // Create InfoWindow for user location
@@ -426,8 +425,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
         title: location.name,
         icon: markerIcon,
         label: markerLabel,
-        zIndex: isPOI ? 900 : 1000,
-        animation: google.maps.Animation.DROP
+        zIndex: isPOI ? 900 : 1000
       });
 
       // Add click listener to marker
