@@ -125,10 +125,11 @@ const SignupPhotos = () => {
         }
       }
 
-      // Update profile with photos and additional data
-      const { error: updateError } = await supabase
+      // Upsert profile with photos and additional data (insert if missing)
+      const { error: profileError } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: authData.user.id,
           name,
           age,
           gender,
@@ -144,11 +145,11 @@ const SignupPhotos = () => {
           zodiac_sign: zodiac_sign || null,
           musical_styles: musical_styles || [],
           about_me: about_me || null,
-        })
-        .eq('id', authData.user.id);
+        });
 
-      if (updateError) {
-        console.error("Error updating profile:", updateError);
+      if (profileError) {
+        console.error("Error upserting profile:", profileError);
+        throw profileError;
       }
 
       toast({
