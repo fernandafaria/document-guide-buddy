@@ -12,7 +12,8 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const location = useLocation();
   useEffect(() => {
     if (!loading && !user) {
-      navigate('/login', { replace: true, state: { from: location.pathname } });
+      const from = location.pathname;
+      navigate(`/login?from=${encodeURIComponent(from)}`, { replace: true, state: { from } });
     }
   }, [user, loading, navigate, location]);
 
