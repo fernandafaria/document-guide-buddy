@@ -20,21 +20,24 @@ interface MapViewProps {
   locations: Location[];
   userLocation: { latitude: number; longitude: number } | null;
   onCheckIn: (location: Location) => void;
+  center?: { lat: number; lng: number } | null;
+  searchMarker?: { lat: number; lng: number; name: string } | null;
 }
 
-export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) => {
+export const MapView = ({ locations, userLocation, onCheckIn, center, searchMarker }: MapViewProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
   const markers = useRef<google.maps.Marker[]>([]);
+  const searchMarkerRef = useRef<google.maps.Marker | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<{ id: string; name: string } | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [apiInitialized, setApiInitialized] = useState(false);
   const { toast } = useToast();
 
-  const defaultCenter: google.maps.LatLngLiteral = userLocation 
+  const defaultCenter: google.maps.LatLngLiteral = center || (userLocation 
     ? { lat: userLocation.latitude, lng: userLocation.longitude }
-    : { lat: -23.5505, lng: -46.6333 };
+    : { lat: -23.5505, lng: -46.6333 });
 
   // Initialize Google Maps API
   useEffect(() => {
@@ -284,6 +287,58 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       markers.current = markers.current.filter(m => !newMarkers.includes(m));
     };
   }, [locations, isLoading, onCheckIn]);
+
+  // Handle map center changes
+  useEffect(() => {
+    if (map.current && center) {
+      map.current.setCenter(center);
+      map.current.setZoom(16);
+    }
+  }, [center]);
+
+  // Handle search marker
+  useEffect(() => {
+    if (!map.current) return;
+
+    // Remove previous search marker
+    if (searchMarkerRef.current) {
+      searchMarkerRef.current.setMap(null);
+      searchMarkerRef.current = null;
+    }
+
+    // Add new search marker
+    if (searchMarker) {
+      searchMarkerRef.current = new google.maps.Marker({
+        map: map.current,
+        position: { lat: searchMarker.lat, lng: searchMarker.lng },
+        title: searchMarker.name,
+        icon: {
+          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+          scale: 6,
+          fillColor: '#10b981',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 2,
+          rotation: 180,
+        },
+        zIndex: 2000,
+        animation: google.maps.Animation.BOUNCE,
+      });
+
+      // Stop animation after 2 seconds
+      setTimeout(() => {
+        if (searchMarkerRef.current) {
+          searchMarkerRef.current.setAnimation(null);
+        }
+      }, 2000);
+    }
+
+    return () => {
+      if (searchMarkerRef.current) {
+        searchMarkerRef.current.setMap(null);
+      }
+    };
+  }, [searchMarker]);
 
   return (
     <>

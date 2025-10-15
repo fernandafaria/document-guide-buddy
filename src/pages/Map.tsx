@@ -7,6 +7,7 @@ import { MapControls } from "@/components/MapControls";
 import { MapLegend } from "@/components/MapLegend";
 import { MapFilters } from "@/components/MapFilters";
 import { CheckInConfirmDialog } from "@/components/CheckInConfirmDialog";
+import { PlaceSearch } from "@/components/PlaceSearch";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,6 +34,9 @@ const Map = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState("");
+  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const [searchMarker, setSearchMarker] = useState<{ lat: number; lng: number; name: string } | null>(null);
   const [filters, setFilters] = useState({
     bars: true,
     restaurants: true,
@@ -50,6 +54,21 @@ const Map = () => {
       });
     }
   }, [geoError]);
+
+  useEffect(() => {
+    // Fetch Google Maps API key
+    const fetchApiKey = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-google-maps-key');
+        if (error) throw error;
+        setGoogleMapsApiKey(data.apiKey);
+      } catch (error) {
+        console.error('Error fetching Google Maps API key:', error);
+      }
+    };
+    
+    fetchApiKey();
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -237,6 +256,16 @@ const Map = () => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
+  const handlePlaceSelect = (place: { lat: number; lng: number; name: string; address?: string }) => {
+    setMapCenter({ lat: place.lat, lng: place.lng });
+    setSearchMarker(place);
+    
+    // Clear marker after 5 seconds
+    setTimeout(() => {
+      setSearchMarker(null);
+    }, 5000);
+  };
+
   const filteredLocations = useMemo(() => {
     return locations.filter((location) => {
       // Search filter
@@ -270,20 +299,40 @@ const Map = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="px-6 py-4 bg-gradient-header shadow-elevated border-b-0 relative z-10">
-        <div className="flex items-center gap-4">
-          <h1 className="text-4xl font-bold text-white drop-shadow-lg">YO!</h1>
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/70 w-5 h-5" />
-            <Input
-              type="text"
-              placeholder="Buscar local..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12 bg-white/90 backdrop-blur-sm border-white/20 text-gray-dark placeholder:text-gray-medium focus:bg-white"
-            />
+      <div className="px-4 md:px-6 py-4 bg-gradient-header shadow-elevated border-b-0 relative z-10">
+        <div className="flex items-center gap-4 mb-3">
+          <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">YO!</h1>
+          <div className="flex gap-2 ml-auto">
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => navigate('/check-in-history')}
+              className="h-10 w-10 text-white hover:bg-white/20"
+            >
+              <History className="h-5 w-5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => {
+                supabase.auth.signOut();
+                navigate('/login');
+              }}
+              className="h-10 w-10 text-white hover:bg-white/20"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
           </div>
         </div>
+
+        {/* Place Search */}
+        {googleMapsApiKey && (
+          <PlaceSearch
+            onPlaceSelect={handlePlaceSelect}
+            googleMapsApiKey={googleMapsApiKey}
+          />
+        )}
+
         {isCheckedIn && (
           <div className="mt-3 flex items-center justify-between bg-white/20 backdrop-blur-sm p-3 rounded-lg border border-white/30">
             <span className="text-sm font-medium text-white flex items-center gap-2">
@@ -308,6 +357,8 @@ const Map = () => {
               locations={filteredLocations}
               userLocation={latitude && longitude ? { latitude, longitude } : null}
               onCheckIn={handleCheckInRequest}
+              center={mapCenter}
+              searchMarker={searchMarker}
             />
             
             <MapLegend />
