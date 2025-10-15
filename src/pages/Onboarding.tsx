@@ -31,12 +31,12 @@ const Onboarding = () => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      navigate("/signup-photos");
+      navigate("/map");
     }
   };
 
   const handleSkip = () => {
-    navigate("/signup-photos");
+    navigate("/map");
   };
 
   return (

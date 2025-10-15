@@ -156,7 +156,7 @@ const SignupPhotos = () => {
         description: "Bem-vindo ao YO!",
       });
 
-      navigate("/map");
+      navigate("/onboarding");
     } catch (error: any) {
       toast({
         title: "Erro ao criar conta",
