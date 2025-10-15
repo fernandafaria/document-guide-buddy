@@ -91,8 +91,10 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       if (!mapContainer.current || map.current || !apiInitialized) return;
 
       try {
-        console.log('Loading maps library...');
+        console.log('Loading maps and marker libraries...');
         const { Map } = await importLibrary('maps') as google.maps.MapsLibrary;
+        await importLibrary('marker');
+        console.log('Google Maps libraries loaded');
 
         console.log('Creating map instance...');
         map.current = new Map(mapContainer.current, {
