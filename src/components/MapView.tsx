@@ -1,3 +1,4 @@
+import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -33,9 +34,14 @@ function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
 }
 
 export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) => {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+
   const defaultCenter: [number, number] = userLocation 
     ? [userLocation.latitude, userLocation.longitude] 
     : [-23.5505, -46.6333]; // São Paulo as default
+
+  if (!mounted) return null;
 
   return (
     <MapContainer
