@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Mail } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,23 +18,28 @@ const Login = () => {
   const navigate = useNavigate();
   const { signIn, user } = useAuth();
   const { toast } = useToast();
+  const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const fromState = (location.state as { from?: string } | null)?.from;
+  const fromQuery = new URLSearchParams(location.search).get('from');
+  const redirectPath = fromState || fromQuery || '/map';
+
   useEffect(() => {
     if (user) {
-      navigate("/map");
+      navigate(redirectPath);
     }
-  }, [user, navigate]);
+  }, [user, navigate, redirectPath]);
 
   const handleGoogleLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/map`
+          redirectTo: `${window.location.origin}/login?from=${encodeURIComponent(redirectPath)}`
         }
       });
       
@@ -76,7 +81,7 @@ const Login = () => {
           title: "Login realizado!",
           description: "Bem-vindo de volta ao YO!",
         });
-        navigate("/map");
+        navigate(redirectPath);
       } else {
         navigate("/signup-info", { state: { email, password } });
       }
