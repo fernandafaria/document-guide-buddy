@@ -64,7 +64,7 @@ const Discovery = () => {
           <div
             key={user.id}
             onClick={() => navigate(`/profile/${user.id}`)}
-            className="bg-white rounded-2xl shadow-card p-4 flex gap-4 cursor-pointer hover:shadow-elevated transition-shadow"
+            className="bg-white rounded-2xl shadow-card p-4 flex gap-4 cursor-pointer hover:shadow-elevated transition-shadow relative"
           >
             {/* Photo */}
             <img

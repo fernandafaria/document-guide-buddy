@@ -12,6 +12,10 @@ import CheckInSuccess from "./pages/CheckInSuccess";
 import Discovery from "./pages/Discovery";
 import Matches from "./pages/Matches";
 import Profile from "./pages/Profile";
+import ProfileDetail from "./pages/ProfileDetail";
+import MatchScreen from "./pages/MatchScreen";
+import Chat from "./pages/Chat";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +33,10 @@ const App = () => (
           <Route path="/discovery" element={<Discovery />} />
           <Route path="/matches" element={<Matches />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:id" element={<ProfileDetail />} />
+          <Route path="/match" element={<MatchScreen />} />
+          <Route path="/chat/:id" element={<Chat />} />
+          <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
