@@ -48,6 +48,13 @@ const Profile = () => {
 
         if (error) throw error;
 
+        if (!data) {
+          // Perfil não existe, redirecionar para completar cadastro
+          console.log("Profile not found, redirecting to signup");
+          navigate("/signup-info");
+          return;
+        }
+
         setProfile(data as UserProfile);
       } catch (error: any) {
         console.error("Error fetching profile:", error);
