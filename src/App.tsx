@@ -16,6 +16,10 @@ import ProfileDetail from "./pages/ProfileDetail";
 import MatchScreen from "./pages/MatchScreen";
 import Chat from "./pages/Chat";
 import Settings from "./pages/Settings";
+import Onboarding from "./pages/Onboarding";
+import SignupPhotos from "./pages/SignupPhotos";
+import SignupInfo from "./pages/SignupInfo";
+import EmptyState from "./pages/EmptyState";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +32,9 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/signup-photos" element={<SignupPhotos />} />
+          <Route path="/signup-info" element={<SignupInfo />} />
           <Route path="/map" element={<Map />} />
           <Route path="/check-in-success" element={<CheckInSuccess />} />
           <Route path="/discovery" element={<Discovery />} />
@@ -37,6 +44,7 @@ const App = () => (
           <Route path="/match" element={<MatchScreen />} />
           <Route path="/chat/:id" element={<Chat />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/empty" element={<EmptyState />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
