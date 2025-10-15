@@ -104,8 +104,8 @@ Deno.serve(async (req) => {
       console.log(`Created new location ${location_id}`);
     }
 
-    // Update user's current check-in
-    const { error: profileError } = await supabaseClient
+    // Update user's current check-in; if profile doesn't exist, create it with safe defaults
+    const { data: updatedProfile, error: updateProfileError } = await supabaseClient
       .from('profiles')
       .update({
         current_check_in: {
@@ -116,11 +116,40 @@ Deno.serve(async (req) => {
           longitude: location.longitude,
         },
       })
-      .eq('id', user.id);
+      .eq('id', user.id)
+      .select('id')
+      .maybeSingle();
 
-    if (profileError) {
-      console.error('Error updating profile:', profileError);
-      throw profileError;
+    if (updateProfileError) {
+      console.error('Error updating profile:', updateProfileError);
+      throw updateProfileError;
+    }
+
+    if (!updatedProfile) {
+      console.log('Profile not found; creating a new one for user', user.id);
+      const { error: insertProfileError } = await supabaseClient
+        .from('profiles')
+        .insert({
+          id: user.id,
+          email: user.email ?? null,
+          phone_number: (user as any).phone ?? null,
+          name: (user.user_metadata as any)?.name ?? 'Novo Usuário',
+          gender: (user.user_metadata as any)?.gender ?? 'unspecified',
+          age: (user.user_metadata as any)?.age ?? 18,
+          intentions: (user.user_metadata as any)?.intentions ?? ['friendship'],
+          current_check_in: {
+            location_id: location.location_id,
+            location_name: name,
+            checked_in_at: new Date().toISOString(),
+            latitude: location.latitude,
+            longitude: location.longitude,
+          },
+        });
+
+      if (insertProfileError) {
+        console.error('Error creating missing profile:', insertProfileError);
+        throw insertProfileError;
+      }
     }
 
     console.log(`User ${user.id} checked in successfully`);
