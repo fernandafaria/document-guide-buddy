@@ -129,13 +129,16 @@ export const ProfileEditModal = ({ open, onOpenChange, profile, onSave }: Profil
       
       for (const photo of photos) {
         const fileExt = photo.name.split('.').pop();
-        const fileName = `${profile.id}-${Date.now()}.${fileExt}`;
+        const fileName = `${profile.id}/${Date.now()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from("profile-photos")
           .upload(fileName, photo);
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          throw uploadError;
+        }
         uploadedPhotoPaths.push(fileName);
       }
 
