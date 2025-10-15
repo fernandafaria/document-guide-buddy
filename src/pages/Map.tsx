@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, LogOut } from "lucide-react";
+import { Search, MapPin, LogOut, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapView } from "@/components/MapView";
@@ -290,6 +290,13 @@ const Map = () => {
         <button className="flex flex-col items-center gap-1 text-primary transition-transform hover:scale-110">
           <MapPin className="w-6 h-6" />
           <span className="text-xs font-medium">Mapa</span>
+        </button>
+        <button 
+          className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
+          onClick={() => navigate("/active-checkins")}
+        >
+          <Users className="w-6 h-6" />
+          <span className="text-xs font-medium">Check-ins</span>
         </button>
         <button 
           className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"

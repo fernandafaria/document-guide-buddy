@@ -6,6 +6,7 @@ import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
 import Login from "./pages/Login";
 import Map from "./pages/Map";
+import ActiveCheckIns from "./pages/ActiveCheckIns";
 import CheckInSuccess from "./pages/CheckInSuccess";
 import Discovery from "./pages/Discovery";
 import Matches from "./pages/Matches";
@@ -33,6 +34,7 @@ const App = () => (
         <Route path="/signup-photos" element={<SignupPhotos />} />
         <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
         <Route path="/map" element={<ProtectedRoute><Map /></ProtectedRoute>} />
+        <Route path="/active-checkins" element={<ProtectedRoute><ActiveCheckIns /></ProtectedRoute>} />
         <Route path="/check-in-success" element={<ProtectedRoute><CheckInSuccess /></ProtectedRoute>} />
         <Route path="/discovery" element={<ProtectedRoute><Discovery /></ProtectedRoute>} />
         <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
