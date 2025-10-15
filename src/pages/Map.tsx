@@ -3,6 +3,7 @@ import { Search, MapPin, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapView } from "@/components/MapView";
+import { CheckInConfirmDialog } from "@/components/CheckInConfirmDialog";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +19,7 @@ interface Location {
   longitude: number;
   active_users_count: number;
   distance?: number;
+  type?: string;
 }
 
 const Map = () => {
@@ -139,8 +141,17 @@ const Map = () => {
     }
   };
 
-  const handleCheckIn = async (location: Location) => {
-    if (!latitude || !longitude) {
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [selectedLocationForCheckIn, setSelectedLocationForCheckIn] = useState<Location | null>(null);
+  const [checkingIn, setCheckingIn] = useState(false);
+
+  const handleCheckInRequest = (location: Location) => {
+    setSelectedLocationForCheckIn(location);
+    setConfirmDialogOpen(true);
+  };
+
+  const handleCheckInConfirm = async () => {
+    if (!selectedLocationForCheckIn || !latitude || !longitude) {
       toast({
         title: "Erro",
         description: "Localização não disponível",
@@ -150,24 +161,30 @@ const Map = () => {
     }
 
     try {
+      setCheckingIn(true);
       const { data, error } = await supabase.functions.invoke('check-in', {
         body: {
-          latitude: location.latitude,
-          longitude: location.longitude,
-          name: location.name,
-          address: location.address,
+          latitude: selectedLocationForCheckIn.latitude,
+          longitude: selectedLocationForCheckIn.longitude,
+          name: selectedLocationForCheckIn.name,
+          address: selectedLocationForCheckIn.address,
         },
       });
 
       if (error) throw error;
 
       toast({
-        title: "Check-in realizado!",
-        description: `Você fez check-in em ${location.name}`,
+        title: "✨ Check-in realizado!",
+        description: `Você está em ${selectedLocationForCheckIn.name}`,
       });
 
       setIsCheckedIn(true);
-      navigate("/check-in-success");
+      setConfirmDialogOpen(false);
+      
+      // Small delay for better UX
+      setTimeout(() => {
+        navigate("/check-in-success");
+      }, 300);
     } catch (error) {
       console.error('Error checking in:', error);
       toast({
@@ -175,6 +192,8 @@ const Map = () => {
         description: "Não foi possível fazer check-in. Tente novamente.",
         variant: "destructive",
       });
+    } finally {
+      setCheckingIn(false);
     }
   };
 
@@ -245,7 +264,21 @@ const Map = () => {
           <MapView
             locations={filteredLocations}
             userLocation={latitude && longitude ? { latitude, longitude } : null}
-            onCheckIn={handleCheckIn}
+            onCheckIn={handleCheckInRequest}
+          />
+        )}
+        
+        {/* Check-in Confirmation Dialog */}
+        {selectedLocationForCheckIn && (
+          <CheckInConfirmDialog
+            open={confirmDialogOpen}
+            onOpenChange={setConfirmDialogOpen}
+            onConfirm={handleCheckInConfirm}
+            locationName={selectedLocationForCheckIn.name}
+            locationAddress={selectedLocationForCheckIn.address}
+            activeUsersCount={selectedLocationForCheckIn.active_users_count}
+            locationType={selectedLocationForCheckIn.type}
+            isLoading={checkingIn}
           />
         )}
       </div>
