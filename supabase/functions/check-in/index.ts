@@ -109,9 +109,11 @@ Deno.serve(async (req) => {
       .from('profiles')
       .update({
         current_check_in: {
-          location_id: location.id,
+          location_id: location.location_id,
           location_name: name,
           checked_in_at: new Date().toISOString(),
+          latitude: location.latitude,
+          longitude: location.longitude,
         },
       })
       .eq('id', user.id);

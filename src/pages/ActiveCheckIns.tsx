@@ -75,16 +75,18 @@ const ActiveCheckIns = () => {
           const checkInData = profile.current_check_in as any;
           return {
             id: `${profile.id}-${checkInData.location_id}`,
-            location_id: checkInData.location_id,
-            location_name: checkInData.location_name,
+            location_id: checkInData.location_id || '',
+            location_name: checkInData.location_name || 'Local desconhecido',
             user_id: profile.id,
-            user_name: profile.name,
+            user_name: profile.name || 'Usuário',
             user_photo: profile.photos?.[0] || null,
-            checked_in_at: checkInData.checked_in_at,
-            latitude: checkInData.latitude,
-            longitude: checkInData.longitude,
+            checked_in_at: checkInData.checked_in_at || new Date().toISOString(),
+            latitude: checkInData.latitude || 0,
+            longitude: checkInData.longitude || 0,
           };
         }) || [];
+
+      console.log('Active check-ins loaded:', activeCheckIns.length);
 
       setCheckIns(activeCheckIns);
     } catch (error: any) {
