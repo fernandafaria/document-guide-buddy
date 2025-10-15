@@ -109,7 +109,15 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: true,
-          gestureHandling: 'greedy'
+          gestureHandling: 'greedy',
+          clickableIcons: false, // Disable native POI clicks
+          styles: [
+            {
+              featureType: 'poi',
+              elementType: 'labels',
+              stylers: [{ visibility: 'off' }]
+            }
+          ]
         });
 
         setIsLoading(false);
@@ -184,7 +192,8 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       map: map.current,
       position: { lat: userLocation.latitude, lng: userLocation.longitude },
       content: el,
-      title: 'Você está aqui'
+      title: 'Você está aqui',
+      zIndex: 1000
     });
 
     // Create InfoWindow for user location
@@ -198,7 +207,8 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       `
     });
 
-    el.addEventListener('click', () => {
+    // Use Google Maps event listener for marker click
+    userMarker.addListener('click', () => {
       infoWindow.open(map.current, userMarker);
     });
 
@@ -469,10 +479,13 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
         map: map.current,
         position: { lat: location.latitude, lng: location.longitude },
         content: el,
-        title: location.name
+        title: location.name,
+        zIndex: isPOI ? 900 : 1000 // User locations have higher priority
       });
 
-      el.addEventListener('click', () => {
+      // Use Google Maps event listener for marker click
+      marker.addListener('click', () => {
+        console.log('Marker clicked:', location.name);
         infoWindow.open(map.current, marker);
       });
 
