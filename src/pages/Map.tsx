@@ -209,24 +209,27 @@ const Map = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="px-6 py-4 bg-background shadow-sm border-b">
+      <div className="px-6 py-4 bg-gradient-header shadow-elevated border-b-0 relative z-10">
         <div className="flex items-center gap-4">
-          <h1 className="text-4xl font-bold">YO!</h1>
+          <h1 className="text-4xl font-bold text-white drop-shadow-lg">YO!</h1>
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/70 w-5 h-5" />
             <Input
               type="text"
               placeholder="Buscar local..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12"
+              className="pl-10 h-12 bg-white/90 backdrop-blur-sm border-white/20 text-gray-dark placeholder:text-gray-medium focus:bg-white"
             />
           </div>
         </div>
         {isCheckedIn && (
-          <div className="mt-3 flex items-center justify-between bg-primary/10 p-3 rounded-lg">
-            <span className="text-sm font-medium">Você está com check-in ativo</span>
-            <Button onClick={handleCheckOut} variant="outline" size="sm">
+          <div className="mt-3 flex items-center justify-between bg-white/20 backdrop-blur-sm p-3 rounded-lg border border-white/30">
+            <span className="text-sm font-medium text-white flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-mint-green animate-pulse-soft"></span>
+              Check-in ativo
+            </span>
+            <Button onClick={handleCheckOut} variant="secondary" size="sm" className="shadow-button">
               <LogOut className="mr-2 h-4 w-4" />
               Check-out
             </Button>
@@ -248,20 +251,20 @@ const Map = () => {
       </div>
 
       {/* Tab Bar */}
-      <div className="h-16 bg-background border-t flex items-center justify-around px-6">
-        <button className="flex flex-col items-center gap-1 text-primary">
+      <div className="h-16 bg-background border-t shadow-card flex items-center justify-around px-6">
+        <button className="flex flex-col items-center gap-1 text-primary transition-transform hover:scale-110">
           <MapPin className="w-6 h-6" />
           <span className="text-xs font-medium">Mapa</span>
         </button>
         <button 
-          className="flex flex-col items-center gap-1 text-muted-foreground"
+          className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
           onClick={() => navigate("/matches")}
         >
           <span className="text-2xl">❤️</span>
           <span className="text-xs font-medium">Matches</span>
         </button>
         <button 
-          className="flex flex-col items-center gap-1 text-muted-foreground"
+          className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
           onClick={() => navigate("/profile")}
         >
           <span className="text-2xl">👤</span>

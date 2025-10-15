@@ -95,21 +95,41 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
 
     const el = document.createElement('div');
     el.className = 'user-location-marker';
-    el.style.width = '24px';
-    el.style.height = '24px';
-    el.style.borderRadius = '50%';
-    el.style.backgroundColor = 'hsl(var(--primary))';
-    el.style.border = '3px solid white';
-    el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
-    el.style.cursor = 'pointer';
+    el.style.cssText = `
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, hsl(var(--turquoise)), hsl(var(--mint-green)));
+      border: 3px solid white;
+      box-shadow: 0 4px 16px rgba(78, 205, 196, 0.4);
+      cursor: pointer;
+      position: relative;
+      animation: pulse-soft 2s ease-in-out infinite;
+    `;
+    
+    // Add inner dot
+    const innerDot = document.createElement('div');
+    innerDot.style.cssText = `
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: white;
+    `;
+    el.appendChild(innerDot);
 
     const userMarker = new maplibregl.Marker({ element: el })
       .setLngLat([userLocation.longitude, userLocation.latitude])
       .setPopup(
-        new maplibregl.Popup({ offset: 25 })
+        new maplibregl.Popup({ offset: 30, closeButton: false })
           .setHTML(`
-            <div class="p-2 text-center">
-              <p class="font-semibold text-sm">Você está aqui</p>
+            <div class="p-4 text-center">
+              <div class="text-3xl mb-2">📍</div>
+              <p class="font-semibold text-base text-gray-dark">Você está aqui</p>
+              <p class="text-xs text-gray-medium mt-1">Sua localização atual</p>
             </div>
           `)
       )
@@ -138,81 +158,198 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       const el = document.createElement('div');
       el.className = 'location-marker';
       
-      // Determine marker style based on type
       const isPOI = location.type && location.type !== 'user_location';
       const isBar = location.type === 'bar' || location.type === 'pub' || location.type === 'nightclub';
       const isRestaurant = location.type === 'restaurant' || location.type === 'cafe';
       
-      el.style.width = isPOI ? '28px' : '32px';
-      el.style.height = isPOI ? '28px' : '32px';
-      el.style.borderRadius = '50%';
-      el.style.border = '2px solid white';
-      el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.4)';
-      el.style.cursor = 'pointer';
-      el.style.display = 'flex';
-      el.style.alignItems = 'center';
-      el.style.justifyContent = 'center';
-      el.style.fontSize = isPOI ? '16px' : '12px';
-      
       if (isPOI) {
-        // POI markers with emoji
+        // POI markers with modern design
+        el.style.cssText = `
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: white;
+          border: 3px solid hsl(var(--primary));
+          box-shadow: var(--shadow-marker);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 22px;
+          transition: var(--transition-smooth);
+        `;
+        
         if (isBar) {
           el.textContent = '🍺';
+          el.style.borderColor = 'hsl(var(--lavender))';
         } else if (isRestaurant) {
           el.textContent = '🍽️';
+          el.style.borderColor = 'hsl(var(--turquoise))';
         } else if (location.type === 'park') {
           el.textContent = '🌳';
+          el.style.borderColor = 'hsl(var(--mint-green))';
         } else if (location.type === 'sports_centre') {
           el.textContent = '⚽';
+          el.style.borderColor = 'hsl(var(--yellow-soft))';
         } else {
           el.textContent = '📍';
         }
-        el.style.backgroundColor = 'white';
+        
+        el.addEventListener('mouseenter', () => {
+          el.style.transform = 'scale(1.15)';
+          el.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.25)';
+        });
+        el.addEventListener('mouseleave', () => {
+          el.style.transform = 'scale(1)';
+          el.style.boxShadow = 'var(--shadow-marker)';
+        });
       } else {
-        // User location markers
-        el.style.backgroundColor = 'hsl(var(--destructive))';
-        el.style.color = 'white';
-        el.style.fontWeight = 'bold';
+        // User location markers with gradient
+        el.style.cssText = `
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, hsl(var(--coral-vibrant)), hsl(var(--pink-deep)));
+          border: 3px solid white;
+          box-shadow: var(--shadow-elevated);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: bold;
+          font-size: 16px;
+          transition: var(--transition-smooth);
+          animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        `;
         el.textContent = location.active_users_count.toString();
+        
+        el.addEventListener('mouseenter', () => {
+          el.style.transform = 'scale(1.15)';
+          el.style.boxShadow = '0 8px 32px rgba(255, 87, 34, 0.4)';
+        });
+        el.addEventListener('mouseleave', () => {
+          el.style.transform = 'scale(1)';
+          el.style.boxShadow = 'var(--shadow-elevated)';
+        });
       }
 
       const popupContent = document.createElement('div');
-      popupContent.className = 'p-2 min-w-[200px]';
+      popupContent.className = 'overflow-hidden';
       
-      let popupHTML = `
-        <h3 class="font-bold text-base mb-1">${location.name}</h3>
-        ${location.address ? `<p class="text-sm text-gray-600 mb-1">${location.address}</p>` : ''}
-      `;
+      let popupHTML = '';
       
       if (isPOI) {
-        // POI info
-        if (location.cuisine) {
-          popupHTML += `<p class="text-sm text-gray-600 mb-1">🍴 ${location.cuisine}</p>`;
+        // POI popup with beautiful design
+        let categoryColor = 'hsl(var(--primary))';
+        let categoryIcon = '📍';
+        let categoryName = 'Local';
+        
+        if (isBar) {
+          categoryColor = 'hsl(var(--lavender))';
+          categoryIcon = '🍺';
+          categoryName = 'Bar/Pub';
+        } else if (isRestaurant) {
+          categoryColor = 'hsl(var(--turquoise))';
+          categoryIcon = '🍽️';
+          categoryName = 'Restaurante';
+        } else if (location.type === 'park') {
+          categoryColor = 'hsl(var(--mint-green))';
+          categoryIcon = '🌳';
+          categoryName = 'Parque';
+        } else if (location.type === 'sports_centre') {
+          categoryColor = 'hsl(var(--yellow-soft))';
+          categoryIcon = '⚽';
+          categoryName = 'Centro Esportivo';
         }
-        if (location.opening_hours) {
-          popupHTML += `<p class="text-sm text-gray-600 mb-2">🕐 ${location.opening_hours}</p>`;
-        }
-        popupHTML += `<p class="text-sm text-gray-500 mb-3">📍 Ponto de interesse</p>`;
+        
+        popupHTML = `
+          <div class="p-5">
+            <div class="flex items-start gap-3 mb-3">
+              <div class="text-4xl">${categoryIcon}</div>
+              <div class="flex-1">
+                <h3 class="font-bold text-lg text-gray-dark mb-1">${location.name}</h3>
+                <span class="inline-block px-2 py-1 text-xs font-medium rounded-full" 
+                      style="background: ${categoryColor}20; color: ${categoryColor};">
+                  ${categoryName}
+                </span>
+              </div>
+            </div>
+            ${location.address ? `
+              <div class="flex items-center gap-2 text-sm text-gray-medium mb-2">
+                <span>📍</span>
+                <span>${location.address}</span>
+              </div>
+            ` : ''}
+            ${location.cuisine ? `
+              <div class="flex items-center gap-2 text-sm text-gray-medium mb-2">
+                <span>🍴</span>
+                <span>${location.cuisine}</span>
+              </div>
+            ` : ''}
+            ${location.opening_hours ? `
+              <div class="flex items-center gap-2 text-sm text-gray-medium mb-3">
+                <span>🕐</span>
+                <span class="text-xs">${location.opening_hours}</span>
+              </div>
+            ` : ''}
+          </div>
+        `;
       } else {
-        // User location info
-        popupHTML += `
-          <p class="text-sm mb-3">
-            👋 <span class="font-semibold">${location.active_users_count}</span> ${location.active_users_count === 1 ? 'pessoa ativa' : 'pessoas ativas'}
-          </p>
+        // User location popup with vibrant design
+        popupHTML = `
+          <div class="p-5">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="flex items-center justify-center w-12 h-12 rounded-full text-2xl"
+                   style="background: linear-gradient(135deg, hsl(var(--coral-vibrant)), hsl(var(--pink-deep)));">
+                👋
+              </div>
+              <div class="flex-1">
+                <h3 class="font-bold text-lg text-gray-dark mb-1">${location.name}</h3>
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center gap-1 px-2 py-1 text-sm font-semibold rounded-full bg-gradient-primary text-white">
+                    <span>${location.active_users_count}</span>
+                    <span>${location.active_users_count === 1 ? 'pessoa' : 'pessoas'}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            ${location.address ? `
+              <div class="flex items-center gap-2 text-sm text-gray-medium mb-3">
+                <span>📍</span>
+                <span>${location.address}</span>
+              </div>
+            ` : ''}
+          </div>
         `;
       }
       
       popupContent.innerHTML = popupHTML;
 
       const button = document.createElement('button');
-      button.className = 'w-full inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90';
+      button.className = 'w-full flex items-center justify-center gap-2 px-5 py-4 text-base font-semibold transition-all border-t';
+      button.style.cssText = `
+        background: linear-gradient(135deg, hsl(var(--coral-vibrant)), hsl(var(--pink-deep)));
+        color: white;
+        border: none;
+      `;
       button.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
           <circle cx="12" cy="10" r="3"></circle>
         </svg>
-        Check-in
+        <span>Fazer Check-in</span>
       `;
+      
+      button.addEventListener('mouseenter', () => {
+        button.style.transform = 'scale(1.02)';
+        button.style.boxShadow = '0 4px 12px rgba(255, 87, 34, 0.3)';
+      });
+      button.addEventListener('mouseleave', () => {
+        button.style.transform = 'scale(1)';
+        button.style.boxShadow = 'none';
+      });
+      
       button.onclick = () => onCheckIn(location);
       
       popupContent.appendChild(button);
@@ -220,7 +357,13 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([location.longitude, location.latitude])
         .setPopup(
-          new maplibregl.Popup({ offset: 25 })
+          new maplibregl.Popup({ 
+            offset: 30,
+            maxWidth: '320px',
+            closeButton: true,
+            closeOnClick: false,
+            className: 'modern-popup'
+          })
             .setDOMContent(popupContent)
         )
         .addTo(map.current);

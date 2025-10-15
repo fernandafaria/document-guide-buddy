@@ -74,10 +74,49 @@ All colors MUST be HSL.
     --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
     --shadow-elevated: 0 8px 24px rgba(255, 87, 34, 0.2);
     --shadow-button: 0 4px 12px rgba(255, 87, 34, 0.25);
+    --shadow-marker: 0 4px 16px rgba(0, 0, 0, 0.15);
     
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
+}
+
+/* MapLibre custom styles */
+.maplibregl-popup {
+  max-width: 280px !important;
+}
+
+.maplibregl-popup-content {
+  border-radius: 1rem !important;
+  padding: 0 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  overflow: hidden !important;
+}
+
+.maplibregl-popup-close-button {
+  width: 32px;
+  height: 32px;
+  font-size: 24px;
+  color: hsl(var(--gray-dark));
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  right: 8px;
+  top: 8px;
+  background: hsl(var(--white));
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: var(--transition-smooth);
+}
+
+.maplibregl-popup-close-button:hover {
+  background: hsl(var(--gray-light));
+  transform: scale(1.1);
+}
+
+.maplibregl-popup-tip {
+  display: none !important;
 }
 
 @layer base {
