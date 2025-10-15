@@ -1,15 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Loader } from '@googlemaps/js-api-loader';
+import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import { LocationUsersSheet } from './LocationUsersSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-// Extend Loader type to include load method
-declare module '@googlemaps/js-api-loader' {
-  interface Loader {
-    load(): Promise<typeof google>;
-  }
-}
 
 interface Location {
   id: string;
@@ -36,16 +29,17 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
   const [selectedLocation, setSelectedLocation] = useState<{ id: string; name: string } | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [apiInitialized, setApiInitialized] = useState(false);
   const { toast } = useToast();
 
   const defaultCenter: google.maps.LatLngLiteral = userLocation 
     ? { lat: userLocation.latitude, lng: userLocation.longitude }
     : { lat: -23.5505, lng: -46.6333 }; // São Paulo as default
 
-  // Initialize Google Maps
+  // Initialize Google Maps API
   useEffect(() => {
-    const initMap = async () => {
-      if (!mapContainer.current || map.current) return;
+    const initApi = async () => {
+      if (apiInitialized) return;
 
       try {
         console.log('Fetching Google Maps API key...');
@@ -58,29 +52,51 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
             description: "Não foi possível obter a chave da API do Google Maps",
             variant: "destructive"
           });
+          setIsLoading(false);
           return;
         }
 
         const apiKey = data?.apiKey;
         if (!apiKey) {
           console.error('No API key returned');
+          setIsLoading(false);
           return;
         }
 
-        console.log('Loading Google Maps API...');
-        const loader = new Loader({
-          apiKey: apiKey,
-          version: 'weekly',
-          libraries: ['marker']
+        console.log('Setting Google Maps options...');
+        setOptions({ 
+          key: apiKey,
+          v: 'weekly'
         });
 
-        // Load the Google Maps API
-        const google = await loader.load();
+        setApiInitialized(true);
+        console.log('Google Maps API initialized');
+      } catch (error) {
+        console.error('Error initializing Google Maps API:', error);
+        toast({
+          title: "Erro ao carregar mapa",
+          description: "Ocorreu um erro ao inicializar o Google Maps",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+      }
+    };
 
-        // Access Map and AdvancedMarkerElement
-        const { Map } = google.maps;
-        const { AdvancedMarkerElement } = google.maps.marker;
+    initApi();
+  }, [apiInitialized, toast]);
 
+  // Create map instance
+  useEffect(() => {
+    const initMap = async () => {
+      if (!mapContainer.current || map.current || !apiInitialized) return;
+
+      try {
+        console.log('Loading maps library...');
+        const { Map } = await importLibrary('maps') as google.maps.MapsLibrary;
+        
+        console.log('Loading marker library...');
+        const { AdvancedMarkerElement } = await importLibrary('marker') as google.maps.MarkerLibrary;
+        
         // Store AdvancedMarkerElement in window for later use
         (window as any).AdvancedMarkerElement = AdvancedMarkerElement;
 
@@ -97,12 +113,12 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
         });
 
         setIsLoading(false);
-        console.log('Google Maps initialized successfully');
+        console.log('Google Maps created successfully');
       } catch (error) {
-        console.error('Error initializing Google Maps:', error);
+        console.error('Error creating map:', error);
         toast({
-          title: "Erro ao carregar mapa",
-          description: "Ocorreu um erro ao inicializar o Google Maps",
+          title: "Erro ao criar mapa",
+          description: "Ocorreu um erro ao criar a instância do mapa",
           variant: "destructive"
         });
         setIsLoading(false);
@@ -119,7 +135,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       markers.current = [];
       map.current = null;
     };
-  }, []);
+  }, [apiInitialized, defaultCenter, toast]);
 
   // Update map center when user location changes
   useEffect(() => {
