@@ -146,8 +146,10 @@ const Map = () => {
   const [checkingIn, setCheckingIn] = useState(false);
 
   const handleCheckInRequest = (location: Location) => {
+    console.log('handleCheckInRequest called with location:', location);
     setSelectedLocationForCheckIn(location);
     setConfirmDialogOpen(true);
+    console.log('Dialog should open now');
   };
 
   const handleCheckInConfirm = async () => {

@@ -398,7 +398,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       popupContent.innerHTML = popupHTML;
 
       const button = document.createElement('button');
-      button.className = 'w-full flex items-center justify-center gap-2 px-5 py-4 text-base font-semibold transition-all border-t hover:opacity-90';
+      button.className = 'checkin-button w-full flex items-center justify-center gap-2 px-5 py-4 text-base font-semibold transition-all border-t hover:opacity-90';
       button.style.cssText = `
         background: linear-gradient(135deg, hsl(var(--coral-vibrant)), hsl(var(--pink-deep)));
         color: white;
@@ -412,13 +412,6 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
         </svg>
         <span>Fazer Check-in</span>
       `;
-      
-      button.onclick = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onCheckIn(location);
-        infoWindow.close();
-      };
       
       popupContent.appendChild(button);
 
@@ -456,6 +449,20 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       const infoWindow = new google.maps.InfoWindow({
         content: popupContent,
         maxWidth: 320
+      });
+
+      // Add event listener after InfoWindow is created
+      google.maps.event.addListener(infoWindow, 'domready', () => {
+        const checkinBtn = popupContent.querySelector('.checkin-button');
+        if (checkinBtn) {
+          checkinBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Check-in button clicked (via domready) for:', location.name);
+            onCheckIn(location);
+            infoWindow.close();
+          });
+        }
       });
 
       const marker = new AdvancedMarkerElement({
