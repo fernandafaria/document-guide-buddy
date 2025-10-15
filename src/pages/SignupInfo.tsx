@@ -55,7 +55,10 @@ const SignupInfo = () => {
   };
 
   const handleContinue = () => {
+    console.log("handleContinue called", { email, password, formData });
+    
     if (!email || !password) {
+      console.error("Missing email or password");
       toast({
         title: "Erro",
         description: "Dados de autenticação não encontrados",
@@ -66,6 +69,12 @@ const SignupInfo = () => {
     }
 
     if (!formData.name || !formData.age || !formData.gender || formData.intentions.length === 0) {
+      console.error("Validation failed", {
+        name: formData.name,
+        age: formData.age,
+        gender: formData.gender,
+        intentions: formData.intentions
+      });
       toast({
         title: "Preencha todos os campos obrigatórios",
         description: "Nome, idade, gênero e pelo menos uma intenção são necessários",
@@ -74,6 +83,7 @@ const SignupInfo = () => {
       return;
     }
     
+    console.log("Navigating to signup-photos");
     navigate("/signup-photos", { 
       state: { 
         email, 
