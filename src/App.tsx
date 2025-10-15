@@ -1,6 +1,3 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -27,32 +24,28 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup-info" element={<SignupInfo />} />
-          <Route path="/signup-interests" element={<SignupInterests />} />
-          <Route path="/signup-photos" element={<SignupPhotos />} />
-          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-          <Route path="/map" element={<ProtectedRoute><Map /></ProtectedRoute>} />
-          <Route path="/check-in-success" element={<ProtectedRoute><CheckInSuccess /></ProtectedRoute>} />
-          <Route path="/discovery" element={<ProtectedRoute><Discovery /></ProtectedRoute>} />
-          <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/profile/:id" element={<ProtectedRoute><ProfileDetail /></ProtectedRoute>} />
-          <Route path="/match" element={<ProtectedRoute><MatchScreen /></ProtectedRoute>} />
-          <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          <Route path="/empty" element={<ProtectedRoute><EmptyState /></ProtectedRoute>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup-info" element={<SignupInfo />} />
+        <Route path="/signup-interests" element={<SignupInterests />} />
+        <Route path="/signup-photos" element={<SignupPhotos />} />
+        <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+        <Route path="/map" element={<ProtectedRoute><Map /></ProtectedRoute>} />
+        <Route path="/check-in-success" element={<ProtectedRoute><CheckInSuccess /></ProtectedRoute>} />
+        <Route path="/discovery" element={<ProtectedRoute><Discovery /></ProtectedRoute>} />
+        <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/profile/:id" element={<ProtectedRoute><ProfileDetail /></ProtectedRoute>} />
+        <Route path="/match" element={<ProtectedRoute><MatchScreen /></ProtectedRoute>} />
+        <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/empty" element={<ProtectedRoute><EmptyState /></ProtectedRoute>} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
