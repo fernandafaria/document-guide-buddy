@@ -54,8 +54,16 @@ const ProfileDetail = () => {
     navigate("/match");
   };
 
+  const getPhotoUrl = (photoPath: string) => {
+    if (!photoPath) return '';
+    const { data } = supabase.storage
+      .from('profile-photos')
+      .getPublicUrl(photoPath);
+    return data.publicUrl;
+  };
+
   const photos = profile?.photos && profile.photos.length > 0
-    ? profile.photos
+    ? profile.photos.map(getPhotoUrl)
     : [
         `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(
           profile?.name || "User"
