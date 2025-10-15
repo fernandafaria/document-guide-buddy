@@ -25,7 +25,7 @@ interface MapViewProps {
 export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
-  const markers = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const markers = useRef<google.maps.Marker[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<{ id: string; name: string } | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,18 +93,11 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       try {
         console.log('Loading maps library...');
         const { Map } = await importLibrary('maps') as google.maps.MapsLibrary;
-        
-        console.log('Loading marker library...');
-        const { AdvancedMarkerElement } = await importLibrary('marker') as google.maps.MarkerLibrary;
-        
-        // Store AdvancedMarkerElement in window for later use
-        (window as any).AdvancedMarkerElement = AdvancedMarkerElement;
 
         console.log('Creating map instance...');
         map.current = new Map(mapContainer.current, {
           center: defaultCenter,
           zoom: 13,
-          mapId: 'YO_MAP', // Required for AdvancedMarkerElement
           zoomControl: true,
           mapTypeControl: false,
           streetViewControl: false,
@@ -114,8 +107,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
           styles: [
             {
               featureType: 'poi',
-              elementType: 'labels',
-              stylers: [{ visibility: 'off' }]
+              stylers: [{ visibility: 'off' }] // Hide all POIs
             }
           ]
         });
@@ -138,7 +130,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
     return () => {
       // Clean up markers
       markers.current.forEach(marker => {
-        marker.map = null;
+        marker.setMap(null);
       });
       markers.current = [];
       map.current = null;
@@ -157,43 +149,23 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
   useEffect(() => {
     if (!map.current || !userLocation || isLoading) return;
 
-    const AdvancedMarkerElement = (window as any).AdvancedMarkerElement;
-    if (!AdvancedMarkerElement) return;
+    console.log('Creating user location marker...');
 
-    const el = document.createElement('div');
-    el.className = 'user-location-marker';
-    el.style.cssText = `
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, hsl(var(--turquoise)), hsl(var(--mint-green)));
-      border: 3px solid white;
-      box-shadow: 0 4px 16px rgba(78, 205, 196, 0.4);
-      cursor: pointer;
-      position: relative;
-      animation: pulse-soft 2s ease-in-out infinite;
-    `;
-    
-    // Add inner dot
-    const innerDot = document.createElement('div');
-    innerDot.style.cssText = `
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: white;
-    `;
-    el.appendChild(innerDot);
-
-    const userMarker = new AdvancedMarkerElement({
+    // Create user marker with custom icon
+    const userMarker = new google.maps.Marker({
       map: map.current,
       position: { lat: userLocation.latitude, lng: userLocation.longitude },
-      content: el,
       title: 'Você está aqui',
-      zIndex: 1000
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 12,
+        fillColor: '#4ECDC4',
+        fillOpacity: 1,
+        strokeColor: '#ffffff',
+        strokeWeight: 3
+      },
+      zIndex: 1000,
+      animation: google.maps.Animation.DROP
     });
 
     // Create InfoWindow for user location
@@ -207,15 +179,16 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       `
     });
 
-    // Use Google Maps event listener for marker click
+    // Add click listener to marker
     userMarker.addListener('click', () => {
+      console.log('User marker clicked');
       infoWindow.open(map.current, userMarker);
     });
 
     markers.current.push(userMarker);
 
     return () => {
-      userMarker.map = null;
+      userMarker.setMap(null);
     };
   }, [userLocation, isLoading]);
 
@@ -223,96 +196,63 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
   useEffect(() => {
     if (!map.current || locations.length === 0 || isLoading) return;
 
-    const AdvancedMarkerElement = (window as any).AdvancedMarkerElement;
-    if (!AdvancedMarkerElement) return;
+    console.log(`Creating ${locations.length} location markers...`);
 
     // Clear existing location markers (keep user marker)
     const userMarkerCount = userLocation ? 1 : 0;
     while (markers.current.length > userMarkerCount) {
       const marker = markers.current.pop();
-      if (marker) marker.map = null;
+      if (marker) marker.setMap(null);
     }
 
-    locations.forEach((location) => {
+    locations.forEach((location, index) => {
       if (!map.current) return;
-
-      const el = document.createElement('div');
-      el.className = 'location-marker';
       
       const isPOI = location.type && location.type !== 'user_location';
       const isBar = location.type === 'bar' || location.type === 'pub' || location.type === 'nightclub';
       const isRestaurant = location.type === 'restaurant' || location.type === 'cafe';
       
+      // Determine icon/label for marker
+      let markerIcon;
+      let markerLabel;
+      
       if (isPOI) {
-        // POI markers with modern design
-        el.style.cssText = `
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
-          background: white;
-          border: 3px solid hsl(var(--primary));
-          box-shadow: var(--shadow-marker);
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 22px;
-          transition: var(--transition-smooth);
-        `;
+        // POI markers with emoji labels
+        let emoji = '📍';
+        if (isBar) emoji = '🍺';
+        else if (isRestaurant) emoji = '🍽️';
+        else if (location.type === 'park') emoji = '🌳';
+        else if (location.type === 'sports_centre') emoji = '⚽';
         
-        if (isBar) {
-          el.textContent = '🍺';
-          el.style.borderColor = 'hsl(var(--lavender))';
-        } else if (isRestaurant) {
-          el.textContent = '🍽️';
-          el.style.borderColor = 'hsl(var(--turquoise))';
-        } else if (location.type === 'park') {
-          el.textContent = '🌳';
-          el.style.borderColor = 'hsl(var(--mint-green))';
-        } else if (location.type === 'sports_centre') {
-          el.textContent = '⚽';
-          el.style.borderColor = 'hsl(var(--yellow-soft))';
-        } else {
-          el.textContent = '📍';
-        }
-        
-        el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.15)';
-          el.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.25)';
-        });
-        el.addEventListener('mouseleave', () => {
-          el.style.transform = 'scale(1)';
-          el.style.boxShadow = 'var(--shadow-marker)';
-        });
+        markerLabel = {
+          text: emoji,
+          fontSize: '24px',
+          fontFamily: 'Arial'
+        };
+        markerIcon = {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 20,
+          fillColor: '#ffffff',
+          fillOpacity: 1,
+          strokeColor: '#9b87f5',
+          strokeWeight: 3
+        };
       } else {
-        // User location markers with gradient
-        el.style.cssText = `
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, hsl(var(--coral-vibrant)), hsl(var(--pink-deep)));
-          border: 3px solid white;
-          box-shadow: var(--shadow-elevated);
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: bold;
-          font-size: 16px;
-          transition: var(--transition-smooth);
-          animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        `;
-        el.textContent = location.active_users_count.toString();
-        
-        el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.15)';
-          el.style.boxShadow = '0 8px 32px rgba(255, 87, 34, 0.4)';
-        });
-        el.addEventListener('mouseleave', () => {
-          el.style.transform = 'scale(1)';
-          el.style.boxShadow = 'var(--shadow-elevated)';
-        });
+        // User location markers with count
+        markerLabel = {
+          text: location.active_users_count.toString(),
+          color: '#ffffff',
+          fontSize: '16px',
+          fontWeight: 'bold'
+        };
+        markerIcon = {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 22,
+          fillColor: '#FF5722',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 3
+        };
       }
 
       const popupContent = document.createElement('div');
@@ -428,7 +368,7 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
       // Add "Ver Pessoas" button if there are active users
       if (location.active_users_count && location.active_users_count > 0) {
         const viewUsersButton = document.createElement('button');
-        viewUsersButton.className = 'w-full flex items-center justify-center gap-2 px-5 py-4 text-base font-semibold transition-all border-t hover:opacity-90';
+        viewUsersButton.className = 'view-users-button w-full flex items-center justify-center gap-2 px-5 py-4 text-base font-semibold transition-all border-t hover:opacity-90';
         viewUsersButton.style.cssText = `
           background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
           color: white;
@@ -445,14 +385,6 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
           <span>Ver ${location.active_users_count} ${location.active_users_count === 1 ? 'Pessoa' : 'Pessoas'}</span>
         `;
         
-        viewUsersButton.onclick = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setSelectedLocation({ id: location.id, name: location.name });
-          setSheetOpen(true);
-          infoWindow.close();
-        };
-        
         popupContent.appendChild(viewUsersButton);
       }
 
@@ -461,29 +393,44 @@ export const MapView = ({ locations, userLocation, onCheckIn }: MapViewProps) =>
         maxWidth: 320
       });
 
-      // Add event listener after InfoWindow is created
+      // Add event listeners after InfoWindow is created
       google.maps.event.addListener(infoWindow, 'domready', () => {
         const checkinBtn = popupContent.querySelector('.checkin-button');
         if (checkinBtn) {
           checkinBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Check-in button clicked (via domready) for:', location.name);
+            console.log('Check-in button clicked for:', location.name);
             onCheckIn(location);
+            infoWindow.close();
+          });
+        }
+
+        const viewBtn = popupContent.querySelector('.view-users-button');
+        if (viewBtn) {
+          viewBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('View users button clicked for:', location.name);
+            setSelectedLocation({ id: location.id, name: location.name });
+            setSheetOpen(true);
             infoWindow.close();
           });
         }
       });
 
-      const marker = new AdvancedMarkerElement({
+      // Create marker with classic google.maps.Marker
+      const marker = new google.maps.Marker({
         map: map.current,
         position: { lat: location.latitude, lng: location.longitude },
-        content: el,
         title: location.name,
-        zIndex: isPOI ? 900 : 1000 // User locations have higher priority
+        icon: markerIcon,
+        label: markerLabel,
+        zIndex: isPOI ? 900 : 1000,
+        animation: google.maps.Animation.DROP
       });
 
-      // Use Google Maps event listener for marker click
+      // Add click listener to marker
       marker.addListener('click', () => {
         console.log('Marker clicked:', location.name);
         infoWindow.open(map.current, marker);
