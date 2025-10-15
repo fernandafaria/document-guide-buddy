@@ -46,12 +46,17 @@ const ProfileDetail = () => {
       </button>
 
       {/* Photo Gallery */}
-      <div className="relative h-[400px] bg-gray-light">
-        <img
-          src={mockUser.photos[currentPhoto]}
-          alt={mockUser.name}
-          className="w-full h-full object-cover"
-        />
+      <div className="relative h-[400px] bg-gray-light overflow-hidden">
+        <div className="flex transition-transform duration-300" style={{ transform: `translateX(-${currentPhoto * 100}%)` }}>
+          {mockUser.photos.map((photo, idx) => (
+            <img
+              key={idx}
+              src={photo}
+              alt={`${mockUser.name} - ${idx + 1}`}
+              className="w-full h-[400px] object-cover flex-shrink-0"
+            />
+          ))}
+        </div>
         
         {/* Photo Indicators */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
@@ -70,36 +75,36 @@ const ProfileDetail = () => {
       </div>
 
       {/* Content */}
-      <div className="px-6 py-6 space-y-8">
+      <div className="px-6 py-8 space-y-8">
         {/* Basic Info */}
-        <div>
-          <h1 className="text-3xl font-bold text-black-soft mb-1">
+        <div className="pb-4">
+          <h1 className="text-[28px] font-bold text-black-soft mb-1">
             {mockUser.name}, {mockUser.age}
           </h1>
-          <p className="text-lg text-gray-medium">{mockUser.profession}</p>
+          <p className="text-[17px] text-gray-medium">{mockUser.profession}</p>
         </div>
 
         {/* About Me */}
         <div className="flex gap-4">
           <div className="w-20 h-20 bg-gradient-to-br from-coral to-pink-deep rounded-2xl flex items-center justify-center flex-shrink-0">
-            <span className="text-4xl">☕</span>
+            <span className="text-4xl">🍵</span>
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-black-soft mb-2">
+            <h3 className="text-[22px] font-bold text-black-soft mb-2">
               About me
             </h3>
-            <p className="text-gray-dark leading-relaxed">{mockUser.about}</p>
+            <p className="text-[17px] text-gray-dark leading-relaxed">{mockUser.about}</p>
           </div>
         </div>
 
         {/* Interests */}
         <div>
-          <h3 className="text-xl font-bold text-black-soft mb-4">Interests</h3>
+          <h3 className="text-[22px] font-bold text-black-soft mb-4">Interests</h3>
           <div className="flex flex-wrap gap-2">
             {mockUser.interests.map((interest, idx) => (
               <Badge
                 key={idx}
-                className={`px-4 py-2 text-base ${
+                className={`px-4 h-9 text-base rounded-[18px] ${
                   idx === 0
                     ? "bg-coral"
                     : idx === 1
@@ -117,33 +122,33 @@ const ProfileDetail = () => {
 
         {/* Lifestyle */}
         <div>
-          <h3 className="text-xl font-bold text-black-soft mb-4">Lifestyle</h3>
+          <h3 className="text-[22px] font-bold text-black-soft mb-4">Lifestyle</h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center gap-2">
               <span className="text-2xl">🍷</span>
-              <span className="text-gray-dark">{mockUser.lifestyle.alcohol}</span>
+              <span className="text-[17px] text-gray-dark">Drinks socially</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-2xl">🎓</span>
-              <span className="text-gray-dark">{mockUser.lifestyle.education}</span>
+              <span className="text-[17px] text-gray-dark">Bachelor's Degree</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-2xl">✝️</span>
-              <span className="text-gray-dark">{mockUser.lifestyle.religion}</span>
+              <span className="text-[17px] text-gray-dark">Catholic</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-2xl">♒</span>
-              <span className="text-gray-dark">{mockUser.lifestyle.zodiac}</span>
+              <span className="text-[17px] text-gray-dark">Aquarius</span>
             </div>
           </div>
         </div>
 
         {/* Looking For */}
         <div>
-          <h3 className="text-xl font-bold text-black-soft mb-4">
-            Procurando por
+          <h3 className="text-[22px] font-bold text-black-soft mb-4">
+            Looking for
           </h3>
-          <Badge className="px-4 py-2 bg-pink-deep text-white text-base">
+          <Badge className="px-4 py-2 bg-pink-deep text-white text-base rounded-[18px]">
             🔍 {mockUser.lookingFor}
           </Badge>
         </div>
