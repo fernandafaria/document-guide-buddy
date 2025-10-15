@@ -33,10 +33,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
+    if (!user) return;
 
     const fetchProfile = async () => {
       try {
@@ -85,7 +82,7 @@ const Profile = () => {
     };
 
     fetchProfile();
-  }, [user, navigate]);
+  }, [user]);
 
   if (loading) {
     return (
