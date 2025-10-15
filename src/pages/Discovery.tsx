@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { BottomNav } from "@/components/BottomNav";
 import { Badge } from "@/components/ui/badge";
 import { Filter, MapPin, Heart, User, Users, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -225,37 +226,8 @@ const Discovery = () => {
         onApply={handleApplyFilters}
       />
 
-      {/* Tab Bar */}
-      <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-light flex items-center justify-around px-6">
-        <button
-          className="flex flex-col items-center gap-1 text-gray-medium transition-all hover:scale-110 hover:text-coral"
-          onClick={() => navigate("/map")}
-        >
-          <MapPin className="w-6 h-6" />
-          <span className="text-xs font-medium">Mapa</span>
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-gray-medium transition-all hover:scale-110 hover:text-coral"
-          onClick={() => navigate("/active-checkins")}
-        >
-          <Users className="w-6 h-6" />
-          <span className="text-xs font-medium">Check-ins</span>
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-gray-medium transition-all hover:scale-110 hover:text-coral"
-          onClick={() => navigate("/matches")}
-        >
-          <Heart className="w-6 h-6" />
-          <span className="text-xs font-medium">YO's</span>
-        </button>
-        <button
-          className="flex flex-col items-center gap-1 text-gray-medium transition-all hover:scale-110 hover:text-coral"
-          onClick={() => navigate("/profile")}
-        >
-          <User className="w-6 h-6" />
-          <span className="text-xs font-medium">Perfil</span>
-        </button>
-      </div>
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 };

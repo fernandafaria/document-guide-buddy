@@ -8,6 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { MapPin, Users, Clock, Heart, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
+import { BottomNav } from "@/components/BottomNav";
 
 interface CheckIn {
   id: string;
@@ -218,34 +219,8 @@ const ActiveCheckIns = () => {
         )}
       </div>
 
-      {/* Tab Bar */}
-      <div className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t shadow-card flex items-center justify-around px-6 max-w-2xl mx-auto">
-        <button 
-          className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
-          onClick={() => navigate("/map")}
-        >
-          <MapPin className="w-6 h-6" />
-          <span className="text-xs font-medium">Mapa</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 text-primary transition-transform hover:scale-110">
-          <Users className="w-6 h-6" />
-          <span className="text-xs font-medium">Check-ins</span>
-        </button>
-        <button 
-          className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
-          onClick={() => navigate("/matches")}
-        >
-          <Heart className="w-6 h-6" />
-          <span className="text-xs font-medium">YO's</span>
-        </button>
-        <button 
-          className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
-          onClick={() => navigate("/profile")}
-        >
-          <User className="w-6 h-6" />
-          <span className="text-xs font-medium">Perfil</span>
-        </button>
-      </div>
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 };
