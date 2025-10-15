@@ -1,4 +1,4 @@
-import { MapPin } from "lucide-react";
+import { MapPin, Heart, User, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Matches = () => {
@@ -39,7 +39,7 @@ const Matches = () => {
     <div className="min-h-screen bg-white pb-20">
       {/* Header */}
       <div className="px-6 py-6">
-        <h1 className="text-3xl font-bold text-black-soft">Matches</h1>
+        <h1 className="text-3xl font-bold text-black-soft">YO's</h1>
       </div>
 
       {/* Matches List */}
@@ -93,21 +93,28 @@ const Matches = () => {
       {/* Tab Bar */}
       <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-light flex items-center justify-around px-6">
         <button
-          className="flex flex-col items-center gap-1 text-gray-medium"
+          className="flex flex-col items-center gap-1 text-gray-medium transition-all hover:scale-110 hover:text-coral"
           onClick={() => navigate("/map")}
         >
           <MapPin className="w-6 h-6" />
           <span className="text-xs font-medium">Mapa</span>
         </button>
+        <button
+          className="flex flex-col items-center gap-1 text-gray-medium transition-all hover:scale-110 hover:text-coral"
+          onClick={() => navigate("/active-checkins")}
+        >
+          <Users className="w-6 h-6" />
+          <span className="text-xs font-medium">Check-ins</span>
+        </button>
         <button className="flex flex-col items-center gap-1 text-coral">
-          <span className="text-2xl">❤️</span>
-          <span className="text-xs font-medium">Matches</span>
+          <Heart className="w-6 h-6" />
+          <span className="text-xs font-medium">YO's</span>
         </button>
         <button
-          className="flex flex-col items-center gap-1 text-gray-medium"
+          className="flex flex-col items-center gap-1 text-gray-medium transition-all hover:scale-110 hover:text-coral"
           onClick={() => navigate("/profile")}
         >
-          <span className="text-2xl">👤</span>
+          <User className="w-6 h-6" />
           <span className="text-xs font-medium">Perfil</span>
         </button>
       </div>

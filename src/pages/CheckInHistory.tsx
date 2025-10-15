@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, Clock, Award, ArrowLeft } from "lucide-react";
+import { MapPin, Users, Clock, Award, ArrowLeft, Heart, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
@@ -234,14 +234,14 @@ const CheckInHistory = () => {
           className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
           onClick={() => navigate("/matches")}
         >
-          <span className="text-2xl">❤️</span>
-          <span className="text-xs font-medium">Matches</span>
+          <Heart className="w-6 h-6" />
+          <span className="text-xs font-medium">YO's</span>
         </button>
         <button 
           className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
           onClick={() => navigate("/profile")}
         >
-          <span className="text-2xl">👤</span>
+          <User className="w-6 h-6" />
           <span className="text-xs font-medium">Perfil</span>
         </button>
       </div>

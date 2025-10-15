@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, LogOut, Users, History } from "lucide-react";
+import { Search, MapPin, LogOut, Users, History, Heart, User } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapView } from "@/components/MapView";
@@ -356,23 +356,16 @@ const Map = () => {
         </button>
         <button 
           className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
-          onClick={() => navigate("/checkin-history")}
-        >
-          <History className="w-6 h-6" />
-          <span className="text-xs font-medium">Histórico</span>
-        </button>
-        <button 
-          className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
           onClick={() => navigate("/matches")}
         >
-          <span className="text-2xl">❤️</span>
-          <span className="text-xs font-medium">Matches</span>
+          <Heart className="w-6 h-6" />
+          <span className="text-xs font-medium">YO's</span>
         </button>
         <button 
           className="flex flex-col items-center gap-1 text-muted-foreground transition-all hover:scale-110 hover:text-primary"
           onClick={() => navigate("/profile")}
         >
-          <span className="text-2xl">👤</span>
+          <User className="w-6 h-6" />
           <span className="text-xs font-medium">Perfil</span>
         </button>
       </div>
