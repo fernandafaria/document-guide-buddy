@@ -234,6 +234,7 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
       const hasActiveUsers = location.active_users_count > 0;
       
       const marker = new google.maps.Marker({
+        map: map.current,
         position: { lat: location.latitude, lng: location.longitude },
         title: location.name,
         icon: {
