@@ -5,7 +5,7 @@ import { NearbyUsersCard } from "@/components/NearbyUsersCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogOut } from "lucide-react";
+import { LogOut, Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface NearbyUser {
@@ -28,6 +28,7 @@ const CheckInSuccess = () => {
   const [users, setUsers] = useState<NearbyUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [locationName, setLocationName] = useState("");
+  const [showConfetti, setShowConfetti] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -119,19 +120,56 @@ const CheckInSuccess = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col animate-fade-in">
+    <div className="min-h-screen bg-background flex flex-col animate-fade-in relative overflow-hidden">
+      {/* Confetti Animation */}
+      {showConfetti && (
+        <div className="absolute inset-0 pointer-events-none z-50">
+          {[...Array(50)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-[fall_3s_ease-in-out_forwards]"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `-${Math.random() * 20}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                fontSize: `${Math.random() * 20 + 10}px`,
+              }}
+            >
+              {['🎉', '🎊', '✨', '⭐', '🌟'][Math.floor(Math.random() * 5)]}
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto">
-        {/* Header with improved animation */}
-        <div className="bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground p-8 animate-slide-down">
-          <div className="text-center space-y-4">
-            <div className="text-7xl mb-3 animate-bounce-in">🎉</div>
-            <h1 className="text-4xl font-bold animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              Check-in realizado!
-            </h1>
-            <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <p className="text-xl font-semibold opacity-95 mb-1">{locationName}</p>
+        {/* Success Animation Header */}
+        <div className="bg-gradient-to-br from-coral via-pink-deep to-coral/80 text-white p-8 animate-slide-down">
+          <div className="text-center space-y-6">
+            {/* Check Icon with Animation */}
+            <div className="relative inline-flex items-center justify-center">
+              <div className="absolute w-32 h-32 bg-white/20 rounded-full animate-ping"></div>
+              <div className="relative w-32 h-32 bg-white rounded-full flex items-center justify-center animate-scale-in shadow-2xl">
+                <Check className="w-20 h-20 text-coral animate-bounce-in" strokeWidth={4} />
+              </div>
+            </div>
+            
+            <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
+              <h1 className="text-5xl font-fredoka font-bold mb-3">
+                Check!
+              </h1>
+              <p className="text-xl font-medium opacity-95 max-w-md mx-auto leading-relaxed">
+                Agora, você pode ver quem está no mesmo local que você.
+              </p>
+            </div>
+          </div>
+            
+            {/* Location Badge */}
+            <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
+              <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/20 backdrop-blur-sm rounded-full border-2 border-white/30">
+                <span className="text-lg font-semibold">{locationName}</span>
+              </div>
               {users.length > 0 && (
-                <div className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full">
+                <div className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-white/30 backdrop-blur-sm rounded-full">
                   <span className="w-2 h-2 rounded-full bg-mint-green animate-pulse-soft"></span>
                   <span className="text-sm font-medium">
                     {users.length} {users.length === 1 ? 'pessoa' : 'pessoas'} aqui agora
@@ -140,7 +178,6 @@ const CheckInSuccess = () => {
               )}
             </div>
           </div>
-        </div>
 
         {/* Content with stagger animation */}
         <div className="p-6 space-y-4">
