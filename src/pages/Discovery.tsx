@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/BottomNav";
 import { Badge } from "@/components/ui/badge";
+import Header from "@/components/Header";
 import { Filter, MapPin, Heart, User, Users, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -75,10 +76,7 @@ const Discovery = () => {
 
   return (
     <div className="min-h-screen bg-white pb-20">
-      {/* Header */}
-      <div className="px-6 py-4 bg-white border-b border-gray-light">
-        <h1 className="text-3xl font-bold text-black-soft">Descobrir</h1>
-      </div>
+      <Header />
 
       {/* Quick Filters */}
       {(filters.intentions || filters.minAge || filters.maxAge) && (

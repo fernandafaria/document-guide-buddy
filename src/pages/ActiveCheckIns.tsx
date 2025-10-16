@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import Header from "@/components/Header";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -178,15 +179,8 @@ const ActiveCheckIns = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      <Header />
       <div className="max-w-2xl mx-auto p-4 space-y-4 pb-24">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Locais Populares</h1>
-            <p className="text-sm text-muted-foreground">
-              Top 5 locais com mais check-ins perto de você
-            </p>
-          </div>
-        </div>
 
         {locations.length === 0 ? (
           <Card>

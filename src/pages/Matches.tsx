@@ -1,6 +1,7 @@
 import { MapPin, Heart, User, Users } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { useNavigate } from "react-router-dom";
+import Header from "@/components/Header";
 import { useChat } from "@/hooks/useChat";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
@@ -42,10 +43,7 @@ const Matches = () => {
 
   return (
     <div className="min-h-screen bg-white pb-20">
-      {/* Header */}
-      <div className="px-6 py-6">
-        <h1 className="text-3xl font-bold text-black-soft">YO's</h1>
-      </div>
+      <Header />
 
       {/* Matches List */}
       {matches.length === 0 ? (

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/BottomNav";
 import { Badge } from "@/components/ui/badge";
+import Header from "@/components/Header";
 import { Settings, MapPin, Edit, User, Heart, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -142,9 +143,10 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-white pb-20">
-      {/* Header */}
-      <div className="px-6 py-4 flex items-center justify-between">
-        <h1 className="text-4xl font-bold text-black-soft">YO!</h1>
+      <Header />
+      
+      {/* Settings Button */}
+      <div className="px-6 py-2 flex justify-end">
         <button
           onClick={() => navigate("/settings")}
           className="text-gray-medium hover:text-black-soft transition-colors"
