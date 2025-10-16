@@ -5,11 +5,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { MapPin, Users, Clock, Heart, User } from "lucide-react";
+import { MapPin, Users, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { BottomNav } from "@/components/BottomNav";
-import { TopLocationsCard } from "@/components/TopLocationsCard";
 import { useGeolocation } from "@/hooks/useGeolocation";
 
 interface CheckIn {
@@ -38,14 +37,13 @@ interface Location {
 const ActiveCheckIns = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [loading, setLoading] = useState(true);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [locationUsers, setLocationUsers] = useState<Record<string, CheckIn[]>>({});
   const { latitude, longitude } = useGeolocation();
 
   useEffect(() => {
-    if (user) {
-      fetchActiveCheckIns();
+    if (user && latitude && longitude) {
       fetchNearbyLocations();
     }
   }, [user, latitude, longitude]);
@@ -53,9 +51,9 @@ const ActiveCheckIns = () => {
   useEffect(() => {
     if (!user) return;
 
-    // Subscribe to realtime updates on profiles table for check-ins
+    // Subscribe to realtime updates on profiles table
     const channel = supabase
-      .channel('active-checkins')
+      .channel('popular-locations')
       .on(
         'postgres_changes',
         {
@@ -64,7 +62,9 @@ const ActiveCheckIns = () => {
           table: 'profiles',
         },
         () => {
-          fetchActiveCheckIns();
+          if (latitude && longitude) {
+            fetchNearbyLocations();
+          }
         }
       )
       .subscribe();
@@ -72,65 +72,77 @@ const ActiveCheckIns = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
-
-  const fetchActiveCheckIns = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch all profiles with active check-ins
-      const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('id, name, photos, current_check_in')
-        .not('current_check_in', 'is', null);
-
-      if (error) throw error;
-
-      const activeCheckIns: CheckIn[] = profiles
-        ?.filter(profile => profile.current_check_in)
-        .map(profile => {
-          const checkInData = profile.current_check_in as any;
-          return {
-            id: `${profile.id}-${checkInData.location_id}`,
-            location_id: checkInData.location_id || '',
-            location_name: checkInData.location_name || 'Local desconhecido',
-            user_id: profile.id,
-            user_name: profile.name || 'Usuário',
-            user_photo: profile.photos?.[0] || null,
-            checked_in_at: checkInData.checked_in_at || new Date().toISOString(),
-            latitude: checkInData.latitude || 0,
-            longitude: checkInData.longitude || 0,
-          };
-        }) || [];
-
-      console.log('Active check-ins loaded:', activeCheckIns.length);
-
-      setCheckIns(activeCheckIns);
-    } catch (error: any) {
-      console.error('Error fetching active check-ins:', error);
-      toast({
-        title: "Erro ao carregar check-ins",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user, latitude, longitude]);
 
   const fetchNearbyLocations = async () => {
     if (!latitude || !longitude) return;
 
     try {
+      setLoading(true);
+      
+      // Fetch nearby locations
       const { data, error } = await supabase.functions.invoke('get-nearby-locations', {
         body: { latitude, longitude, radius: 10 },
       });
 
       if (error) throw error;
 
-      setLocations(data.locations || []);
-    } catch (error) {
+      const allLocations: Location[] = data.locations || [];
+      
+      // Filter and sort by active users count, get top 5
+      const topLocations = allLocations
+        .filter(loc => loc.active_users_count > 0)
+        .sort((a, b) => b.active_users_count - a.active_users_count)
+        .slice(0, 5);
+
+      setLocations(topLocations);
+
+      // Fetch users for each location
+      const usersData: Record<string, CheckIn[]> = {};
+      
+      for (const location of topLocations) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name, photos, current_check_in')
+          .not('current_check_in', 'is', null);
+
+        if (profilesError) throw profilesError;
+
+        const locationCheckIns: CheckIn[] = profiles
+          ?.filter(profile => {
+            const checkInData = profile.current_check_in as any;
+            return checkInData?.location_id === location.id;
+          })
+          .map(profile => {
+            const checkInData = profile.current_check_in as any;
+            return {
+              id: `${profile.id}-${checkInData.location_id}`,
+              location_id: checkInData.location_id || '',
+              location_name: checkInData.location_name || location.name,
+              user_id: profile.id,
+              user_name: profile.name || 'Usuário',
+              user_photo: profile.photos?.[0] || null,
+              checked_in_at: checkInData.checked_in_at || new Date().toISOString(),
+              latitude: checkInData.latitude || location.latitude,
+              longitude: checkInData.longitude || location.longitude,
+            };
+          }) || [];
+
+        if (locationCheckIns.length > 0) {
+          usersData[location.id] = locationCheckIns;
+        }
+      }
+
+      setLocationUsers(usersData);
+    } catch (error: any) {
       console.error('Error fetching nearby locations:', error);
+      toast({
+        title: "Erro ao carregar locais",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -147,20 +159,10 @@ const ActiveCheckIns = () => {
     return "Há mais de 1 dia";
   };
 
-  const groupedCheckIns = checkIns.reduce((acc, checkIn) => {
-    if (!acc[checkIn.location_id]) {
-      acc[checkIn.location_id] = {
-        location_name: checkIn.location_name,
-        users: [],
-      };
-    }
-    acc[checkIn.location_id].users.push(checkIn);
-    return acc;
-  }, {} as Record<string, { location_name: string; users: CheckIn[] }>);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4">
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 pb-24">
         <div className="max-w-2xl mx-auto space-y-4">
           {[1, 2, 3].map((i) => (
             <Card key={i}>
@@ -179,36 +181,20 @@ const ActiveCheckIns = () => {
       <div className="max-w-2xl mx-auto p-4 space-y-4 pb-24">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Check-ins Ativos</h1>
+            <h1 className="text-2xl font-bold text-foreground">Locais Populares</h1>
             <p className="text-sm text-muted-foreground">
-              {checkIns.length} {checkIns.length === 1 ? 'pessoa' : 'pessoas'} ativa{checkIns.length === 1 ? '' : 's'}
+              Top 5 locais com mais check-ins perto de você
             </p>
           </div>
         </div>
 
-        {/* Top Locations Card */}
-        {locations.length > 0 && (
-          <div className="mb-6">
-            <TopLocationsCard 
-              locations={locations}
-              onLocationClick={(location) => {
-                navigate('/map');
-                toast({
-                  title: location.name,
-                  description: `${location.active_users_count} ${location.active_users_count === 1 ? 'pessoa' : 'pessoas'} aqui agora`,
-                });
-              }}
-            />
-          </div>
-        )}
-
-        {checkIns.length === 0 ? (
+        {locations.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
               <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">Nenhum check-in ativo</h3>
+              <h3 className="text-lg font-semibold mb-2">Nenhum local popular</h3>
               <p className="text-muted-foreground mb-4">
-                Seja o primeiro a fazer check-in em um local!
+                Não há locais com check-ins ativos próximos a você no momento.
               </p>
               <Button onClick={() => navigate('/map')}>
                 <MapPin className="w-4 h-4 mr-2" />
@@ -217,56 +203,79 @@ const ActiveCheckIns = () => {
             </CardContent>
           </Card>
         ) : (
-          Object.entries(groupedCheckIns).map(([locationId, { location_name, users }]) => (
-            <Card key={locationId} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <CardContent className="p-0">
-                <div className="bg-gradient-primary p-4 text-white">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-1">{location_name}</h3>
-                      <div className="flex items-center gap-2 text-sm opacity-90">
-                        <Users className="w-4 h-4" />
-                        <span>{users.length} {users.length === 1 ? 'pessoa' : 'pessoas'}</span>
-                      </div>
-                    </div>
-                    <MapPin className="w-5 h-5 opacity-80" />
-                  </div>
-                </div>
-
-                <div className="p-4 space-y-3">
-                  {users.map((checkIn) => (
-                    <div
-                      key={checkIn.id}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                    >
-                      <Avatar className="w-12 h-12 border-2 border-primary">
-                        <AvatarImage src={checkIn.user_photo || undefined} alt={checkIn.user_name} />
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          {checkIn.user_name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate">{checkIn.user_name}</p>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          <span>{getTimeSinceCheckIn(checkIn.checked_in_at)}</span>
+          locations.map((location, index) => {
+            const users = locationUsers[location.id] || [];
+            
+            return (
+              <Card key={location.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <CardContent className="p-0">
+                  <div className="bg-gradient-primary p-4 text-white">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-2xl font-bold">#{index + 1}</span>
+                          <h3 className="font-semibold text-lg">{location.name}</h3>
+                        </div>
+                        {location.address && (
+                          <p className="text-sm opacity-90 mb-2">{location.address}</p>
+                        )}
+                        <div className="flex items-center gap-4 text-sm opacity-90">
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            <span>{location.active_users_count} {location.active_users_count === 1 ? 'pessoa' : 'pessoas'}</span>
+                          </div>
+                          {location.distance !== undefined && (
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-4 h-4" />
+                              <span>
+                                {location.distance < 1000 
+                                  ? `${Math.round(location.distance)}m de você` 
+                                  : `${(location.distance / 1000).toFixed(1)}km de você`}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
-
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => navigate(`/profile/${checkIn.user_id}`)}
-                      >
-                        Ver Perfil
-                      </Button>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                  </div>
+
+                  {users.length > 0 && (
+                    <div className="p-4 space-y-3">
+                      {users.map((checkIn) => (
+                        <div
+                          key={checkIn.id}
+                          className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                        >
+                          <Avatar className="w-12 h-12 border-2 border-primary">
+                            <AvatarImage src={checkIn.user_photo || undefined} alt={checkIn.user_name} />
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {checkIn.user_name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-foreground truncate">{checkIn.user_name}</p>
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Clock className="w-3 h-3" />
+                              <span>{getTimeSinceCheckIn(checkIn.checked_in_at)}</span>
+                            </div>
+                          </div>
+
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => navigate(`/profile/${checkIn.user_id}`)}
+                          >
+                            Ver Perfil
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
 
