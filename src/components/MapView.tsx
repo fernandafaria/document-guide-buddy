@@ -334,7 +334,7 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
       }
       newMarkers.forEach(marker => marker.setMap(null));
     };
-  }, [locations, isLoading, onCheckIn, currentCheckInLocationId]);
+  }, [locations, isLoading, currentCheckInLocationId]);
 
   // Handle map center changes
   useEffect(() => {

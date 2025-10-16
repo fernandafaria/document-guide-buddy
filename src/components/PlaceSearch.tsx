@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { importLibrary } from "@googlemaps/js-api-loader";
+import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -34,6 +34,9 @@ export const PlaceSearch = ({ onPlaceSelect, googleMapsApiKey }: PlaceSearchProp
       if (!googleMapsApiKey) return;
       
       try {
+        // Ensure loader is configured before importing libraries
+        setOptions({ key: googleMapsApiKey, v: 'weekly' });
+        
         // Load the places library
         await importLibrary('places');
         
