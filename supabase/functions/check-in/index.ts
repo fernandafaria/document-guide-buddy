@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validate distance (max 500 meters for better user experience)
+    // Validate distance (max 100 meters)
     if (userLatitude !== undefined && userLongitude !== undefined) {
       const R = 6371e3; // Earth radius in meters
       const φ1 = userLatitude * Math.PI / 180;
@@ -63,11 +63,16 @@ Deno.serve(async (req) => {
 
       console.log(`Distance from user to location: ${distance.toFixed(2)} meters`);
 
-      if (distance > 500) {
+      if (distance > 100) {
+        const distanceMessage = distance < 1000 
+          ? `${Math.round(distance)} metros`
+          : `${(distance / 1000).toFixed(2)} km`;
+        
         return new Response(
           JSON.stringify({ 
             error: 'Você está muito longe do local',
-            details: `Você está a ${(distance / 1000).toFixed(2)}km do local. Aproxime-se para fazer check-in.`
+            distance: Math.round(distance),
+            message: `Você está a ${distanceMessage} do local. Aproxime-se até 100 metros para fazer check-in.`
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         );

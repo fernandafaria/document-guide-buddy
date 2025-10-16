@@ -215,14 +215,18 @@ const Map = () => {
     const distance = calculateDistance(latitude, longitude, location.latitude, location.longitude);
     console.log('Distance to location:', distance, 'meters');
     
-    // Note: Distance validation will be done by the edge function
-    // Here we just show info if the user is far away
-    if (distance > 500) {
+    // Show warning if far from location
+    if (distance > 100) {
+      const distanceMessage = distance < 1000 
+        ? `${Math.round(distance)} metros`
+        : `${(distance / 1000).toFixed(2)} km`;
+        
       toast({
-        title: "Você está longe",
-        description: `O local está a ${(distance / 1000).toFixed(2)}km de você. O check-in pode não funcionar.`,
+        title: "Você está muito longe",
+        description: `Você está a ${distanceMessage} do local. Aproxime-se até 100 metros para fazer check-in.`,
         variant: "destructive",
       });
+      return;
     }
     
     setSelectedLocationForCheckIn(location);
@@ -272,10 +276,31 @@ const Map = () => {
       if (error) {
         console.error('❌ Check-in error:', error);
         
-        // Show better error message
-        const errorMessage = typeof error === 'object' && error !== null && 'message' in error 
-          ? String(error.message) 
-          : "Não foi possível fazer check-in. Tente novamente.";
+        // Try to get detailed error message from response
+        let errorMessage = "Não foi possível fazer check-in. Tente novamente.";
+        
+        try {
+          // The error might contain a response with our custom error
+          const response = await supabase.functions.invoke('check-in', {
+            body: {
+              latitude: selectedLocationForCheckIn.latitude,
+              longitude: selectedLocationForCheckIn.longitude,
+              name: selectedLocationForCheckIn.name,
+              address: selectedLocationForCheckIn.address,
+              userLatitude: latitude,
+              userLongitude: longitude,
+            },
+          });
+          
+          if (response.error && typeof response.error === 'object') {
+            const errorData = response.error as any;
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+          }
+        } catch (e) {
+          // If we can't get a better error, use default
+        }
         
         toast({
           title: "Erro no check-in",
