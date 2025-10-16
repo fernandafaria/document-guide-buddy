@@ -226,6 +226,9 @@ const Map = () => {
         description: `Você está a ${distanceMessage} do local. Aproxime-se até 100 metros para fazer check-in.`,
         variant: "destructive",
       });
+      // Destacar o local no mapa por alguns segundos
+      setSearchMarker({ lat: location.latitude, lng: location.longitude, name: location.name });
+      setTimeout(() => setSearchMarker(null), 8000);
       return;
     }
     
