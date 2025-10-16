@@ -373,7 +373,17 @@ const Map = () => {
           <Button
             size="icon"
             variant="ghost"
-            onClick={() => navigate('/check-in-history')}
+            onClick={() => {
+              if (latitude && longitude) {
+                fetchNearbyLocations();
+              } else {
+                fetchNearbyLocationsDefault();
+              }
+              toast({
+                title: "Mapa atualizado",
+                description: "Locais próximos recarregados",
+              });
+            }}
             className="h-10 w-10 text-coral hover:bg-coral/10"
           >
             <History className="h-5 w-5" />
