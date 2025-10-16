@@ -128,7 +128,7 @@ const Map = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase.functions.invoke('get-nearby-locations', {
-        body: { latitude, longitude, radius: 10 },
+        body: { latitude, longitude, radius: 10, limit: 200 },
       });
 
       if (error) throw error;
@@ -154,7 +154,7 @@ const Map = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase.functions.invoke('get-nearby-locations', {
-        body: { latitude: defaultLat, longitude: defaultLng, radius: 50 },
+        body: { latitude: defaultLat, longitude: defaultLng, radius: 50, limit: 200 },
       });
 
       if (error) throw error;

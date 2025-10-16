@@ -38,6 +38,7 @@ Deno.serve(async (req) => {
     let latitude: number | null = null;
     let longitude: number | null = null;
     let radius: number = 10;
+    let limit: number = 200; // Limit POIs for better performance
 
     try {
       const body = await req.json();
@@ -45,6 +46,7 @@ Deno.serve(async (req) => {
         latitude = typeof body.latitude === 'number' ? body.latitude : parseFloat(String(body.latitude));
         longitude = typeof body.longitude === 'number' ? body.longitude : parseFloat(String(body.longitude));
         radius = body.radius ? (typeof body.radius === 'number' ? body.radius : parseFloat(String(body.radius))) : 10;
+        limit = body.limit ? (typeof body.limit === 'number' ? body.limit : parseFloat(String(body.limit))) : 200;
       }
     } catch (_) {
       // ignore if no JSON body
@@ -76,17 +78,17 @@ Deno.serve(async (req) => {
       console.error('Error fetching database locations:', dbError);
     }
 
-    // Fetch POIs from OpenStreetMap Overpass API
-    const overpassRadius = Math.min(radius * 1000, 5000); // Convert km to meters, max 5km
+    // Fetch POIs from OpenStreetMap Overpass API with reduced radius for performance
+    const overpassRadius = Math.min(radius * 1000, 3000); // Convert km to meters, max 3km for performance
     const overpassQuery = `
-      [out:json][timeout:25];
+      [out:json][timeout:15];
       (
         node["amenity"~"bar|pub|restaurant|cafe|nightclub"](around:${overpassRadius},${latitude},${longitude});
         node["leisure"~"park|sports_centre"](around:${overpassRadius},${latitude},${longitude});
         way["amenity"~"bar|pub|restaurant|cafe|nightclub"](around:${overpassRadius},${latitude},${longitude});
         way["leisure"~"park|sports_centre"](around:${overpassRadius},${latitude},${longitude});
       );
-      out center;
+      out center ${limit};
     `;
 
     let pois: any[] = [];

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
+import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { LocationUsersSheet } from './LocationUsersSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -30,6 +31,7 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
   const markers = useRef<google.maps.Marker[]>([]);
   const searchMarkerRef = useRef<google.maps.Marker | null>(null);
   const currentInfoWindow = useRef<google.maps.InfoWindow | null>(null);
+  const markerClusterer = useRef<MarkerClusterer | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<{ id: string; name: string } | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -189,14 +191,19 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
     };
   }, [userLocation, isLoading]);
 
-  // Add location markers with optimized batching
+  // Add location markers with clustering
   useEffect(() => {
     if (!map.current || locations.length === 0 || isLoading) {
       return;
     }
 
-    console.log(`📍 Creating ${locations.length} markers...`);
+    console.log(`📍 Creating ${locations.length} markers with clustering...`);
     
+    // Clear existing clusterer
+    if (markerClusterer.current) {
+      markerClusterer.current.clearMarkers();
+    }
+
     // Clear existing location markers (keep user marker)
     const userMarkerColor = '#4ECDC4';
     const existingUserMarkers: google.maps.Marker[] = [];
@@ -212,94 +219,111 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
     markers.current = existingUserMarkers;
 
     const newMarkers: google.maps.Marker[] = [];
-    const batchSize = 100;
-    let currentBatch = 0;
 
-    const createMarkersInBatches = () => {
-      const start = currentBatch * batchSize;
-      const end = Math.min(start + batchSize, locations.length);
+    // Create all markers at once
+    locations.forEach((location) => {
+      if (!map.current) return;
       
-      for (let i = start; i < end; i++) {
-        const location = locations[i];
-        if (!map.current) continue;
-        
-        const hasActiveUsers = location.active_users_count > 0;
-        
-        const marker = new google.maps.Marker({
-          map: map.current,
-          position: { lat: location.latitude, lng: location.longitude },
-          title: location.name,
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: hasActiveUsers ? 12 : 8,
-            fillColor: hasActiveUsers ? '#FF5722' : '#9b87f5',
-            fillOpacity: 1,
-            strokeColor: '#ffffff',
-            strokeWeight: 2
-          },
-          label: hasActiveUsers ? {
-            text: location.active_users_count.toString(),
-            color: '#ffffff',
-            fontSize: '12px',
-            fontWeight: 'bold'
-          } : undefined,
-          zIndex: hasActiveUsers ? 1500 : 1000,
-          optimized: true
-        });
+      const hasActiveUsers = location.active_users_count > 0;
+      
+      const marker = new google.maps.Marker({
+        position: { lat: location.latitude, lng: location.longitude },
+        title: location.name,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: hasActiveUsers ? 12 : 8,
+          fillColor: hasActiveUsers ? '#FF5722' : '#9b87f5',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 2
+        },
+        label: hasActiveUsers ? {
+          text: location.active_users_count.toString(),
+          color: '#ffffff',
+          fontSize: '12px',
+          fontWeight: 'bold'
+        } : undefined,
+        zIndex: hasActiveUsers ? 1500 : 1000
+      });
 
-        const infoWindow = new google.maps.InfoWindow({
-          content: `
-            <div style="padding: 12px; min-width: 200px;">
-              <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">${location.name}</h3>
-              ${location.address ? `<p style="margin: 0 0 8px 0; font-size: 13px; color: #666;">${location.address}</p>` : ''}
-              ${hasActiveUsers ? `<p style="margin: 0 0 12px 0; font-size: 13px; color: #FF5722; font-weight: 600;">👥 ${location.active_users_count} ${location.active_users_count === 1 ? 'pessoa' : 'pessoas'}</p>` : ''}
-              <button 
-                id="checkin-btn-${location.id}" 
-                style="width: 100%; padding: 10px; background: linear-gradient(135deg, #FF5722, #E91E63); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;"
-              >
-                Fazer Check-in
-              </button>
-            </div>
-          `
-        });
+      const infoWindow = new google.maps.InfoWindow({
+        content: `
+          <div style="padding: 12px; min-width: 200px;">
+            <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">${location.name}</h3>
+            ${location.address ? `<p style="margin: 0 0 8px 0; font-size: 13px; color: #666;">${location.address}</p>` : ''}
+            ${hasActiveUsers ? `<p style="margin: 0 0 12px 0; font-size: 13px; color: #FF5722; font-weight: 600;">👥 ${location.active_users_count} ${location.active_users_count === 1 ? 'pessoa' : 'pessoas'}</p>` : ''}
+            <button 
+              id="checkin-btn-${location.id}" 
+              style="width: 100%; padding: 10px; background: linear-gradient(135deg, #FF5722, #E91E63); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;"
+            >
+              Fazer Check-in
+            </button>
+          </div>
+        `
+      });
 
-        marker.addListener('click', () => {
-          // Close previous InfoWindow if exists
-          if (currentInfoWindow.current) {
-            currentInfoWindow.current.close();
+      marker.addListener('click', () => {
+        // Close previous InfoWindow if exists
+        if (currentInfoWindow.current) {
+          currentInfoWindow.current.close();
+        }
+        
+        infoWindow.open(map.current, marker);
+        currentInfoWindow.current = infoWindow;
+        
+        setTimeout(() => {
+          const btn = document.getElementById(`checkin-btn-${location.id}`);
+          if (btn) {
+            btn.addEventListener('click', () => {
+              onCheckIn(location);
+              infoWindow.close();
+              currentInfoWindow.current = null;
+            });
           }
-          
-          infoWindow.open(map.current, marker);
-          currentInfoWindow.current = infoWindow;
-          
-          setTimeout(() => {
-            const btn = document.getElementById(`checkin-btn-${location.id}`);
-            if (btn) {
-              btn.addEventListener('click', () => {
-                onCheckIn(location);
-                infoWindow.close();
-                currentInfoWindow.current = null;
-              });
-            }
-          }, 100);
-        });
+        }, 100);
+      });
 
-        newMarkers.push(marker);
-      }
-      
-      currentBatch++;
-      
-      if (end < locations.length) {
-        requestAnimationFrame(createMarkersInBatches);
-      } else {
-        console.log(`✅ All ${newMarkers.length} markers created successfully`);
-      }
-    };
+      newMarkers.push(marker);
+    });
 
-    createMarkersInBatches();
+    // Initialize marker clusterer
+    markerClusterer.current = new MarkerClusterer({
+      map: map.current,
+      markers: newMarkers,
+      algorithmOptions: {
+        maxZoom: 15,
+      },
+      renderer: {
+        render: ({ count, position }) => {
+          return new google.maps.Marker({
+            position,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 20,
+              fillColor: '#9b87f5',
+              fillOpacity: 0.8,
+              strokeColor: '#ffffff',
+              strokeWeight: 3
+            },
+            label: {
+              text: String(count),
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            },
+            zIndex: 1000,
+          });
+        }
+      }
+    });
+
     markers.current = [...markers.current, ...newMarkers];
+    console.log(`✅ Created ${newMarkers.length} markers with clustering`);
 
     return () => {
+      if (markerClusterer.current) {
+        markerClusterer.current.clearMarkers();
+      }
       newMarkers.forEach(marker => marker.setMap(null));
     };
   }, [locations, isLoading, onCheckIn]);
