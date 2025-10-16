@@ -63,7 +63,7 @@ export const MapFilters = ({ filters, onFilterChange }: MapFiltersProps) => {
         <SheetTrigger asChild>
           <Button
             size="icon"
-            className="md:hidden fixed top-4 right-4 z-20 h-12 w-12 rounded-full shadow-lg bg-white hover:bg-gray-100 text-black-soft"
+            className="md:hidden absolute top-4 right-4 z-20 h-12 w-12 rounded-full shadow-lg bg-white hover:bg-gray-100 text-black-soft"
           >
             <SlidersHorizontal className="h-5 w-5" />
           </Button>
