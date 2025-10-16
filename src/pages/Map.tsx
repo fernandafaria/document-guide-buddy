@@ -322,11 +322,9 @@ const Map = () => {
       setIsCheckedIn(true);
       setConfirmDialogOpen(false);
       
+      // Navigate immediately to success page
       console.log('🔄 Navigating to success page...');
-      // Small delay for better UX
-      setTimeout(() => {
-        navigate("/check-in-success");
-      }, 300);
+      navigate("/check-in-success");
     } catch (error) {
       console.error('❌ Error checking in:', error);
       toast({
