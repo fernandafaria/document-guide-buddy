@@ -175,6 +175,12 @@ const Map = () => {
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [selectedLocationForCheckIn, setSelectedLocationForCheckIn] = useState<Location | null>(null);
+  
+  // Add effect to log when dialog state changes
+  useEffect(() => {
+    console.log('🔔 confirmDialogOpen changed to:', confirmDialogOpen);
+    console.log('🔔 selectedLocationForCheckIn:', selectedLocationForCheckIn);
+  }, [confirmDialogOpen, selectedLocationForCheckIn]);
   const [checkingIn, setCheckingIn] = useState(false);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -195,20 +201,8 @@ const Map = () => {
   const handleCheckInRequest = useCallback((location: Location) => {
     console.log('handleCheckInRequest called with location:', location);
     
-    // Validate user is within 100 meters
-    if (latitude && longitude) {
-      const distance = calculateDistance(latitude, longitude, location.latitude, location.longitude);
-      console.log('Distance to location:', distance, 'meters');
-      
-      if (distance > 100) {
-        toast({
-          title: "Muito longe",
-          description: "Você precisa estar a no máximo 100 metros do local para fazer check-in.",
-          variant: "destructive",
-        });
-        return;
-      }
-    } else {
+    // Check if user location is available
+    if (!latitude || !longitude) {
       toast({
         title: "Localização não disponível",
         description: "Ative sua localização para fazer check-in.",
@@ -217,9 +211,24 @@ const Map = () => {
       return;
     }
     
+    // Calculate and log distance for debugging
+    const distance = calculateDistance(latitude, longitude, location.latitude, location.longitude);
+    console.log('Distance to location:', distance, 'meters');
+    
+    // Note: Distance validation will be done by the edge function
+    // Here we just show a warning if the user is far away
+    if (distance > 100) {
+      toast({
+        title: "Você está longe",
+        description: `O local está a ${Math.round(distance)}m de você. Aproxime-se para fazer check-in.`,
+        variant: "destructive",
+      });
+      // Don't return - let user try anyway, edge function will validate
+    }
+    
     setSelectedLocationForCheckIn(location);
     setConfirmDialogOpen(true);
-    console.log('Dialog should open now');
+    console.log('Dialog should open now, confirmDialogOpen will be set to true');
   }, [latitude, longitude, toast]);
 
   const handleCheckInConfirm = async () => {
