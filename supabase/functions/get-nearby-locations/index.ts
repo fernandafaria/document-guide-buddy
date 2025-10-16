@@ -68,11 +68,14 @@ Deno.serve(async (req) => {
 
     console.log(`Finding locations near ${latitude}, ${longitude} within ${radius}km`);
 
-    // Get locations from database (user check-ins)
+    // Get locations from database with active check-ins (last 30 minutes)
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    
     const { data: dbLocations, error: dbError } = await supabaseClient
       .from('locations')
       .select('*')
-      .gt('active_users_count', 0);
+      .gt('active_users_count', 0)
+      .gte('last_activity', thirtyMinutesAgo);
 
     if (dbError) {
       console.error('Error fetching database locations:', dbError);
