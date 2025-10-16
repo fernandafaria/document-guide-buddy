@@ -364,16 +364,17 @@ const Map = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      
-      {/* Controls Header */}
-      <div className="px-4 md:px-6 py-3 bg-gradient-header shadow-elevated border-b-0 relative z-10">
-        <div className="flex gap-2 justify-end mb-3">
+      {/* Header with Logo and Action Buttons */}
+      <div className="w-full py-4 px-6 flex items-center justify-between bg-background border-b border-border">
+        <h1 className="text-5xl font-fredoka font-bold text-coral tracking-tight">
+          Yo!
+        </h1>
+        <div className="flex gap-2">
           <Button
             size="icon"
             variant="ghost"
             onClick={() => navigate('/check-in-history')}
-            className="h-10 w-10 text-white hover:bg-white/20"
+            className="h-10 w-10 text-coral hover:bg-coral/10"
           >
             <History className="h-5 w-5" />
           </Button>
@@ -384,11 +385,15 @@ const Map = () => {
               supabase.auth.signOut();
               navigate('/login');
             }}
-            className="h-10 w-10 text-white hover:bg-white/20"
+            className="h-10 w-10 text-coral hover:bg-coral/10"
           >
             <LogOut className="h-5 w-5" />
           </Button>
         </div>
+      </div>
+      
+      {/* Controls Header */}
+      <div className="px-4 md:px-6 py-3 bg-gradient-header shadow-elevated border-b-0 relative z-10">
 
         {/* Place Search */}
         {googleMapsApiKey && (
