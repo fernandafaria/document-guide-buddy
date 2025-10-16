@@ -34,6 +34,7 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
   const searchMarkerRef = useRef<google.maps.Marker | null>(null);
   const currentInfoWindow = useRef<google.maps.InfoWindow | null>(null);
   const markerClusterer = useRef<MarkerClusterer | null>(null);
+  const initialViewSetRef = useRef(false);
   const [selectedLocation, setSelectedLocation] = useState<{ id: string; name: string } | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -150,8 +151,15 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
   // Update map center when user location changes
   useEffect(() => {
     if (map.current && userLocation) {
-      console.log('📍 Updating map center to user location:', userLocation);
-      map.current.panTo({ lat: userLocation.latitude, lng: userLocation.longitude });
+      console.log('📍 Updating map view to user location (<=500m radius):', userLocation);
+      const center = { lat: userLocation.latitude, lng: userLocation.longitude };
+      if (!initialViewSetRef.current) {
+        map.current.setCenter(center);
+        map.current.setZoom(16); // ~500m view
+        initialViewSetRef.current = true;
+      } else {
+        map.current.panTo(center);
+      }
     }
   }, [userLocation]);
 
