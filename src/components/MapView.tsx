@@ -12,6 +12,7 @@ interface Location {
   latitude: number;
   longitude: number;
   active_users_count: number;
+  location_id?: string;
   type?: string;
   cuisine?: string;
   opening_hours?: string;
@@ -225,7 +226,11 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
     locations.forEach((location) => {
       if (!map.current) return;
       
-      const isCurrentCheckIn = currentCheckInLocationId === location.id;
+      // Check if this is the current check-in location using location_id
+      const isCurrentCheckIn = currentCheckInLocationId && 
+        (location.location_id === currentCheckInLocationId || 
+         `${location.latitude.toFixed(6)}_${location.longitude.toFixed(6)}` === currentCheckInLocationId);
+      
       const hasActiveUsers = location.active_users_count > 0;
       
       const marker = new google.maps.Marker({

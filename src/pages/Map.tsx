@@ -331,6 +331,10 @@ const Map = () => {
       setIsCheckedIn(true);
       setConfirmDialogOpen(false);
       
+      // Update the current check-in location ID immediately
+      const locationId = `${selectedLocationForCheckIn.latitude.toFixed(6)}_${selectedLocationForCheckIn.longitude.toFixed(6)}`;
+      setCurrentCheckInLocationId(locationId);
+      
       // Navigate immediately to success page
       console.log('🔄 Navigating to success page...');
       navigate("/check-in-success");
