@@ -223,7 +223,12 @@ const Map = () => {
   }, [latitude, longitude, toast]);
 
   const handleCheckInConfirm = async () => {
+    console.log('🎯 handleCheckInConfirm called');
+    console.log('Selected location:', selectedLocationForCheckIn);
+    console.log('User location:', { latitude, longitude });
+    
     if (!selectedLocationForCheckIn || !latitude || !longitude) {
+      console.error('❌ Missing location data');
       toast({
         title: "Erro",
         description: "Localização não disponível",
@@ -234,6 +239,15 @@ const Map = () => {
 
     try {
       setCheckingIn(true);
+      console.log('📤 Invoking check-in function with:', {
+        latitude: selectedLocationForCheckIn.latitude,
+        longitude: selectedLocationForCheckIn.longitude,
+        name: selectedLocationForCheckIn.name,
+        address: selectedLocationForCheckIn.address,
+        userLatitude: latitude,
+        userLongitude: longitude,
+      });
+      
       const { data, error } = await supabase.functions.invoke('check-in', {
         body: {
           latitude: selectedLocationForCheckIn.latitude,
@@ -245,8 +259,14 @@ const Map = () => {
         },
       });
 
-      if (error) throw error;
+      console.log('📥 Check-in response:', { data, error });
 
+      if (error) {
+        console.error('❌ Check-in error:', error);
+        throw error;
+      }
+
+      console.log('✅ Check-in successful, showing toast');
       toast({
         title: "✨ Check-in realizado!",
         description: `Você está em ${selectedLocationForCheckIn.name}`,
@@ -255,12 +275,13 @@ const Map = () => {
       setIsCheckedIn(true);
       setConfirmDialogOpen(false);
       
+      console.log('🔄 Navigating to success page...');
       // Small delay for better UX
       setTimeout(() => {
         navigate("/check-in-success");
       }, 300);
     } catch (error) {
-      console.error('Error checking in:', error);
+      console.error('❌ Error checking in:', error);
       toast({
         title: "Erro",
         description: "Não foi possível fazer check-in. Tente novamente.",
@@ -268,6 +289,7 @@ const Map = () => {
       });
     } finally {
       setCheckingIn(false);
+      console.log('🏁 Check-in process finished');
     }
   };
 
