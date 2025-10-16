@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Search, MapPin, LogOut, Users, History, Heart, User } from "lucide-react";
+import Header from "@/components/Header";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapView } from "@/components/MapView";
@@ -363,31 +364,30 @@ const Map = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <div className="px-4 md:px-6 py-4 bg-gradient-header shadow-elevated border-b-0 relative z-10">
-        <div className="flex items-center gap-4 mb-3">
-          <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">YO!</h1>
-          <div className="flex gap-2 ml-auto">
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => navigate('/check-in-history')}
-              className="h-10 w-10 text-white hover:bg-white/20"
-            >
-              <History className="h-5 w-5" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => {
-                supabase.auth.signOut();
-                navigate('/login');
-              }}
-              className="h-10 w-10 text-white hover:bg-white/20"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
+      <Header />
+      
+      {/* Controls Header */}
+      <div className="px-4 md:px-6 py-3 bg-gradient-header shadow-elevated border-b-0 relative z-10">
+        <div className="flex gap-2 justify-end mb-3">
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => navigate('/check-in-history')}
+            className="h-10 w-10 text-white hover:bg-white/20"
+          >
+            <History className="h-5 w-5" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => {
+              supabase.auth.signOut();
+              navigate('/login');
+            }}
+            className="h-10 w-10 text-white hover:bg-white/20"
+          >
+            <LogOut className="h-5 w-5" />
+          </Button>
         </div>
 
         {/* Place Search */}
