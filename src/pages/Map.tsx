@@ -36,6 +36,7 @@ const Map = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const [currentCheckInLocationId, setCurrentCheckInLocationId] = useState<string | null>(null);
   const [googleMapsApiKey, setGoogleMapsApiKey] = useState("");
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [searchMarker, setSearchMarker] = useState<{ lat: number; lng: number; name: string } | null>(null);
@@ -121,6 +122,14 @@ const Map = () => {
       .maybeSingle();
 
     setIsCheckedIn(!!profile?.current_check_in);
+    
+    // Extract location_id from current_check_in if exists
+    if (profile?.current_check_in && typeof profile.current_check_in === 'object') {
+      const checkIn = profile.current_check_in as any;
+      setCurrentCheckInLocationId(checkIn.location_id || null);
+    } else {
+      setCurrentCheckInLocationId(null);
+    }
   };
 
   const fetchNearbyLocations = async () => {
@@ -350,6 +359,7 @@ const Map = () => {
       });
 
       setIsCheckedIn(false);
+      setCurrentCheckInLocationId(null);
       fetchNearbyLocations();
     } catch (error) {
       console.error('Error checking out:', error);
@@ -511,6 +521,7 @@ const Map = () => {
               onCheckIn={handleCheckInRequest}
               center={mapCenter}
               searchMarker={searchMarker}
+              currentCheckInLocationId={currentCheckInLocationId}
             />
             
             <MapLegend />

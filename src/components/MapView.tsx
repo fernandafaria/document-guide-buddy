@@ -23,9 +23,10 @@ interface MapViewProps {
   onCheckIn: (location: Location) => void;
   center?: { lat: number; lng: number } | null;
   searchMarker?: { lat: number; lng: number; name: string } | null;
+  currentCheckInLocationId?: string | null;
 }
 
-export const MapView = React.memo(({ locations, userLocation, onCheckIn, center, searchMarker }: MapViewProps) => {
+export const MapView = React.memo(({ locations, userLocation, onCheckIn, center, searchMarker, currentCheckInLocationId }: MapViewProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
   const markers = useRef<google.maps.Marker[]>([]);
@@ -224,6 +225,7 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
     locations.forEach((location) => {
       if (!map.current) return;
       
+      const isCurrentCheckIn = currentCheckInLocationId === location.id;
       const hasActiveUsers = location.active_users_count > 0;
       
       const marker = new google.maps.Marker({
@@ -231,19 +233,19 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
         title: location.name,
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
-          scale: hasActiveUsers ? 12 : 8,
-          fillColor: hasActiveUsers ? '#FF5722' : '#9b87f5',
+          scale: isCurrentCheckIn ? 12 : (hasActiveUsers ? 12 : 8),
+          fillColor: isCurrentCheckIn ? '#FF8C00' : (hasActiveUsers ? '#FF5722' : '#9b87f5'),
           fillOpacity: 1,
           strokeColor: '#ffffff',
           strokeWeight: 2
         },
-        label: hasActiveUsers ? {
+        label: (hasActiveUsers && !isCurrentCheckIn) ? {
           text: location.active_users_count.toString(),
           color: '#ffffff',
           fontSize: '12px',
           fontWeight: 'bold'
         } : undefined,
-        zIndex: hasActiveUsers ? 1500 : 1000
+        zIndex: isCurrentCheckIn ? 2000 : (hasActiveUsers ? 1500 : 1000)
       });
 
       const infoWindow = new google.maps.InfoWindow({
@@ -326,7 +328,7 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
       }
       newMarkers.forEach(marker => marker.setMap(null));
     };
-  }, [locations, isLoading, onCheckIn]);
+  }, [locations, isLoading, onCheckIn, currentCheckInLocationId]);
 
   // Handle map center changes
   useEffect(() => {
