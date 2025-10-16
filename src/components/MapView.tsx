@@ -25,9 +25,10 @@ interface MapViewProps {
   center?: { lat: number; lng: number } | null;
   searchMarker?: { lat: number; lng: number; name: string } | null;
   currentCheckInLocationId?: string | null;
+  currentCheckInCoords?: { lat: number; lng: number } | null;
 }
 
-export const MapView = React.memo(({ locations, userLocation, onCheckIn, center, searchMarker, currentCheckInLocationId }: MapViewProps) => {
+export const MapView = React.memo(({ locations, userLocation, onCheckIn, center, searchMarker, currentCheckInLocationId, currentCheckInCoords }: MapViewProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
   const markers = useRef<google.maps.Marker[]>([]);
@@ -234,11 +235,23 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
     locations.forEach((location) => {
       if (!map.current) return;
       
-      // Check if this is the current check-in location using location_id
-      const isCurrentCheckIn = currentCheckInLocationId && 
-        (location.location_id === currentCheckInLocationId || 
-         `${location.latitude.toFixed(6)}_${location.longitude.toFixed(6)}` === currentCheckInLocationId);
-      
+      // Check if this is the current check-in location using location_id or proximity
+      let isCurrentCheckIn = false;
+      if (currentCheckInLocationId) {
+        isCurrentCheckIn = (location.location_id === currentCheckInLocationId || 
+          `${location.latitude.toFixed(6)}_${location.longitude.toFixed(6)}` === currentCheckInLocationId);
+      }
+      if (!isCurrentCheckIn && currentCheckInCoords) {
+        const dLat = (location.latitude - currentCheckInCoords.lat) * Math.PI / 180;
+        const dLng = (location.longitude - currentCheckInCoords.lng) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(location.latitude*Math.PI/180) * Math.cos(currentCheckInCoords.lat*Math.PI/180) * Math.sin(dLng/2) * Math.sin(dLng/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distanceMeters = 6371e3 * c;
+        if (distanceMeters < 30) {
+          isCurrentCheckIn = true;
+        }
+      }
+
       const hasActiveUsers = location.active_users_count > 0;
       
       const marker = new google.maps.Marker({
@@ -342,7 +355,7 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
       }
       newMarkers.forEach(marker => marker.setMap(null));
     };
-  }, [locations, isLoading, currentCheckInLocationId]);
+  }, [locations, isLoading, currentCheckInLocationId, currentCheckInCoords]);
 
   // Handle map center changes
   useEffect(() => {

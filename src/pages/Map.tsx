@@ -37,6 +37,7 @@ const Map = () => {
   const [loading, setLoading] = useState(true);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [currentCheckInLocationId, setCurrentCheckInLocationId] = useState<string | null>(null);
+  const [currentCheckInCoords, setCurrentCheckInCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [googleMapsApiKey, setGoogleMapsApiKey] = useState("");
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [searchMarker, setSearchMarker] = useState<{ lat: number; lng: number; name: string } | null>(null);
@@ -123,12 +124,18 @@ const Map = () => {
 
     setIsCheckedIn(!!profile?.current_check_in);
     
-    // Extract location_id from current_check_in if exists
+    // Extract location_id and coords from current_check_in if exists
     if (profile?.current_check_in && typeof profile.current_check_in === 'object') {
       const checkIn = profile.current_check_in as any;
       setCurrentCheckInLocationId(checkIn.location_id || null);
+      if (typeof checkIn.latitude === 'number' && typeof checkIn.longitude === 'number') {
+        setCurrentCheckInCoords({ lat: checkIn.latitude, lng: checkIn.longitude });
+      } else {
+        setCurrentCheckInCoords(null);
+      }
     } else {
       setCurrentCheckInLocationId(null);
+      setCurrentCheckInCoords(null);
     }
   };
 
@@ -334,6 +341,7 @@ const Map = () => {
       // Update the current check-in location ID immediately
       const locationId = `${selectedLocationForCheckIn.latitude.toFixed(6)}_${selectedLocationForCheckIn.longitude.toFixed(6)}`;
       setCurrentCheckInLocationId(locationId);
+      setCurrentCheckInCoords({ lat: selectedLocationForCheckIn.latitude, lng: selectedLocationForCheckIn.longitude });
       
       // Navigate immediately to success page
       console.log('🔄 Navigating to success page...');
@@ -364,6 +372,7 @@ const Map = () => {
 
       setIsCheckedIn(false);
       setCurrentCheckInLocationId(null);
+      setCurrentCheckInCoords(null);
       fetchNearbyLocations();
     } catch (error) {
       console.error('Error checking out:', error);
@@ -526,6 +535,7 @@ const Map = () => {
               center={mapCenter}
               searchMarker={searchMarker}
               currentCheckInLocationId={currentCheckInLocationId}
+              currentCheckInCoords={currentCheckInCoords}
             />
             
             <MapLegend />
