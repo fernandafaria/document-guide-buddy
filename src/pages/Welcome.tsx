@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import welcomeMap from "@/assets/welcome-rio-hand.jpg";
+import welcomeMap from "@/assets/welcome-topdown-map.jpg";
 
 const Welcome = () => {
   const navigate = useNavigate();
@@ -9,7 +9,7 @@ const Welcome = () => {
     <div className="min-h-screen bg-white flex flex-col items-center justify-between px-6 py-12">
       {/* Logo */}
       <div className="flex-1 flex items-center justify-center">
-        <h1 className="text-[80px] font-black text-coral tracking-tight transform -rotate-3 drop-shadow-lg" style={{ fontFamily: 'cursive' }}>
+        <h1 className="text-[80px] font-fredoka font-bold text-coral tracking-tight">
           Yo!
         </h1>
       </div>
