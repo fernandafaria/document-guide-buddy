@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import { LocationUsersSheet } from './LocationUsersSheet';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,7 +24,7 @@ interface MapViewProps {
   searchMarker?: { lat: number; lng: number; name: string } | null;
 }
 
-export const MapView = ({ locations, userLocation, onCheckIn, center, searchMarker }: MapViewProps) => {
+export const MapView = React.memo(({ locations, userLocation, onCheckIn, center, searchMarker }: MapViewProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
   const markers = useRef<google.maps.Marker[]>([]);
@@ -35,9 +35,12 @@ export const MapView = ({ locations, userLocation, onCheckIn, center, searchMark
   const [apiInitialized, setApiInitialized] = useState(false);
   const { toast } = useToast();
 
-  const defaultCenter: google.maps.LatLngLiteral = center || (userLocation 
-    ? { lat: userLocation.latitude, lng: userLocation.longitude }
-    : { lat: -23.5505, lng: -46.6333 });
+  const defaultCenter: google.maps.LatLngLiteral = useMemo(() => 
+    center || (userLocation 
+      ? { lat: userLocation.latitude, lng: userLocation.longitude }
+      : { lat: -23.5505, lng: -46.6333 }),
+    [center, userLocation]
+  );
 
   // Initialize Google Maps API
   useEffect(() => {
@@ -185,106 +188,111 @@ export const MapView = ({ locations, userLocation, onCheckIn, center, searchMark
     };
   }, [userLocation, isLoading]);
 
-  // Add location markers
+  // Add location markers with optimized batching
   useEffect(() => {
     if (!map.current || locations.length === 0 || isLoading) {
-      console.log('⏭️ Skipping location markers:', { 
-        hasMap: !!map.current, 
-        locationCount: locations.length, 
-        isLoading 
-      });
       return;
     }
 
     console.log(`📍 Creating ${locations.length} markers...`);
-    const newMarkers: google.maps.Marker[] = [];
-
-    locations.forEach((location, index) => {
-      if (!map.current) return;
-      
-      const isPOI = location.type && location.type !== 'user_location';
-      const hasActiveUsers = location.active_users_count > 0;
-      
-      // Determine marker appearance
-      let fillColor = '#9b87f5'; // Default POI color
-      let scale = 8;
-      let label = undefined;
-      
-      if (hasActiveUsers) {
-        fillColor = '#FF5722'; // Active users color
-        scale = 12;
-        label = {
-          text: location.active_users_count.toString(),
-          color: '#ffffff',
-          fontSize: '12px',
-          fontWeight: 'bold'
-        };
-      }
-
-      const marker = new google.maps.Marker({
-        map: map.current,
-        position: { lat: location.latitude, lng: location.longitude },
-        title: location.name,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: scale,
-          fillColor: fillColor,
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 2
-        },
-        label: label,
-        zIndex: hasActiveUsers ? 1500 : 1000
-      });
-
-      // Simple InfoWindow
-      const infoWindow = new google.maps.InfoWindow({
-        content: `
-          <div style="padding: 12px; min-width: 200px;">
-            <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">${location.name}</h3>
-            ${location.address ? `<p style="margin: 0 0 8px 0; font-size: 13px; color: #666;">${location.address}</p>` : ''}
-            ${hasActiveUsers ? `<p style="margin: 0 0 12px 0; font-size: 13px; color: #FF5722; font-weight: 600;">👥 ${location.active_users_count} ${location.active_users_count === 1 ? 'pessoa' : 'pessoas'}</p>` : ''}
-            <button 
-              id="checkin-btn-${location.id}" 
-              style="width: 100%; padding: 10px; background: linear-gradient(135deg, #FF5722, #E91E63); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;"
-            >
-              Fazer Check-in
-            </button>
-          </div>
-        `
-      });
-
-      marker.addListener('click', () => {
-        console.log('📍 Marker clicked:', location.name);
-        infoWindow.open(map.current, marker);
-        
-        // Add click listener to check-in button after InfoWindow opens
-        setTimeout(() => {
-          const btn = document.getElementById(`checkin-btn-${location.id}`);
-          if (btn) {
-            btn.addEventListener('click', () => {
-              console.log('✅ Check-in button clicked for:', location.name);
-              onCheckIn(location);
-              infoWindow.close();
-            });
-          }
-        }, 100);
-      });
-
-      newMarkers.push(marker);
-      
-      if ((index + 1) % 50 === 0) {
-        console.log(`  ✓ Created ${index + 1}/${locations.length} markers`);
+    
+    // Clear existing location markers (keep user marker)
+    const userMarkerColor = '#4ECDC4';
+    const existingUserMarkers: google.maps.Marker[] = [];
+    
+    markers.current.forEach(marker => {
+      const icon = marker.getIcon();
+      if (icon && typeof icon === 'object' && 'fillColor' in icon && icon.fillColor === userMarkerColor) {
+        existingUserMarkers.push(marker);
+      } else {
+        marker.setMap(null);
       }
     });
+    markers.current = existingUserMarkers;
 
+    const newMarkers: google.maps.Marker[] = [];
+    const batchSize = 100;
+    let currentBatch = 0;
+
+    const createMarkersInBatches = () => {
+      const start = currentBatch * batchSize;
+      const end = Math.min(start + batchSize, locations.length);
+      
+      for (let i = start; i < end; i++) {
+        const location = locations[i];
+        if (!map.current) continue;
+        
+        const hasActiveUsers = location.active_users_count > 0;
+        
+        const marker = new google.maps.Marker({
+          map: map.current,
+          position: { lat: location.latitude, lng: location.longitude },
+          title: location.name,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: hasActiveUsers ? 12 : 8,
+            fillColor: hasActiveUsers ? '#FF5722' : '#9b87f5',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2
+          },
+          label: hasActiveUsers ? {
+            text: location.active_users_count.toString(),
+            color: '#ffffff',
+            fontSize: '12px',
+            fontWeight: 'bold'
+          } : undefined,
+          zIndex: hasActiveUsers ? 1500 : 1000,
+          optimized: true
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+          content: `
+            <div style="padding: 12px; min-width: 200px;">
+              <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">${location.name}</h3>
+              ${location.address ? `<p style="margin: 0 0 8px 0; font-size: 13px; color: #666;">${location.address}</p>` : ''}
+              ${hasActiveUsers ? `<p style="margin: 0 0 12px 0; font-size: 13px; color: #FF5722; font-weight: 600;">👥 ${location.active_users_count} ${location.active_users_count === 1 ? 'pessoa' : 'pessoas'}</p>` : ''}
+              <button 
+                id="checkin-btn-${location.id}" 
+                style="width: 100%; padding: 10px; background: linear-gradient(135deg, #FF5722, #E91E63); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;"
+              >
+                Fazer Check-in
+              </button>
+            </div>
+          `
+        });
+
+        marker.addListener('click', () => {
+          infoWindow.open(map.current, marker);
+          
+          setTimeout(() => {
+            const btn = document.getElementById(`checkin-btn-${location.id}`);
+            if (btn) {
+              btn.addEventListener('click', () => {
+                onCheckIn(location);
+                infoWindow.close();
+              });
+            }
+          }, 100);
+        });
+
+        newMarkers.push(marker);
+      }
+      
+      currentBatch++;
+      
+      if (end < locations.length) {
+        requestAnimationFrame(createMarkersInBatches);
+      } else {
+        console.log(`✅ All ${newMarkers.length} markers created successfully`);
+      }
+    };
+
+    createMarkersInBatches();
     markers.current = [...markers.current, ...newMarkers];
-    console.log(`✅ All ${newMarkers.length} markers created successfully`);
 
     return () => {
-      console.log('🧹 Cleaning up location markers');
       newMarkers.forEach(marker => marker.setMap(null));
-      markers.current = markers.current.filter(m => !newMarkers.includes(m));
     };
   }, [locations, isLoading, onCheckIn]);
 
@@ -364,4 +372,4 @@ export const MapView = ({ locations, userLocation, onCheckIn, center, searchMark
       )}
     </>
   );
-};
+});

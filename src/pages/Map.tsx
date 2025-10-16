@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Search, MapPin, LogOut, Users, History, Heart, User } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapView } from "@/components/MapView";
 import { MapControls } from "@/components/MapControls";
@@ -191,7 +191,7 @@ const Map = () => {
     return R * c; // Distance in meters
   };
 
-  const handleCheckInRequest = (location: Location) => {
+  const handleCheckInRequest = useCallback((location: Location) => {
     console.log('handleCheckInRequest called with location:', location);
     
     // Validate user is within 100 meters
@@ -219,7 +219,7 @@ const Map = () => {
     setSelectedLocationForCheckIn(location);
     setConfirmDialogOpen(true);
     console.log('Dialog should open now');
-  };
+  }, [latitude, longitude, toast]);
 
   const handleCheckInConfirm = async () => {
     if (!selectedLocationForCheckIn || !latitude || !longitude) {
@@ -297,7 +297,7 @@ const Map = () => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  const handlePlaceSelect = (place: { lat: number; lng: number; name: string; address?: string }) => {
+  const handlePlaceSelect = useCallback((place: { lat: number; lng: number; name: string; address?: string }) => {
     setMapCenter({ lat: place.lat, lng: place.lng });
     
     // Calculate distance to validate if within 100 meters
@@ -329,7 +329,7 @@ const Map = () => {
     setTimeout(() => {
       setSearchMarker(null);
     }, 8000);
-  };
+  }, [latitude, longitude, toast]);
 
   const filteredLocations = useMemo(() => {
     return locations.filter((location) => {
