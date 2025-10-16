@@ -73,6 +73,40 @@ Deno.serve(async (req) => {
 
     console.log(`User ${user.id} checking in at ${name} (${latitude}, ${longitude})`);
 
+    // Check if user has a previous check-in and decrement that location's count
+    const { data: currentProfile } = await supabaseClient
+      .from('profiles')
+      .select('current_check_in')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (currentProfile?.current_check_in) {
+      const previousCheckIn = currentProfile.current_check_in as any;
+      const previousLocationId = previousCheckIn.location_id;
+      
+      console.log(`User has previous check-in at location ${previousLocationId}, decrementing count`);
+      
+      // Get the previous location to decrement count
+      const { data: previousLocation } = await supabaseClient
+        .from('locations')
+        .select('*')
+        .eq('location_id', previousLocationId)
+        .maybeSingle();
+
+      if (previousLocation) {
+        const newCount = Math.max(0, previousLocation.active_users_count - 1);
+        await supabaseClient
+          .from('locations')
+          .update({ 
+            active_users_count: newCount,
+            last_activity: new Date().toISOString()
+          })
+          .eq('id', previousLocation.id);
+        
+        console.log(`Decremented count for previous location ${previousLocationId} to ${newCount}`);
+      }
+    }
+
     // Generate location_id from coordinates
     const location_id = `${latitude.toFixed(6)}_${longitude.toFixed(6)}`;
 
