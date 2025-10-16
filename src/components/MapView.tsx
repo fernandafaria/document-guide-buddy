@@ -247,8 +247,8 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
         title: location.name,
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
-          scale: isCurrentCheckIn ? 12 : (hasActiveUsers ? 12 : 8),
-          fillColor: isCurrentCheckIn ? '#FF8C00' : (hasActiveUsers ? '#FF5722' : '#9b87f5'),
+          scale: isCurrentCheckIn ? 12 : 8,
+          fillColor: isCurrentCheckIn ? '#FF8C00' : '#9b87f5',
           fillOpacity: 1,
           strokeColor: '#ffffff',
           strokeWeight: 2
