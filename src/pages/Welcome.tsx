@@ -10,7 +10,7 @@ const Welcome = () => {
       {/* Logo */}
       <div className="flex-1 flex items-center justify-center">
         <h1 className="text-[72px] font-bold text-coral tracking-tight">
-          YO!
+          Yo!
         </h1>
       </div>
 
