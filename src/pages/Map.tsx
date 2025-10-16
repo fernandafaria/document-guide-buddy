@@ -216,14 +216,13 @@ const Map = () => {
     console.log('Distance to location:', distance, 'meters');
     
     // Note: Distance validation will be done by the edge function
-    // Here we just show a warning if the user is far away
-    if (distance > 100) {
+    // Here we just show info if the user is far away
+    if (distance > 500) {
       toast({
         title: "Você está longe",
-        description: `O local está a ${Math.round(distance)}m de você. Aproxime-se para fazer check-in.`,
+        description: `O local está a ${(distance / 1000).toFixed(2)}km de você. O check-in pode não funcionar.`,
         variant: "destructive",
       });
-      // Don't return - let user try anyway, edge function will validate
     }
     
     setSelectedLocationForCheckIn(location);
@@ -272,7 +271,18 @@ const Map = () => {
 
       if (error) {
         console.error('❌ Check-in error:', error);
-        throw error;
+        
+        // Show better error message
+        const errorMessage = typeof error === 'object' && error !== null && 'message' in error 
+          ? String(error.message) 
+          : "Não foi possível fazer check-in. Tente novamente.";
+        
+        toast({
+          title: "Erro no check-in",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
       }
 
       console.log('✅ Check-in successful, showing toast');
