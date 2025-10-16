@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import welcomeMap from "@/assets/welcome-map.jpg";
 
 const Welcome = () => {
   const navigate = useNavigate();
@@ -13,9 +14,13 @@ const Welcome = () => {
         </h1>
       </div>
 
-      {/* Illustration Placeholder */}
-      <div className="w-full max-w-[300px] aspect-square mb-12 rounded-3xl bg-gradient-to-br from-coral via-turquoise to-lavender flex items-center justify-center">
-        <div className="text-white text-6xl">👋</div>
+      {/* Map with Heart Marker */}
+      <div className="w-full max-w-[300px] aspect-square mb-12 rounded-3xl overflow-hidden shadow-2xl">
+        <img 
+          src={welcomeMap} 
+          alt="Mapa com marcador de coração" 
+          className="w-full h-full object-cover"
+        />
       </div>
 
       {/* Buttons */}
