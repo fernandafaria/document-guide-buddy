@@ -29,6 +29,7 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
   const map = useRef<google.maps.Map | null>(null);
   const markers = useRef<google.maps.Marker[]>([]);
   const searchMarkerRef = useRef<google.maps.Marker | null>(null);
+  const currentInfoWindow = useRef<google.maps.InfoWindow | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<{ id: string; name: string } | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -263,7 +264,13 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
         });
 
         marker.addListener('click', () => {
+          // Close previous InfoWindow if exists
+          if (currentInfoWindow.current) {
+            currentInfoWindow.current.close();
+          }
+          
           infoWindow.open(map.current, marker);
+          currentInfoWindow.current = infoWindow;
           
           setTimeout(() => {
             const btn = document.getElementById(`checkin-btn-${location.id}`);
@@ -271,6 +278,7 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
               btn.addEventListener('click', () => {
                 onCheckIn(location);
                 infoWindow.close();
+                currentInfoWindow.current = null;
               });
             }
           }, 100);
