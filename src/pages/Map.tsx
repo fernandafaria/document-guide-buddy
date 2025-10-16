@@ -8,7 +8,7 @@ import { MapLegend } from "@/components/MapLegend";
 import { MapFilters } from "@/components/MapFilters";
 import { CheckInConfirmDialog } from "@/components/CheckInConfirmDialog";
 import { PlaceSearch } from "@/components/PlaceSearch";
-import { TopLocationsCard } from "@/components/TopLocationsCard";
+
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -433,16 +433,6 @@ const Map = () => {
             
             <MapLegend />
             <MapFilters filters={filters} onFilterChange={handleFilterChange} />
-            <TopLocationsCard 
-              locations={filteredLocations}
-              onLocationClick={(location) => {
-                setMapCenter({ lat: location.latitude, lng: location.longitude });
-                toast({
-                  title: location.name,
-                  description: `${location.active_users_count} ${location.active_users_count === 1 ? 'pessoa' : 'pessoas'} aqui agora`,
-                });
-              }}
-            />
             <MapControls
               onZoomIn={() => {
                 // Will be implemented in MapView

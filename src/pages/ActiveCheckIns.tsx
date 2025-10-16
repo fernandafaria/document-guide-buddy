@@ -9,6 +9,8 @@ import { MapPin, Users, Clock, Heart, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { BottomNav } from "@/components/BottomNav";
+import { TopLocationsCard } from "@/components/TopLocationsCard";
+import { useGeolocation } from "@/hooks/useGeolocation";
 
 interface CheckIn {
   id: string;
@@ -22,17 +24,31 @@ interface CheckIn {
   longitude: number;
 }
 
+interface Location {
+  id: string;
+  name: string;
+  address: string | null;
+  latitude: number;
+  longitude: number;
+  active_users_count: number;
+  distance?: number;
+  type?: string;
+}
+
 const ActiveCheckIns = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [loading, setLoading] = useState(true);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const { latitude, longitude } = useGeolocation();
 
   useEffect(() => {
     if (user) {
       fetchActiveCheckIns();
+      fetchNearbyLocations();
     }
-  }, [user]);
+  }, [user, latitude, longitude]);
 
   useEffect(() => {
     if (!user) return;
@@ -102,6 +118,22 @@ const ActiveCheckIns = () => {
     }
   };
 
+  const fetchNearbyLocations = async () => {
+    if (!latitude || !longitude) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('get-nearby-locations', {
+        body: { latitude, longitude, radius: 10 },
+      });
+
+      if (error) throw error;
+
+      setLocations(data.locations || []);
+    } catch (error) {
+      console.error('Error fetching nearby locations:', error);
+    }
+  };
+
   const getTimeSinceCheckIn = (checkedInAt: string) => {
     const now = new Date();
     const checkInTime = new Date(checkedInAt);
@@ -144,7 +176,7 @@ const ActiveCheckIns = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="max-w-2xl mx-auto p-4 space-y-4">
+      <div className="max-w-2xl mx-auto p-4 space-y-4 pb-24">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Check-ins Ativos</h1>
@@ -153,6 +185,22 @@ const ActiveCheckIns = () => {
             </p>
           </div>
         </div>
+
+        {/* Top Locations Card */}
+        {locations.length > 0 && (
+          <div className="mb-6">
+            <TopLocationsCard 
+              locations={locations}
+              onLocationClick={(location) => {
+                navigate('/map');
+                toast({
+                  title: location.name,
+                  description: `${location.active_users_count} ${location.active_users_count === 1 ? 'pessoa' : 'pessoas'} aqui agora`,
+                });
+              }}
+            />
+          </div>
+        )}
 
         {checkIns.length === 0 ? (
           <Card>
