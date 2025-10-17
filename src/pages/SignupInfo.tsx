@@ -226,7 +226,11 @@ const SignupInfo = () => {
             value={formData.about_me}
             onChange={(e) => setFormData({ ...formData, about_me: e.target.value })}
             className="min-h-[100px] bg-gray-light border-0 rounded-2xl text-base"
+            maxLength={500}
           />
+          <p className="text-xs text-gray-medium text-right">
+            {formData.about_me.length}/500
+          </p>
         </div>
 
         {/* Intentions */}
