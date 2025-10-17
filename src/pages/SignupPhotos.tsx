@@ -194,7 +194,7 @@ const SignupPhotos = () => {
         <h1 className="text-3xl font-bold text-black-soft mb-2">
           Adicione suas fotos
         </h1>
-        <p className="text-lg text-gray-medium">Escolha até 5 fotos</p>
+        <p className="text-lg text-gray-medium">Pelo menos 1 foto é obrigatória (máx. 5)</p>
       </div>
 
       {/* Photo Grid */}
