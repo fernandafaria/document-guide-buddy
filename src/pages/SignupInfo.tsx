@@ -152,10 +152,18 @@ const SignupInfo = () => {
             <SelectTrigger className="h-14 bg-gray-light border-0 rounded-2xl text-base">
               <SelectValue placeholder="Selecione seu gênero" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Masculino">Masculino</SelectItem>
-              <SelectItem value="Feminino">Feminino</SelectItem>
+            <SelectContent className="bg-white">
+              <SelectItem value="Homem">Homem</SelectItem>
+              <SelectItem value="Mulher">Mulher</SelectItem>
+              <SelectItem value="Homem trans">Homem trans</SelectItem>
+              <SelectItem value="Mulher trans">Mulher trans</SelectItem>
               <SelectItem value="Não-binário">Não-binário</SelectItem>
+              <SelectItem value="Gênero fluido">Gênero fluido</SelectItem>
+              <SelectItem value="Agênero">Agênero</SelectItem>
+              <SelectItem value="Bigênero">Bigênero</SelectItem>
+              <SelectItem value="Queer">Queer</SelectItem>
+              <SelectItem value="Questioning">Questionando</SelectItem>
+              <SelectItem value="Prefiro não informar">Prefiro não informar</SelectItem>
               <SelectItem value="Outro">Outro</SelectItem>
             </SelectContent>
           </Select>
