@@ -81,14 +81,22 @@ const ActiveCheckIns = () => {
     try {
       setLoading(true);
       
-      // Fetch nearby locations
-      const { data, error } = await supabase.functions.invoke('get-nearby-locations', {
-        body: { latitude, longitude, radius: 10 },
-      });
+      // Fetch nearby locations and profiles in parallel
+      const [locationsResponse, profilesResponse] = await Promise.all([
+        supabase.functions.invoke('get-nearby-locations', {
+          body: { latitude, longitude, radius: 10 },
+        }),
+        supabase
+          .from('profiles')
+          .select('id, name, photos, current_check_in')
+          .not('current_check_in', 'is', null)
+      ]);
 
-      if (error) throw error;
+      if (locationsResponse.error) throw locationsResponse.error;
+      if (profilesResponse.error) throw profilesResponse.error;
 
-      const allLocations: Location[] = data.locations || [];
+      const allLocations: Location[] = locationsResponse.data.locations || [];
+      const allProfiles = profilesResponse.data || [];
       
       // Filter and sort by active users count, get top 5
       const topLocations = allLocations
@@ -98,19 +106,12 @@ const ActiveCheckIns = () => {
 
       setLocations(topLocations);
 
-      // Fetch users for each location
+      // Group users by location (single pass)
       const usersData: Record<string, CheckIn[]> = {};
       
       for (const location of topLocations) {
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, name, photos, current_check_in')
-          .not('current_check_in', 'is', null);
-
-        if (profilesError) throw profilesError;
-
-        const locationCheckIns: CheckIn[] = profiles
-          ?.filter(profile => {
+        const locationCheckIns: CheckIn[] = allProfiles
+          .filter(profile => {
             const checkInData = profile.current_check_in as any;
             return checkInData?.location_id === location.id;
           })
@@ -127,7 +128,7 @@ const ActiveCheckIns = () => {
               latitude: checkInData.latitude || location.latitude,
               longitude: checkInData.longitude || location.longitude,
             };
-          }) || [];
+          });
 
         if (locationCheckIns.length > 0) {
           usersData[location.id] = locationCheckIns;
@@ -160,11 +161,11 @@ const ActiveCheckIns = () => {
     return "Há mais de 1 dia";
   };
 
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 pb-24">
-        <div className="max-w-2xl mx-auto space-y-4">
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="max-w-2xl mx-auto p-4 space-y-4 pb-24">
           {[1, 2, 3].map((i) => (
             <Card key={i}>
               <CardContent className="p-4">
@@ -173,12 +174,13 @@ const ActiveCheckIns = () => {
             </Card>
           ))}
         </div>
+        <BottomNav />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-white">
       <Header />
       <div className="max-w-2xl mx-auto p-4 space-y-4 pb-24">
 
