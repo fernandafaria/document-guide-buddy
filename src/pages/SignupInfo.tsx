@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocation } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -98,6 +99,15 @@ const SignupInfo = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col px-6 py-8">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate("/login")}
+        className="mb-6 flex items-center gap-2 text-gray-dark hover:text-coral transition-colors"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span className="text-base font-medium">Voltar</span>
+      </button>
+
       {/* Progress Bar */}
       <div className="w-full h-2 bg-gray-light rounded-full mb-8">
         <div className="h-full w-1/3 bg-coral rounded-full transition-all duration-300" />

@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Camera, X } from "lucide-react";
+import { Camera, X, ArrowLeft } from "lucide-react";
 
 const SignupPhotos = () => {
   const navigate = useNavigate();
@@ -172,6 +172,15 @@ const SignupPhotos = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col px-6 py-8">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-6 flex items-center gap-2 text-gray-dark hover:text-coral transition-colors"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span className="text-base font-medium">Voltar</span>
+      </button>
+
       {/* Progress Bar */}
       <div className="w-full h-2 bg-gray-light rounded-full mb-8">
         <div className="h-full w-1/4 bg-coral rounded-full transition-all duration-300" />

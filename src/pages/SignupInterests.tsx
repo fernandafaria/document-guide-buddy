@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft } from "lucide-react";
 
 const SignupInterests = () => {
   const navigate = useNavigate();
@@ -58,6 +59,15 @@ const SignupInterests = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col px-6 py-8">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-6 flex items-center gap-2 text-gray-dark hover:text-coral transition-colors"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span className="text-base font-medium">Voltar</span>
+      </button>
+
       {/* Progress Bar */}
       <div className="w-full h-2 bg-gray-light rounded-full mb-8">
         <div className="h-full w-3/4 bg-coral rounded-full transition-all duration-300" />
