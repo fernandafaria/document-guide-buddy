@@ -21,6 +21,8 @@ import SignupPhotos from "./pages/SignupPhotos";
 import SignupInfo from "./pages/SignupInfo";
 import SignupInterests from "./pages/SignupInterests";
 import EmptyState from "./pages/EmptyState";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +48,8 @@ const App = () => (
         <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/empty" element={<ProtectedRoute><EmptyState /></ProtectedRoute>} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

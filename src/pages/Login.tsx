@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Mail } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -198,7 +198,14 @@ const Login = () => {
 
       {/* Legal */}
       <p className="text-sm text-gray-medium text-center mt-8 max-w-md">
-        Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade
+        Ao continuar, você concorda com nossos{" "}
+        <Link to="/terms" className="text-coral hover:underline">
+          Termos de Serviço
+        </Link>
+        {" "}e{" "}
+        <Link to="/privacy" className="text-coral hover:underline">
+          Política de Privacidade
+        </Link>
       </p>
     </div>
   );
