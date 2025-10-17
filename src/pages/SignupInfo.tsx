@@ -69,16 +69,14 @@ const SignupInfo = () => {
       return;
     }
 
-    if (!formData.name || !formData.age || !formData.gender || formData.intentions.length === 0) {
-      console.error("Validation failed", {
-        name: formData.name,
-        age: formData.age,
-        gender: formData.gender,
-        intentions: formData.intentions
-      });
+    if (!formData.name || !formData.age || !formData.gender || formData.intentions.length === 0 ||
+        !formData.city || !formData.state || !formData.profession || !formData.about_me ||
+        formData.musical_styles.length === 0 || formData.languages.length === 0 ||
+        !formData.education || !formData.alcohol || !formData.religion || !formData.zodiac_sign) {
+      console.error("Validation failed", formData);
       toast({
         title: "Preencha todos os campos obrigatórios",
-        description: "Nome, idade, gênero e pelo menos uma intenção são necessários",
+        description: "Todos os campos são obrigatórios para continuar",
         variant: "destructive",
       });
       return;
@@ -174,7 +172,7 @@ const SignupInfo = () => {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="city" className="text-base font-semibold text-black-soft">
-              Cidade
+              Cidade *
             </Label>
             <Input
               id="city"
@@ -187,7 +185,7 @@ const SignupInfo = () => {
           </div>
           <div className="space-y-2">
             <Label htmlFor="state" className="text-base font-semibold text-black-soft">
-              Estado
+              Estado *
             </Label>
             <Input
               id="state"
@@ -204,7 +202,7 @@ const SignupInfo = () => {
         {/* Profession */}
         <div className="space-y-2">
           <Label htmlFor="profession" className="text-base font-semibold text-black-soft">
-            Profissão
+            Profissão *
           </Label>
           <Input
             id="profession"
@@ -219,7 +217,7 @@ const SignupInfo = () => {
         {/* About Me */}
         <div className="space-y-2">
           <Label htmlFor="about_me" className="text-base font-semibold text-black-soft">
-            Sobre Mim
+            Sobre Mim *
           </Label>
           <Textarea
             id="about_me"
@@ -259,7 +257,7 @@ const SignupInfo = () => {
         {/* Musical Styles */}
         <div className="space-y-3">
           <Label className="text-base font-semibold text-black-soft">
-            Estilos Musicais
+            Estilos Musicais *
           </Label>
           <div className="flex flex-wrap gap-2">
             {MUSICAL_STYLES.map((style) => (
@@ -281,7 +279,7 @@ const SignupInfo = () => {
         {/* Languages */}
         <div className="space-y-3">
           <Label className="text-base font-semibold text-black-soft">
-            Idiomas
+            Idiomas *
           </Label>
           <div className="flex flex-wrap gap-2">
             {LANGUAGES.map((language) => (
@@ -303,7 +301,7 @@ const SignupInfo = () => {
         {/* Education */}
         <div className="space-y-2">
           <Label htmlFor="education" className="text-base font-semibold text-black-soft">
-            Escolaridade
+            Escolaridade *
           </Label>
           <Select value={formData.education} onValueChange={(value) => setFormData({ ...formData, education: value })}>
             <SelectTrigger className="h-14 bg-gray-light border-0 rounded-2xl text-base">
@@ -320,7 +318,7 @@ const SignupInfo = () => {
         {/* Alcohol */}
         <div className="space-y-2">
           <Label htmlFor="alcohol" className="text-base font-semibold text-black-soft">
-            Álcool
+            Álcool *
           </Label>
           <Select value={formData.alcohol} onValueChange={(value) => setFormData({ ...formData, alcohol: value })}>
             <SelectTrigger className="h-14 bg-gray-light border-0 rounded-2xl text-base">
@@ -337,7 +335,7 @@ const SignupInfo = () => {
         {/* Religion */}
         <div className="space-y-2">
           <Label htmlFor="religion" className="text-base font-semibold text-black-soft">
-            Religião
+            Religião *
           </Label>
           <Select value={formData.religion} onValueChange={(value) => setFormData({ ...formData, religion: value })}>
             <SelectTrigger className="h-14 bg-gray-light border-0 rounded-2xl text-base">
@@ -354,7 +352,7 @@ const SignupInfo = () => {
         {/* Zodiac Sign */}
         <div className="space-y-2">
           <Label htmlFor="zodiac_sign" className="text-base font-semibold text-black-soft">
-            Signo
+            Signo *
           </Label>
           <Select value={formData.zodiac_sign} onValueChange={(value) => setFormData({ ...formData, zodiac_sign: value })}>
             <SelectTrigger className="h-14 bg-gray-light border-0 rounded-2xl text-base">
