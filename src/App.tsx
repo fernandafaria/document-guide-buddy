@@ -17,6 +17,10 @@ import ProfileDetail from "./pages/ProfileDetail";
 import MatchScreen from "./pages/MatchScreen";
 import Chat from "./pages/Chat";
 import Settings from "./pages/Settings";
+import NotificationSettings from "./pages/NotificationSettings";
+import PrivacySettings from "./pages/PrivacySettings";
+import AccountSettings from "./pages/AccountSettings";
+import HelpSettings from "./pages/HelpSettings";
 import Onboarding from "./pages/Onboarding";
 import SignupPhotos from "./pages/SignupPhotos";
 import SignupInfo from "./pages/SignupInfo";
@@ -49,6 +53,10 @@ const App = () => (
         <Route path="/match" element={<ProtectedRoute><MatchScreen /></ProtectedRoute>} />
         <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/settings/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
+        <Route path="/settings/privacy" element={<ProtectedRoute><PrivacySettings /></ProtectedRoute>} />
+        <Route path="/settings/account" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
+        <Route path="/settings/help" element={<ProtectedRoute><HelpSettings /></ProtectedRoute>} />
         <Route path="/empty" element={<ProtectedRoute><EmptyState /></ProtectedRoute>} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />

@@ -30,31 +30,31 @@ const Settings = () => {
       icon: Bell,
       title: "Notificações",
       color: "bg-coral",
-      onClick: () => console.log("Notifications"),
+      onClick: () => navigate("/settings/notifications"),
     },
     {
       icon: Shield,
       title: "Privacidade",
       color: "bg-turquoise",
-      onClick: () => console.log("Privacy"),
+      onClick: () => navigate("/settings/privacy"),
     },
     {
       icon: User,
       title: "Conta",
       color: "bg-coral",
-      onClick: () => console.log("Account"),
+      onClick: () => navigate("/settings/account"),
     },
     {
       icon: HelpCircle,
       title: "Ajuda",
       color: "bg-lavender",
-      onClick: () => console.log("Help"),
+      onClick: () => navigate("/settings/help"),
     },
     {
       icon: FileText,
       title: "Termos de Uso",
       color: "bg-lavender",
-      onClick: () => window.open("https://example.com/terms", "_blank"),
+      onClick: () => navigate("/terms"),
     },
   ];
 
