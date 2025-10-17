@@ -21,7 +21,8 @@ const Settings = () => {
         title: "Até logo!",
         description: "Você foi desconectado com sucesso",
       });
-      navigate("/login");
+      // Redireciona para login sem passar o "from" para evitar voltar às configurações
+      navigate("/login", { replace: true });
     }
   };
 

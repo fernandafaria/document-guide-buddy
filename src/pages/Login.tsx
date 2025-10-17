@@ -26,7 +26,17 @@ const Login = () => {
 
   const fromState = (location.state as { from?: string } | null)?.from;
   const fromQuery = new URLSearchParams(location.search).get('from');
-  const redirectPath = fromState || fromQuery || '/map';
+  const fromPath = fromState || fromQuery;
+  
+  // Se vier de /settings ou outras páginas de configuração, redireciona para /map
+  // Isso evita que após logout volte para a página de onde saiu
+  const shouldRedirectToMap = fromPath && (
+    fromPath.startsWith('/settings') || 
+    fromPath === '/profile' ||
+    fromPath === '/profile/edit'
+  );
+  
+  const redirectPath = shouldRedirectToMap ? '/map' : (fromPath || '/map');
 
   useEffect(() => {
     if (user) {
