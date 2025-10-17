@@ -192,9 +192,9 @@ const SignupPhotos = () => {
       {/* Title */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-black-soft mb-2">
-          Add your photos
+          Adicione suas fotos
         </h1>
-        <p className="text-lg text-gray-medium">Choose up to 5 photos</p>
+        <p className="text-lg text-gray-medium">Escolha até 5 fotos</p>
       </div>
 
       {/* Photo Grid */}
@@ -218,7 +218,7 @@ const SignupPhotos = () => {
             ) : (
               <label className="aspect-square bg-gray-light rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-gray-medium/20 transition-colors">
                 <Camera className="w-8 h-8 text-coral mb-2" />
-                <span className="text-sm text-gray-medium">Add photo</span>
+                <span className="text-sm text-gray-medium">Adicionar foto</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -235,8 +235,8 @@ const SignupPhotos = () => {
       <div className="flex items-start gap-3 p-4 bg-gray-light rounded-2xl mb-8">
         <span className="text-2xl">💡</span>
         <p className="text-base text-gray-dark">
-          <span className="font-semibold">Tip:</span> Use clear photos showing
-          your face
+          <span className="font-semibold">Dica:</span> Use fotos claras mostrando
+          seu rosto
         </p>
       </div>
 
