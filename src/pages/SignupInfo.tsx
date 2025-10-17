@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 
 const INTENTIONS = ["Date", "Amizade", "Networking"];
-const MUSICAL_STYLES = ["Pop", "Rock", "MPB", "Sertanejo", "Funk", "Hip Hop", "Eletrônica", "Jazz", "Clássica"];
+const MUSICAL_STYLES = ["Pop", "Rock", "MPB", "Sertanejo", "Funk", "Hip Hop", "Eletrônica", "Jazz", "Clássica", "Samba", "Forró"];
 const LANGUAGES = ["Português", "Inglês", "Espanhol", "Francês", "Alemão", "Italiano", "Japonês", "Mandarim"];
 const EDUCATION_LEVELS = ["Ensino Médio", "Superior Incompleto", "Superior Completo", "Pós-graduação", "Mestrado", "Doutorado"];
 const ALCOHOL_OPTIONS = ["Não bebo", "Socialmente", "Frequentemente", "Prefiro não dizer"];
