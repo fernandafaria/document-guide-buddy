@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 
-const INTENTIONS = ["Date", "Amizade", "Networking", "Música"];
+const INTENTIONS = ["Date", "Amizade", "Networking"];
 const MUSICAL_STYLES = ["Pop", "Rock", "MPB", "Sertanejo", "Funk", "Hip Hop", "Eletrônica", "Jazz", "Clássica"];
 const LANGUAGES = ["Português", "Inglês", "Espanhol", "Francês", "Alemão", "Italiano", "Japonês", "Mandarim"];
 const EDUCATION_LEVELS = ["Ensino Médio", "Superior Incompleto", "Superior Completo", "Pós-graduação", "Mestrado", "Doutorado"];
