@@ -168,7 +168,7 @@ const Profile = () => {
           <img
             src={mainPhoto}
             alt="Profile"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover rounded-3xl"
           />
           <button 
             onClick={() => setEditModalOpen(true)}
