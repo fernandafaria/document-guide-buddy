@@ -158,6 +158,9 @@ const SignupPhotos = () => {
         description: "Bem-vindo ao YO!",
       });
 
+      // Clear saved data after successful signup
+      sessionStorage.removeItem('signupData');
+
       navigate("/onboarding");
     } catch (error: any) {
       toast({

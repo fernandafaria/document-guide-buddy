@@ -29,7 +29,10 @@ const SignupInfo = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
+  
+  // Load saved data from sessionStorage if available
+  const savedData = sessionStorage.getItem('signupData');
+  const initialData = savedData ? JSON.parse(savedData) : {
     name: "",
     age: "",
     gender: "",
@@ -45,7 +48,9 @@ const SignupInfo = () => {
     intentions: [] as string[],
     musical_styles: [] as string[],
     languages: [] as string[],
-  });
+  };
+  
+  const [formData, setFormData] = useState(initialData);
 
   const { email, password } = location.state || {};
 
@@ -86,13 +91,19 @@ const SignupInfo = () => {
       return;
     }
     
+    // Save data to sessionStorage
+    const dataToSave = {
+      ...formData,
+      age: parseInt(formData.age)
+    };
+    sessionStorage.setItem('signupData', JSON.stringify(dataToSave));
+    
     console.log("Navigating to signup-photos");
     navigate("/signup-photos", { 
       state: { 
         email, 
         password, 
-        ...formData,
-        age: parseInt(formData.age)
+        ...dataToSave
       } 
     });
   };
