@@ -54,7 +54,7 @@ const Settings = () => {
       icon: FileText,
       title: "Termos de Uso",
       color: "bg-lavender",
-      onClick: () => navigate("/terms"),
+      onClick: () => navigate("/terms", { state: { from: "/settings" } }),
     },
   ];
 

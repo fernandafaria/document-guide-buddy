@@ -1,16 +1,28 @@
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleBack = () => {
+    // Se veio de configurações ou ajuda, volta lá. Caso contrário, vai para home
+    if (location.state?.from) {
+      navigate(location.state.from);
+    } else if (document.referrer.includes('/settings')) {
+      navigate('/settings');
+    } else {
+      navigate('/');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-6 py-8">
         <Button
           variant="ghost"
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
           className="mb-6"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />

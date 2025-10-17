@@ -22,13 +22,13 @@ const HelpSettings = () => {
       icon: FileText,
       title: "Termos de Uso",
       description: "Leia nossos termos e condições",
-      action: () => navigate("/terms"),
+      action: () => navigate("/terms", { state: { from: "/settings/help" } }),
     },
     {
       icon: FileText,
       title: "Política de Privacidade",
       description: "Como tratamos seus dados",
-      action: () => navigate("/privacy"),
+      action: () => navigate("/privacy", { state: { from: "/settings/help" } }),
     },
   ];
 
