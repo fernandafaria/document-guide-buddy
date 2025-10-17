@@ -16,7 +16,7 @@ const loginSchema = z.object({
 
 const Login = () => {
   const navigate = useNavigate();
-  const { signIn, user } = useAuth();
+  const { signIn, user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
@@ -39,10 +39,10 @@ const Login = () => {
   const redirectPath = shouldRedirectToMap ? '/map' : (fromPath || '/map');
 
   useEffect(() => {
-    if (user) {
-      navigate(redirectPath);
+    if (!authLoading && user) {
+      navigate(redirectPath, { replace: true });
     }
-  }, [user, navigate, redirectPath]);
+  }, [user, authLoading]);
 
   const handleGoogleLogin = async () => {
     try {
