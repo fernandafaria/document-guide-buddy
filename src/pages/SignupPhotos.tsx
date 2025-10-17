@@ -130,10 +130,8 @@ const SignupPhotos = () => {
         throw new Error("Erro ao autenticar usuário");
       }
 
-      // Upload das fotos
-      const uploadedPhotoUrls: string[] = [];
-      for (let i = 0; i < photos.length; i++) {
-        const photo = photos[i];
+      // Upload das fotos em paralelo para ser mais rápido
+      const uploadPromises = photos.map(async (photo, i) => {
         const fileName = `${authUser.id}/photo-${i}-${Date.now()}.jpg`;
         const blob = await fetch(photo).then(res => res.blob());
         const { error: uploadError } = await supabase.storage
@@ -142,13 +140,16 @@ const SignupPhotos = () => {
 
         if (uploadError) {
           console.error("Error uploading photo:", uploadError);
-        } else {
-          const { data: urlData } = supabase.storage
-            .from('profile-photos')
-            .getPublicUrl(fileName);
-          uploadedPhotoUrls.push(urlData.publicUrl);
+          return null;
         }
-      }
+        
+        const { data: urlData } = supabase.storage
+          .from('profile-photos')
+          .getPublicUrl(fileName);
+        return urlData.publicUrl;
+      });
+
+      const uploadedPhotoUrls = (await Promise.all(uploadPromises)).filter(url => url !== null) as string[];
 
       // Upsert do perfil (com normalização de gênero)
       const normalizedGender = normalizeGender(gender);
