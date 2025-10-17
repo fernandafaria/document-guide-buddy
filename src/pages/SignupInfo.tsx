@@ -20,6 +20,7 @@ const MUSICAL_STYLES = ["Pop", "Rock", "MPB", "Sertanejo", "Funk", "Hip Hop", "E
 const LANGUAGES = ["Português", "Inglês", "Espanhol", "Francês", "Alemão", "Italiano", "Japonês", "Mandarim"];
 const EDUCATION_LEVELS = ["Ensino Médio", "Superior Incompleto", "Superior Completo", "Pós-graduação", "Mestrado", "Doutorado"];
 const ALCOHOL_OPTIONS = ["Não bebo", "Socialmente", "Frequentemente", "Prefiro não dizer"];
+const RELIGIONS = ["Católica", "Evangélica", "Espírita", "Umbanda", "Candomblé", "Judaísmo", "Islamismo", "Budismo", "Hinduísmo", "Ateu/Agnóstico", "Sem religião", "Prefiro não dizer", "Outra"];
 const ZODIAC_SIGNS = ["Áries", "Touro", "Gêmeos", "Câncer", "Leão", "Virgem", "Libra", "Escorpião", "Sagitário", "Capricórnio", "Aquário", "Peixes"];
 
 const SignupInfo = () => {
@@ -68,7 +69,7 @@ const SignupInfo = () => {
       return;
     }
 
-    if (!formData.name || !formData.age || !formData.gender || formData.intentions.length === 0) {
+    if (!formData.name || !formData.age || !formData.gender || formData.intentions.length === 0 || !formData.religion) {
       console.error("Validation failed", {
         name: formData.name,
         age: formData.age,
@@ -77,7 +78,7 @@ const SignupInfo = () => {
       });
       toast({
         title: "Preencha todos os campos obrigatórios",
-        description: "Nome, idade, gênero e pelo menos uma intenção são necessários",
+        description: "Nome, idade, gênero, religião e pelo menos uma intenção são necessários",
         variant: "destructive",
       });
       return;
@@ -336,16 +337,18 @@ const SignupInfo = () => {
         {/* Religion */}
         <div className="space-y-2">
           <Label htmlFor="religion" className="text-base font-semibold text-black-soft">
-            Religião
+            Religião *
           </Label>
-          <Input
-            id="religion"
-            type="text"
-            placeholder="Sua religião (opcional)"
-            value={formData.religion}
-            onChange={(e) => setFormData({ ...formData, religion: e.target.value })}
-            className="h-14 bg-gray-light border-0 rounded-2xl text-base"
-          />
+          <Select value={formData.religion} onValueChange={(value) => setFormData({ ...formData, religion: value })}>
+            <SelectTrigger className="h-14 bg-gray-light border-0 rounded-2xl text-base">
+              <SelectValue placeholder="Selecione sua religião" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {RELIGIONS.map((religion) => (
+                <SelectItem key={religion} value={religion}>{religion}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Zodiac Sign */}
