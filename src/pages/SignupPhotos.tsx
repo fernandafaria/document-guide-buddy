@@ -69,6 +69,7 @@ const SignupPhotos = () => {
         alcohol,
         religion,
         zodiac_sign,
+        political_position,
         musical_styles,
         about_me
       } = userData;

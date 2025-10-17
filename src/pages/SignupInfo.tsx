@@ -22,6 +22,7 @@ const EDUCATION_LEVELS = ["Ensino Médio", "Superior Incompleto", "Superior Comp
 const ALCOHOL_OPTIONS = ["Não bebo", "Socialmente", "Frequentemente", "Prefiro não dizer"];
 const RELIGIONS = ["Católica", "Evangélica", "Espírita", "Umbanda", "Candomblé", "Judaísmo", "Islamismo", "Budismo", "Hinduísmo", "Ateu/Agnóstico", "Sem religião", "Prefiro não dizer", "Outra"];
 const ZODIAC_SIGNS = ["Áries", "Touro", "Gêmeos", "Câncer", "Leão", "Virgem", "Libra", "Escorpião", "Sagitário", "Capricórnio", "Aquário", "Peixes"];
+const POLITICAL_POSITIONS = ["Esquerda", "Centro-esquerda", "Centro", "Centro-direita", "Direita", "Não tenho posição definida", "Prefiro não dizer"];
 
 const SignupInfo = () => {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ const SignupInfo = () => {
     alcohol: "",
     religion: "",
     zodiac_sign: "",
+    political_position: "",
     about_me: "",
     intentions: [] as string[],
     musical_styles: [] as string[],
@@ -72,7 +74,8 @@ const SignupInfo = () => {
     if (!formData.name || !formData.age || !formData.gender || formData.intentions.length === 0 ||
         !formData.city || !formData.state || !formData.profession || !formData.about_me ||
         formData.musical_styles.length === 0 || formData.languages.length === 0 ||
-        !formData.education || !formData.alcohol || !formData.religion || !formData.zodiac_sign) {
+        !formData.education || !formData.alcohol || !formData.religion || !formData.zodiac_sign ||
+        !formData.political_position) {
       console.error("Validation failed", formData);
       toast({
         title: "Preencha todos os campos obrigatórios",
@@ -358,9 +361,26 @@ const SignupInfo = () => {
             <SelectTrigger className="h-14 bg-gray-light border-0 rounded-2xl text-base">
               <SelectValue placeholder="Selecione seu signo" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white">
               {ZODIAC_SIGNS.map((sign) => (
                 <SelectItem key={sign} value={sign}>{sign}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Political Position */}
+        <div className="space-y-2">
+          <Label htmlFor="political_position" className="text-base font-semibold text-black-soft">
+            Política *
+          </Label>
+          <Select value={formData.political_position} onValueChange={(value) => setFormData({ ...formData, political_position: value })}>
+            <SelectTrigger className="h-14 bg-gray-light border-0 rounded-2xl text-base">
+              <SelectValue placeholder="Selecione sua posição política" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {POLITICAL_POSITIONS.map((position) => (
+                <SelectItem key={position} value={position}>{position}</SelectItem>
               ))}
             </SelectContent>
           </Select>
