@@ -121,7 +121,7 @@ const SignupInfo = () => {
 
       {/* Progress Bar */}
       <div className="w-full h-2 bg-gray-light rounded-full mb-8">
-        <div className="h-full w-1/3 bg-coral rounded-full transition-all duration-300" />
+        <div className="h-full w-1/2 bg-coral rounded-full transition-all duration-300" />
       </div>
 
       {/* Title */}
