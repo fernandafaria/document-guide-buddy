@@ -68,7 +68,7 @@ const Settings = () => {
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-2xl font-bold text-black-soft">Settings</h1>
+        <h1 className="text-2xl font-bold text-black-soft">Configurações</h1>
       </div>
 
       {/* Settings List */}
