@@ -9,21 +9,8 @@ const Settings = () => {
   const { toast } = useToast();
 
   const handleLogout = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast({
-        title: "Erro ao sair",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Até logo!",
-        description: "Você foi desconectado com sucesso",
-      });
-      // Redireciona para login sem passar o "from" para evitar voltar às configurações
-      navigate("/login", { replace: true });
-    }
+    // Hard redirect para descarregar o mapa e ir imediatamente ao Login
+    window.location.assign("/login?logout=1");
   };
 
   const settingsOptions = [

@@ -482,8 +482,7 @@ const Map = () => {
             size="icon"
             variant="ghost"
             onClick={() => {
-              supabase.auth.signOut();
-              navigate('/login');
+              window.location.assign('/login?logout=1');
             }}
             className="h-10 w-10 text-coral hover:bg-coral/10"
           >

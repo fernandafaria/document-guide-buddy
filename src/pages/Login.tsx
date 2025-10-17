@@ -24,9 +24,11 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const fromState = (location.state as { from?: string } | null)?.from;
+const fromState = (location.state as { from?: string } | null)?.from;
   const fromQuery = new URLSearchParams(location.search).get('from');
+  const logoutParam = new URLSearchParams(location.search).get('logout');
   const fromPath = fromState || fromQuery;
+  const [signingOut, setSigningOut] = useState(false);
   
   // Se vier de /settings ou outras páginas de configuração, redireciona para /map
   // Isso evita que após logout volte para a página de onde saiu
@@ -39,10 +41,27 @@ const Login = () => {
   const redirectPath = shouldRedirectToMap ? '/map' : (fromPath || '/map');
 
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user && !logoutParam) {
       navigate(redirectPath, { replace: true });
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, logoutParam]);
+
+useEffect(() => {
+    if (logoutParam && !signingOut) {
+      setSigningOut(true);
+      (async () => {
+        try {
+          await supabase.auth.signOut();
+        } catch (e) {
+          // ignore
+        } finally {
+          setSigningOut(false);
+          // Remove ?logout da URL após encerrar sessão
+          navigate('/login', { replace: true });
+        }
+      })();
+    }
+  }, [logoutParam]);
 
   const handleGoogleLogin = async () => {
     try {
@@ -130,13 +149,14 @@ const Login = () => {
               Email
             </Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="seu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="h-14 bg-gray-light border-0 rounded-2xl text-base"
-            />
+               id="email"
+               type="email"
+               placeholder="seu@email.com"
+               value={email}
+               onChange={(e) => setEmail(e.target.value)}
+               disabled={signingOut}
+               className="h-14 bg-gray-light border-0 rounded-2xl text-base"
+             />
           </div>
 
           <div className="space-y-2">
@@ -149,6 +169,7 @@ const Login = () => {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={signingOut}
               className="h-14 bg-gray-light border-0 rounded-2xl text-base"
             />
           </div>
@@ -156,14 +177,15 @@ const Login = () => {
           <Button
             className="w-full h-14"
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={loading || signingOut}
           >
-            {loading ? "Carregando..." : (isLogin ? "Entrar" : "Continuar")}
+            {signingOut ? "Saindo..." : loading ? "Carregando..." : (isLogin ? "Entrar" : "Continuar")}
           </Button>
 
           <button
             className="w-full text-center text-sm text-gray-medium hover:text-coral transition-colors"
             onClick={() => setIsLogin(!isLogin)}
+            disabled={signingOut}
           >
             {isLogin ? "Não tem conta? Cadastre-se" : "Já tem conta? Entre"}
           </button>
