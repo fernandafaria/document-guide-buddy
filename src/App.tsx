@@ -12,6 +12,7 @@ import CheckInSuccess from "./pages/CheckInSuccess";
 import Discovery from "./pages/Discovery";
 import Matches from "./pages/Matches";
 import Profile from "./pages/Profile";
+import ProfileEdit from "./pages/ProfileEdit";
 import ProfileDetail from "./pages/ProfileDetail";
 import MatchScreen from "./pages/MatchScreen";
 import Chat from "./pages/Chat";
@@ -43,6 +44,7 @@ const App = () => (
         <Route path="/discovery" element={<ProtectedRoute><Discovery /></ProtectedRoute>} />
         <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
         <Route path="/profile/:id" element={<ProtectedRoute><ProfileDetail /></ProtectedRoute>} />
         <Route path="/match" element={<ProtectedRoute><MatchScreen /></ProtectedRoute>} />
         <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />

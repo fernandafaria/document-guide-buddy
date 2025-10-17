@@ -8,7 +8,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { ProfileEditModal } from "@/components/ProfileEditModal";
 
 interface UserProfile {
   id: string;
@@ -34,7 +33,6 @@ const Profile = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [editModalOpen, setEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -87,18 +85,6 @@ const Profile = () => {
 
     fetchProfile();
   }, [user]);
-
-  const handleProfileSave = async () => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user?.id)
-      .single();
-    
-    if (data) {
-      setProfile(data as UserProfile);
-    }
-  };
 
   if (loading) {
     return (
@@ -171,7 +157,7 @@ const Profile = () => {
             className="w-full h-full object-cover rounded-3xl"
           />
           <button 
-            onClick={() => setEditModalOpen(true)}
+            onClick={() => navigate("/profile/edit")}
             className="absolute bottom-4 right-4 w-12 h-12 bg-coral rounded-full flex items-center justify-center shadow-button hover:scale-105 transition-transform"
           >
             <Edit className="w-5 h-5 text-white" />
@@ -304,16 +290,6 @@ const Profile = () => {
 
       {/* Bottom Navigation */}
       <BottomNav />
-
-      {/* Edit Modal */}
-      {profile && (
-        <ProfileEditModal
-          open={editModalOpen}
-          onOpenChange={setEditModalOpen}
-          profile={profile}
-          onSave={handleProfileSave}
-        />
-      )}
     </div>
   );
 };
