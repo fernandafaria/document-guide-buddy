@@ -69,7 +69,7 @@ const SignupInfo = () => {
       return;
     }
 
-    if (!formData.name || !formData.age || !formData.gender || formData.intentions.length === 0 || !formData.religion) {
+    if (!formData.name || !formData.age || !formData.gender || formData.intentions.length === 0) {
       console.error("Validation failed", {
         name: formData.name,
         age: formData.age,
@@ -78,7 +78,7 @@ const SignupInfo = () => {
       });
       toast({
         title: "Preencha todos os campos obrigatórios",
-        description: "Nome, idade, gênero, religião e pelo menos uma intenção são necessários",
+        description: "Nome, idade, gênero e pelo menos uma intenção são necessários",
         variant: "destructive",
       });
       return;
@@ -337,7 +337,7 @@ const SignupInfo = () => {
         {/* Religion */}
         <div className="space-y-2">
           <Label htmlFor="religion" className="text-base font-semibold text-black-soft">
-            Religião *
+            Religião
           </Label>
           <Select value={formData.religion} onValueChange={(value) => setFormData({ ...formData, religion: value })}>
             <SelectTrigger className="h-14 bg-gray-light border-0 rounded-2xl text-base">
