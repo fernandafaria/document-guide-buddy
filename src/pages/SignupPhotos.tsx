@@ -10,7 +10,7 @@ const SignupPhotos = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { signUp } = useAuth();
+  const { signUp, signIn } = useAuth();
   const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -39,6 +39,24 @@ const SignupPhotos = () => {
 
   const removePhoto = (index: number) => {
     setPhotos(photos.filter((_, i) => i !== index));
+  };
+
+  const normalizeGender = (g: string): string => {
+    const map: Record<string, string> = {
+      'Homem': 'Masculino',
+      'Mulher': 'Feminino',
+      'Homem trans': 'Masculino',
+      'Mulher trans': 'Feminino',
+      'Não-binário': 'Não-binário',
+      'Gênero fluido': 'Não-binário',
+      'Agênero': 'Não-binário',
+      'Bigênero': 'Não-binário',
+      'Queer': 'Outro',
+      'Questioning': 'Outro',
+      'Prefiro não informar': 'Outro',
+      'Outro': 'Outro',
+    };
+    return map[g] ?? 'Outro';
   };
 
   const handleContinue = async () => {
@@ -84,34 +102,40 @@ const SignupPhotos = () => {
         return;
       }
 
-      // Create account
-      const { data: authData, error: signUpError } = await signUp(email, password, {
+      // Tenta criar a conta; se já existir, faz login automaticamente
+      const { data: signUpData, error: signUpError } = await signUp(email, password, {
         name,
         age,
         gender,
         intentions,
       });
 
+      let authUser = signUpData?.user || null;
+
       if (signUpError) {
-        if (signUpError.message.includes("already registered")) {
-          throw new Error("Este email já está cadastrado");
+        const msg = String(signUpError.message || "").toLowerCase();
+        if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
+          toast({ title: "Conta já existe", description: "Entrando com suas credenciais..." });
+          const { data: signInData, error: signInError } = await signIn(email, password);
+          if (signInError) {
+            throw new Error(`Não foi possível entrar: ${signInError.message}`);
+          }
+          authUser = signInData.user;
+        } else {
+          throw signUpError;
         }
-        throw signUpError;
       }
 
-      if (!authData.user) {
-        throw new Error("Erro ao criar conta");
+      if (!authUser) {
+        throw new Error("Erro ao autenticar usuário");
       }
 
-      // Upload photos to storage
+      // Upload das fotos
       const uploadedPhotoUrls: string[] = [];
       for (let i = 0; i < photos.length; i++) {
         const photo = photos[i];
-        const fileName = `${authData.user.id}/photo-${i}-${Date.now()}.jpg`;
-        
-        const base64Data = photo.split(',')[1];
+        const fileName = `${authUser.id}/photo-${i}-${Date.now()}.jpg`;
         const blob = await fetch(photo).then(res => res.blob());
-        
         const { error: uploadError } = await supabase.storage
           .from('profile-photos')
           .upload(fileName, blob);
@@ -126,14 +150,15 @@ const SignupPhotos = () => {
         }
       }
 
-      // Upsert profile with photos and additional data (insert if missing)
+      // Upsert do perfil (com normalização de gênero)
+      const normalizedGender = normalizeGender(gender);
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
-          id: authData.user.id,
+          id: authUser.id,
           name,
           age,
-          gender,
+          gender: normalizedGender,
           intentions,
           photos: uploadedPhotoUrls,
           profession: profession || null,
@@ -150,7 +175,11 @@ const SignupPhotos = () => {
 
       if (profileError) {
         console.error("Error upserting profile:", profileError);
-        throw profileError;
+        toast({
+          title: "Aviso",
+          description: "Conta criada, mas houve um problema ao salvar o perfil. Você pode completar depois.",
+          variant: "destructive",
+        });
       }
 
       toast({
@@ -158,10 +187,10 @@ const SignupPhotos = () => {
         description: "Bem-vindo ao YO!",
       });
 
-      // Clear saved data after successful signup
+      // Limpa dados salvos após sucesso
       sessionStorage.removeItem('signupData');
 
-      navigate("/onboarding");
+      navigate("/profile");
     } catch (error: any) {
       toast({
         title: "Erro ao criar conta",
