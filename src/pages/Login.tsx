@@ -98,7 +98,7 @@ const Login = () => {
         
         toast({
           title: "Login realizado!",
-          description: "Bem-vindo de volta ao YO!",
+          description: "Que bom te ver novamente!",
         });
         navigate(redirectPath);
       } else {
@@ -119,7 +119,7 @@ const Login = () => {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-5xl font-bold text-coral mb-4">YO!</h1>
+          <h1 className="text-5xl font-fredoka font-bold text-coral mb-4">Yo!</h1>
           <p className="text-gray-medium">Saindo...</p>
         </div>
       </div>
@@ -129,15 +129,15 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
       {/* Logo */}
-      <h1 className="text-5xl font-bold text-coral mb-8">YO!</h1>
+      <h1 className="text-5xl font-fredoka font-bold text-coral mb-8">Yo!</h1>
 
       {/* Title */}
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold text-black-soft mb-2">
-          {isLogin ? "Bem-vindo de volta" : "Criar conta"}
+          {isLogin ? "Que bom te ver novamente" : "Criar conta"}
         </h2>
         <p className="text-lg text-gray-medium">
-          {isLogin ? "Entre para continuar" : "Cadastre-se no YO!"}
+          {isLogin ? "Entre para continuar" : "Cadastre-se no Yo!"}
         </p>
       </div>
 
