@@ -6,43 +6,51 @@ const Welcome = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Logo Header */}
-      <div className="w-full py-6 flex flex-col items-center justify-center border-b border-gray-light">
-        <h1 className="text-[80px] font-fredoka font-bold text-coral tracking-tight">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col">
+      {/* Hero Section */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-12 pb-8">
+        {/* Logo */}
+        <h1 className="text-[96px] font-fredoka font-bold text-coral tracking-tight mb-4">
           Yo!
         </h1>
-        <p className="text-xl text-gray-medium font-medium mt-2 px-6 text-center">
+        
+        {/* Slogan */}
+        <p className="text-2xl text-gray-700 font-semibold mb-3 text-center max-w-md">
           Conexões reais começam aqui
         </p>
-      </div>
+        
+        {/* Subtitle */}
+        <p className="text-base text-gray-medium mb-12 text-center max-w-sm px-4">
+          Encontre pessoas incríveis nos lugares que você frequenta
+        </p>
 
-      {/* Map with Heart Marker */}
-      <div className="flex-1 flex items-center justify-center px-6">
-        <div className="w-full max-w-[300px] aspect-square rounded-3xl overflow-hidden shadow-2xl">
-        <img 
-          src={welcomeMap} 
-          alt="Mapa com marcador de coração" 
-          className="w-full h-full object-cover"
-        />
+        {/* Map Image */}
+        <div className="w-full max-w-[340px] aspect-square rounded-[32px] overflow-hidden shadow-xl mb-8 ring-4 ring-coral/10">
+          <img 
+            src={welcomeMap} 
+            alt="Mapa com marcador de coração" 
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
 
-      {/* Buttons */}
-      <div className="w-full max-w-md space-y-4 px-6 pb-12">
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => navigate("/login")}
-        >
-          Entrar
-        </Button>
+      {/* CTA Buttons */}
+      <div className="w-full max-w-md mx-auto space-y-3 px-6 pb-12">
         <Button
           variant="default"
-          className="w-full"
+          size="lg"
+          className="w-full h-14 text-lg font-semibold"
           onClick={() => navigate("/login")}
         >
           Cadastrar
+        </Button>
+        <Button
+          variant="outline"
+          size="lg"
+          className="w-full h-14 text-lg font-semibold"
+          onClick={() => navigate("/login")}
+        >
+          Entrar
         </Button>
       </div>
     </div>
