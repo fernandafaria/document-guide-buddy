@@ -32,14 +32,14 @@ const Welcome = () => {
           className="w-full"
           onClick={() => navigate("/login")}
         >
-          Login
+          Entrar
         </Button>
         <Button
           variant="default"
           className="w-full"
           onClick={() => navigate("/login")}
         >
-          Sign Up
+          Cadastrar
         </Button>
       </div>
     </div>
