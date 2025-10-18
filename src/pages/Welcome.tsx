@@ -8,10 +8,13 @@ const Welcome = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Logo Header */}
-      <div className="w-full py-6 flex items-center justify-center border-b border-gray-light">
+      <div className="w-full py-6 flex flex-col items-center justify-center border-b border-gray-light">
         <h1 className="text-[80px] font-fredoka font-bold text-coral tracking-tight">
           Yo!
         </h1>
+        <p className="text-xl text-gray-medium font-medium mt-2 px-6 text-center">
+          Conexões reais começam aqui
+        </p>
       </div>
 
       {/* Map with Heart Marker */}
