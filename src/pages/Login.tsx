@@ -19,16 +19,18 @@ const Login = () => {
   const { signIn, user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
+  
+  const logoutParam = new URLSearchParams(location.search).get('logout');
+  const [signingOut, setSigningOut] = useState(!!logoutParam);
+  
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-const fromState = (location.state as { from?: string } | null)?.from;
+  const fromState = (location.state as { from?: string } | null)?.from;
   const fromQuery = new URLSearchParams(location.search).get('from');
-  const logoutParam = new URLSearchParams(location.search).get('logout');
   const fromPath = fromState || fromQuery;
-  const [signingOut, setSigningOut] = useState(false);
   
   // Se vier de /settings ou outras páginas de configuração, redireciona para /map
   // Isso evita que após logout volte para a página de onde saiu
@@ -41,27 +43,15 @@ const fromState = (location.state as { from?: string } | null)?.from;
   const redirectPath = shouldRedirectToMap ? '/map' : (fromPath || '/map');
 
   useEffect(() => {
-    if (!authLoading && user && !logoutParam) {
+    if (logoutParam) {
+      supabase.auth.signOut().finally(() => {
+        setSigningOut(false);
+        navigate('/login', { replace: true });
+      });
+    } else if (!authLoading && user) {
       navigate(redirectPath, { replace: true });
     }
   }, [user, authLoading, logoutParam]);
-
-useEffect(() => {
-    if (logoutParam && !signingOut) {
-      setSigningOut(true);
-      (async () => {
-        try {
-          await supabase.auth.signOut();
-        } catch (e) {
-          // ignore
-        } finally {
-          setSigningOut(false);
-          // Remove ?logout da URL após encerrar sessão
-          navigate('/login', { replace: true });
-        }
-      })();
-    }
-  }, [logoutParam]);
 
   const handleGoogleLogin = async () => {
     try {
@@ -124,6 +114,17 @@ useEffect(() => {
       setLoading(false);
     }
   };
+
+  if (signingOut) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-5xl font-bold text-coral mb-4">YO!</h1>
+          <p className="text-gray-medium">Saindo...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
