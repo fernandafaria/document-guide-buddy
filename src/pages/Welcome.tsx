@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import welcomeMap from "@/assets/welcome-street-map.jpg";
+import welcomeMap from "@/assets/welcome-map-hand.png";
 
 const Welcome = () => {
   const navigate = useNavigate();
