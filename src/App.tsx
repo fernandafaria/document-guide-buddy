@@ -10,6 +10,7 @@ import ActiveCheckIns from "./pages/ActiveCheckIns";
 import CheckInHistory from "./pages/CheckInHistory";
 import CheckInSuccess from "./pages/CheckInSuccess";
 import Discovery from "./pages/Discovery";
+import Filters from "./pages/Filters";
 import Matches from "./pages/Matches";
 import Profile from "./pages/Profile";
 import ProfileEdit from "./pages/ProfileEdit";
@@ -46,6 +47,7 @@ const App = () => (
         <Route path="/checkin-history" element={<ProtectedRoute><CheckInHistory /></ProtectedRoute>} />
         <Route path="/check-in-success" element={<ProtectedRoute><CheckInSuccess /></ProtectedRoute>} />
         <Route path="/discovery" element={<ProtectedRoute><Discovery /></ProtectedRoute>} />
+        <Route path="/filters" element={<ProtectedRoute><Filters /></ProtectedRoute>} />
         <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />

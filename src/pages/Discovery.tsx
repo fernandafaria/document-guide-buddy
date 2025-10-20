@@ -2,20 +2,40 @@ import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/BottomNav";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
-import { Filter, MapPin, Heart, User, Users, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Filter, X, Heart } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useDiscovery, DiscoveryFilters } from "@/hooks/useDiscovery";
 import { supabase } from "@/integrations/supabase/client";
-import { AdvancedFiltersModal, FilterState } from "@/components/AdvancedFiltersModal";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { FilterState } from "@/pages/Filters";
 
 const Discovery = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [filters, setFilters] = useState<DiscoveryFilters>({});
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const { users, loading, sendYo, skipUser } = useDiscovery(filters);
+
+  // Check if we're returning from filters page with new filters
+  useEffect(() => {
+    if (location.state?.filters) {
+      const modalFilters = location.state.filters as FilterState;
+      const discoveryFilters: DiscoveryFilters = {
+        intentions: modalFilters.intentions.map(i => i.toLowerCase()),
+        genders: modalFilters.genders,
+        minAge: modalFilters.ageRange[0],
+        maxAge: modalFilters.ageRange[1],
+        education: modalFilters.education[0],
+        alcohol: modalFilters.alcohol[0],
+        musicalStyles: modalFilters.musicStyles,
+        languages: modalFilters.languages,
+      };
+      setFilters(discoveryFilters);
+      // Clear location state
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
 
   const getPhotoUrl = (photoPath: string) => {
     if (!photoPath) return "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
@@ -36,30 +56,14 @@ const Discovery = () => {
     return `${diffHours}h ${diffMins % 60}min`;
   };
 
-  const handleApplyFilters = (modalFilters: FilterState) => {
-    // Convert FilterState to DiscoveryFilters
-    const discoveryFilters: DiscoveryFilters = {
-      intentions: modalFilters.intentions.map(i => i.toLowerCase()),
-      genders: modalFilters.genders,
-      minAge: modalFilters.ageRange[0],
-      maxAge: modalFilters.ageRange[1],
-      education: modalFilters.education[0], // Take first selected education
-      alcohol: modalFilters.alcohol[0], // Take first selected alcohol option
-      musicalStyles: modalFilters.musicStyles,
-      languages: modalFilters.languages,
-    };
-    
-    setFilters(discoveryFilters);
-    setFiltersOpen(false);
-  };
-
-  // Convert DiscoveryFilters to FilterState for modal
-  const getCurrentFiltersForModal = (): Partial<FilterState> => {
+  // Convert DiscoveryFilters to FilterState for filters page
+  const getCurrentFiltersForPage = (): FilterState => {
     return {
       intentions: filters.intentions?.map(i => i.charAt(0).toUpperCase() + i.slice(1)) || [],
       genders: filters.genders || [],
       ageRange: [filters.minAge || 18, filters.maxAge || 50],
       education: filters.education ? [filters.education] : [],
+      profession: "",
       alcohol: filters.alcohol ? [filters.alcohol] : [],
       musicStyles: filters.musicalStyles || [],
       languages: filters.languages || [],
@@ -212,17 +216,10 @@ const Discovery = () => {
       <Button
         size="icon"
         className="fixed bottom-24 right-6 w-14 h-14 rounded-full shadow-elevated"
-        onClick={() => setFiltersOpen(true)}
+        onClick={() => navigate("/filters", { state: { filters: getCurrentFiltersForPage() } })}
       >
         <Filter />
       </Button>
-
-      {/* Advanced Filters Modal */}
-      <AdvancedFiltersModal
-        open={filtersOpen}
-        onOpenChange={setFiltersOpen}
-        onApply={handleApplyFilters}
-      />
 
       {/* Bottom Navigation */}
       <BottomNav />
