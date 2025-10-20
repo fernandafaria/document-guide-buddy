@@ -67,7 +67,6 @@ const Discovery = () => {
       alcohol: filters.alcohol ? [filters.alcohol] : [],
       musicStyles: filters.musicalStyles || [],
       languages: filters.languages || [],
-      network: [],
     };
   };
 
