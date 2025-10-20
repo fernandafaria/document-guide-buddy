@@ -19,10 +19,20 @@ const Chat = () => {
 
   // Find the current match
   const currentMatch = matches.find((m) => m.id === matchId);
-  const otherUser = currentMatch?.otherUser;
-  const receiverId = currentMatch?.user1_id === user?.id 
+  
+  // Early return if match not found
+  if (!currentMatch || !currentMatch.otherUser) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <p className="text-gray-medium">Carregando...</p>
+      </div>
+    );
+  }
+
+  const otherUser = currentMatch.otherUser;
+  const receiverId = currentMatch.user1_id === user?.id 
     ? currentMatch.user2_id 
-    : currentMatch?.user1_id;
+    : currentMatch.user1_id;
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -46,13 +56,6 @@ const Chat = () => {
     return format(new Date(date), "HH:mm", { locale: ptBR });
   };
 
-  if (!currentMatch || !otherUser) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-gray-medium">Carregando...</p>
-      </div>
-    );
-  }
 
   const photo = otherUser.photos?.[0] 
     ? getPhotoUrl(otherUser.photos[0])
