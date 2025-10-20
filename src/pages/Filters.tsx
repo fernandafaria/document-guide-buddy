@@ -18,7 +18,7 @@ export interface FilterState {
   languages: string[];
 }
 
-const INTENTIONS = ["Date", "Amizade"];
+const INTENTIONS = ["Date", "Amizade", "Network"];
 const GENDERS = ["Masculino", "Feminino", "Não-binário"];
 const EDUCATION_LEVELS = ["Fundamental", "Médio", "Superior", "Pós", "Mestrado", "Doutorado"];
 const ALCOHOL_OPTIONS = ["Não bebo", "Socialmente", "Frequentemente"];
