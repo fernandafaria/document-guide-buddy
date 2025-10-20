@@ -492,7 +492,7 @@ const Map = () => {
       </div>
       
       {/* Controls Header */}
-      <div className="px-4 md:px-6 py-3 bg-gradient-header shadow-elevated border-b-0 relative z-10">
+      <div className="px-4 md:px-6 py-3 bg-gradient-header shadow-elevated border-b-0 relative z-50">
 
         {/* Place Search */}
         {googleMapsApiKey && (
