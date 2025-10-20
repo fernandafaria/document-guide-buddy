@@ -64,7 +64,7 @@ const SignupInfo = () => {
   };
 
   const handleContinue = () => {
-    console.log("handleContinue called", { email, password, formData });
+    console.log("handleContinue called", { hasEmail: !!email, hasPassword: !!password });
     
     if (!email || !password) {
       console.error("Missing email or password");
@@ -82,7 +82,6 @@ const SignupInfo = () => {
         formData.musical_styles.length === 0 || formData.languages.length === 0 ||
         !formData.education || !formData.alcohol || !formData.religion || !formData.zodiac_sign ||
         !formData.political_position) {
-      console.error("Validation failed", formData);
       toast({
         title: "Preencha todos os campos obrigatórios",
         description: "Todos os campos são obrigatórios para continuar",
@@ -98,8 +97,7 @@ const SignupInfo = () => {
     };
     sessionStorage.setItem('signupData', JSON.stringify(dataToSave));
     
-    console.log("Navigating to signup-photos");
-    navigate("/signup-photos", { 
+    navigate("/signup-photos", {
       state: { 
         email, 
         password, 
