@@ -196,7 +196,7 @@ export const PlaceSearch = ({ onPlaceSelect, googleMapsApiKey }: PlaceSearchProp
 
       {/* Suggestions Dropdown */}
       {showSuggestions && suggestions.length > 0 && (
-        <Card className="absolute top-full mt-2 w-full max-h-80 overflow-y-auto z-50 shadow-lg">
+        <Card className="absolute top-full mt-2 w-full max-h-80 overflow-y-auto z-[100] shadow-lg bg-white">
           <div className="p-2">
             {suggestions.map((suggestion) => (
               <button
@@ -222,7 +222,7 @@ export const PlaceSearch = ({ onPlaceSelect, googleMapsApiKey }: PlaceSearchProp
       {/* Click outside to close */}
       {showSuggestions && (
         <div
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-[90]"
           onClick={() => setShowSuggestions(false)}
         />
       )}
