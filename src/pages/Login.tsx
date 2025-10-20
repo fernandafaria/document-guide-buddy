@@ -134,7 +134,7 @@ const Login = () => {
       {/* Title */}
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold text-black-soft mb-2">
-          {isLogin ? "Que bom te ver novamente" : "Criar conta"}
+          {isLogin ? "Que bom te ver" : "Criar conta"}
         </h2>
         <p className="text-lg text-gray-medium">
           {isLogin ? "Entre para continuar" : "Cadastre-se no Yo!"}
