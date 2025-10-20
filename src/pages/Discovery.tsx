@@ -63,7 +63,6 @@ const Discovery = () => {
       genders: filters.genders || [],
       ageRange: [filters.minAge || 18, filters.maxAge || 50],
       education: filters.education ? [filters.education] : [],
-      profession: "",
       alcohol: filters.alcohol ? [filters.alcohol] : [],
       musicStyles: filters.musicalStyles || [],
       languages: filters.languages || [],

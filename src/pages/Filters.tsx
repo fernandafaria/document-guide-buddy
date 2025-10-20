@@ -12,7 +12,6 @@ export interface FilterState {
   genders: string[];
   ageRange: [number, number];
   education: string[];
-  profession: string;
   alcohol: string[];
   musicStyles: string[];
   languages: string[];
@@ -33,7 +32,6 @@ const Filters = () => {
     genders: [],
     ageRange: [18, 50] as [number, number],
     education: [],
-    profession: "",
     alcohol: [],
     musicStyles: [],
     languages: [],
@@ -48,7 +46,6 @@ const Filters = () => {
       genders: [],
       ageRange: [18, 50],
       education: [],
-      profession: "",
       alcohol: [],
       musicStyles: [],
       languages: [],
@@ -74,7 +71,6 @@ const Filters = () => {
     { id: "gender", name: "Gênero", icon: "👥", color: "bg-turquoise" },
     { id: "age", name: "Faixa Etária", icon: "📅", color: "bg-lavender" },
     { id: "education", name: "Educação", icon: "🎓", color: "bg-coral" },
-    { id: "profession", name: "Profissão", icon: "💼", color: "bg-turquoise" },
     { id: "alcohol", name: "Álcool", icon: "🍷", color: "bg-pink-deep" },
     { id: "music", name: "Estilo Musical", icon: "🎸", color: "bg-coral" },
     { id: "languages", name: "Idiomas", icon: "🌍", color: "bg-turquoise" },
@@ -160,14 +156,6 @@ const Filters = () => {
             </div>
           )}
 
-          {showCategory === "profession" && (
-            <Input
-              placeholder="Buscar profissão..."
-              value={filters.profession}
-              onChange={(e) => setFilters({ ...filters, profession: e.target.value })}
-              className="text-lg h-14"
-            />
-          )}
 
           {showCategory === "alcohol" && (
             <div className="flex flex-wrap gap-3">
