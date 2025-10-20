@@ -32,7 +32,7 @@ const MatchScreen = () => {
       </div>
 
       {/* Logo */}
-      <h1 className="text-5xl font-bold text-coral mb-12">YO!</h1>
+      <h1 className="text-5xl font-['Pacifico'] text-coral mb-12">YO!</h1>
 
       {/* Photos */}
       <div className="relative mb-8">
@@ -59,7 +59,7 @@ const MatchScreen = () => {
       </div>
 
       {/* Match Text */}
-      <h2 className="text-4xl font-bold text-black-soft mb-2">It's a Match!</h2>
+      <h2 className="text-4xl font-bold text-black-soft mb-2">É um Match!</h2>
       <p className="text-lg text-gray-medium text-center mb-12 max-w-sm">
         Você e Ana deram like um no outro!
       </p>
@@ -71,7 +71,7 @@ const MatchScreen = () => {
           onClick={() => navigate("/chat/1")}
         >
           <span className="mr-2">👋</span>
-          Send YO!
+          Enviar YO!
         </Button>
         <Button
           variant="outline"
@@ -79,7 +79,7 @@ const MatchScreen = () => {
           onClick={() => navigate("/chat/1")}
         >
           <span className="mr-2">💬</span>
-          Send Message
+          Enviar Mensagem
         </Button>
       </div>
 
@@ -88,7 +88,7 @@ const MatchScreen = () => {
         onClick={() => navigate("/discovery")}
         className="mt-8 text-gray-medium hover:text-black-soft transition-colors"
       >
-        Continue exploring
+        Continuar explorando
       </button>
     </div>
   );
