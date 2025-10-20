@@ -32,7 +32,7 @@ const MatchScreen = () => {
       </div>
 
       {/* Logo */}
-      <h1 className="text-5xl font-['Pacifico'] text-coral mb-12">YO!</h1>
+      <h1 className="text-5xl font-fredoka font-bold text-coral mb-12">YO!</h1>
 
       {/* Photos */}
       <div className="relative mb-8">
