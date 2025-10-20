@@ -17,12 +17,12 @@ export interface FilterState {
   languages: string[];
 }
 
-const INTENTIONS = ["Date", "Amizade", "Network"];
+const INTENTIONS = ["Date", "Amizade", "Networking"];
 const GENDERS = ["Homem", "Mulher", "Homem trans", "Mulher trans", "Não-binário", "Gênero fluido", "Agênero", "Bigênero", "Queer", "Questionando", "Prefiro não informar", "Outro"];
-const EDUCATION_LEVELS = ["Fundamental", "Médio", "Superior", "Pós", "Mestrado", "Doutorado"];
-const ALCOHOL_OPTIONS = ["Não bebo", "Socialmente", "Frequentemente"];
-const MUSIC_STYLES = ["Rock", "Pop", "Sertanejo", "Funk", "MPB", "Eletrônica", "Jazz", "Blues", "Clássica"];
-const LANGUAGES = ["Português", "Inglês", "Espanhol", "Francês", "Alemão", "Italiano", "Mandarim"];
+const EDUCATION_LEVELS = ["Ensino Médio", "Superior Incompleto", "Superior Completo", "Pós-graduação", "Mestrado", "Doutorado"];
+const ALCOHOL_OPTIONS = ["Não bebo", "Socialmente", "Frequentemente", "Prefiro não dizer"];
+const MUSIC_STYLES = ["Pop", "Rock", "MPB", "Sertanejo", "Funk", "Hip Hop", "Eletrônica", "Jazz", "Clássica", "Samba", "Forró"];
+const LANGUAGES = ["Português", "Inglês", "Espanhol", "Francês", "Alemão", "Italiano", "Japonês", "Mandarim"];
 
 const Filters = () => {
   const navigate = useNavigate();
