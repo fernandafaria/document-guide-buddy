@@ -48,10 +48,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "likes_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "likes_to_user_id_fkey"
             columns: ["to_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "likes_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -132,8 +146,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "matches_first_message_by_fkey"
+            columns: ["first_message_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "matches_user1_id_fkey"
             columns: ["user1_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_user1_id_fkey"
+            columns: ["user1_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_user2_id_fkey"
+            columns: ["user2_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -142,7 +177,7 @@ export type Database = {
             foreignKeyName: "matches_user2_id_fkey"
             columns: ["user2_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -194,10 +229,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "messages_sender_id_fkey"
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -288,7 +337,72 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          about_me: string | null
+          age: number | null
+          alcohol: string | null
+          city: string | null
+          created_at: string | null
+          current_check_in: Json | null
+          education: string | null
+          gender: string | null
+          id: string | null
+          intentions: string[] | null
+          languages: string[] | null
+          last_active: string | null
+          musical_styles: string[] | null
+          name: string | null
+          photos: string[] | null
+          profession: string | null
+          religion: string | null
+          state: string | null
+          zodiac_sign: string | null
+        }
+        Insert: {
+          about_me?: string | null
+          age?: number | null
+          alcohol?: string | null
+          city?: string | null
+          created_at?: string | null
+          current_check_in?: Json | null
+          education?: string | null
+          gender?: string | null
+          id?: string | null
+          intentions?: string[] | null
+          languages?: string[] | null
+          last_active?: string | null
+          musical_styles?: string[] | null
+          name?: string | null
+          photos?: string[] | null
+          profession?: string | null
+          religion?: string | null
+          state?: string | null
+          zodiac_sign?: string | null
+        }
+        Update: {
+          about_me?: string | null
+          age?: number | null
+          alcohol?: string | null
+          city?: string | null
+          created_at?: string | null
+          current_check_in?: Json | null
+          education?: string | null
+          gender?: string | null
+          id?: string | null
+          intentions?: string[] | null
+          languages?: string[] | null
+          last_active?: string | null
+          musical_styles?: string[] | null
+          name?: string | null
+          photos?: string[] | null
+          profession?: string | null
+          religion?: string | null
+          state?: string | null
+          zodiac_sign?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
