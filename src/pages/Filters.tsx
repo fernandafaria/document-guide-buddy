@@ -246,7 +246,7 @@ const Filters = () => {
       </div>
 
       {/* Categories */}
-      <div className="px-6 py-6 space-y-3">
+      <div className="px-6 py-6 space-y-3 pb-32">
         {categories.map((category) => (
           <button
             key={category.id}
