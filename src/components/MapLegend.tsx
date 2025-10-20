@@ -22,7 +22,7 @@ export const MapLegend = () => {
   return (
     <>
       {/* Desktop: Card com legenda completa */}
-      <Card className="hidden md:block absolute top-4 left-4 z-20 p-3 shadow-lg">
+      <Card className="hidden md:block absolute top-4 left-4 z-10 p-3 shadow-lg">
         <h3 className="text-sm font-semibold mb-2">Legenda</h3>
         <div className="space-y-2 text-xs">
           {legendItems.map((item, idx) => (
@@ -39,7 +39,7 @@ export const MapLegend = () => {
         <PopoverTrigger asChild>
           <Button
             size="icon"
-            className="md:hidden absolute top-4 left-4 z-20 h-12 w-12 rounded-full shadow-lg bg-white hover:bg-gray-100 text-black-soft"
+            className="md:hidden absolute top-4 left-4 z-10 h-12 w-12 rounded-full shadow-lg bg-white hover:bg-gray-100 text-black-soft"
           >
             <Info className="h-5 w-5" />
           </Button>

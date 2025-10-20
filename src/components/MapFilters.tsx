@@ -30,7 +30,7 @@ export const MapFilters = ({ filters, onFilterChange }: MapFiltersProps) => {
   return (
     <>
       {/* Desktop: Card com filtros */}
-      <Card className="hidden md:block absolute top-4 right-4 z-20 p-4 shadow-lg w-64">
+      <Card className="hidden md:block absolute top-4 right-4 z-10 p-4 shadow-lg w-64">
         <h3 className="text-sm font-semibold mb-3">Filtros</h3>
         <div className="space-y-3">
           {filterItems.map((item) => (
@@ -63,7 +63,7 @@ export const MapFilters = ({ filters, onFilterChange }: MapFiltersProps) => {
         <SheetTrigger asChild>
           <Button
             size="icon"
-            className="md:hidden absolute top-4 right-4 z-20 h-12 w-12 rounded-full shadow-lg bg-white hover:bg-gray-100 text-black-soft"
+            className="md:hidden absolute top-4 right-4 z-10 h-12 w-12 rounded-full shadow-lg bg-white hover:bg-gray-100 text-black-soft"
           >
             <SlidersHorizontal className="h-5 w-5" />
           </Button>
