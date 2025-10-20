@@ -16,6 +16,7 @@ export interface FilterState {
   alcohol: string[];
   musicStyles: string[];
   languages: string[];
+  network: string[];
 }
 
 const INTENTIONS = ["Date", "Amizade"];
@@ -24,6 +25,7 @@ const EDUCATION_LEVELS = ["Fundamental", "Médio", "Superior", "Pós", "Mestrado
 const ALCOHOL_OPTIONS = ["Não bebo", "Socialmente", "Frequentemente"];
 const MUSIC_STYLES = ["Rock", "Pop", "Sertanejo", "Funk", "MPB", "Eletrônica", "Jazz", "Blues", "Clássica"];
 const LANGUAGES = ["Português", "Inglês", "Espanhol", "Francês", "Alemão", "Italiano", "Mandarim"];
+const NETWORK_OPTIONS = ["Profissional", "Casual", "Eventos", "Hobbies", "Esportes", "Viagens"];
 
 const Filters = () => {
   const navigate = useNavigate();
@@ -37,6 +39,7 @@ const Filters = () => {
     alcohol: [],
     musicStyles: [],
     languages: [],
+    network: [],
   };
 
   const [showCategory, setShowCategory] = useState<string | null>(null);
@@ -52,6 +55,7 @@ const Filters = () => {
       alcohol: [],
       musicStyles: [],
       languages: [],
+      network: [],
     });
   };
 
@@ -78,6 +82,7 @@ const Filters = () => {
     { id: "alcohol", name: "Álcool", icon: "🍷", color: "bg-pink-deep" },
     { id: "music", name: "Estilo Musical", icon: "🎸", color: "bg-coral" },
     { id: "languages", name: "Idiomas", icon: "🌍", color: "bg-turquoise" },
+    { id: "network", name: "Network", icon: "🤝", color: "bg-lavender" },
   ];
 
   if (showCategory) {
@@ -218,6 +223,24 @@ const Filters = () => {
                   }`}
                 >
                   {language}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {showCategory === "network" && (
+            <div className="flex flex-wrap gap-3">
+              {NETWORK_OPTIONS.map((option) => (
+                <Badge
+                  key={option}
+                  onClick={() => toggleArrayFilter("network", option)}
+                  className={`cursor-pointer px-5 py-3 text-lg ${
+                    filters.network.includes(option)
+                      ? "bg-lavender text-white"
+                      : "bg-gray-light text-gray-dark"
+                  }`}
+                >
+                  {option}
                 </Badge>
               ))}
             </div>
