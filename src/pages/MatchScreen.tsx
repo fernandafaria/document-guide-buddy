@@ -46,7 +46,7 @@ const MatchScreen = () => {
           {/* Heart Icon */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
             <div className="w-24 h-24 bg-pink-soft rounded-full flex items-center justify-center animate-pulse shadow-elevated">
-              <span className="text-6xl">💕</span>
+              <span className="text-6xl">😊</span>
             </div>
           </div>
           
