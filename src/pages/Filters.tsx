@@ -70,7 +70,7 @@ const Filters = () => {
   };
 
   const categories = [
-    { id: "intention", name: "Intenção", icon: "🤝", color: "bg-coral" },
+    { id: "intention", name: "Intenção", icon: "❤️", color: "bg-coral" },
     { id: "gender", name: "Gênero", icon: "👥", color: "bg-turquoise" },
     { id: "age", name: "Faixa Etária", icon: "📅", color: "bg-lavender" },
     { id: "education", name: "Educação", icon: "🎓", color: "bg-coral" },
