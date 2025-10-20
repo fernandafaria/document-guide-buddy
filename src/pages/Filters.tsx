@@ -19,7 +19,7 @@ export interface FilterState {
 }
 
 const INTENTIONS = ["Date", "Amizade", "Network"];
-const GENDERS = ["Masculino", "Feminino", "Não-binário"];
+const GENDERS = ["Homem", "Mulher", "Homem trans", "Mulher trans", "Não-binário", "Gênero fluido", "Agênero", "Bigênero", "Queer", "Questionando", "Prefiro não informar", "Outro"];
 const EDUCATION_LEVELS = ["Fundamental", "Médio", "Superior", "Pós", "Mestrado", "Doutorado"];
 const ALCOHOL_OPTIONS = ["Não bebo", "Socialmente", "Frequentemente"];
 const MUSIC_STYLES = ["Rock", "Pop", "Sertanejo", "Funk", "MPB", "Eletrônica", "Jazz", "Blues", "Clássica"];
