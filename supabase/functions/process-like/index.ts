@@ -1,15 +1,16 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.0';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface LikeRequest {
-  toUserId: string;
-  locationId: string;
-  action: 'like' | 'pass';
-}
+const likeRequestSchema = z.object({
+  toUserId: z.string().uuid({ message: 'Invalid user ID format' }),
+  locationId: z.string().min(1).max(100),
+  action: z.enum(['like', 'pass']),
+});
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -37,14 +38,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { toUserId, locationId, action }: LikeRequest = await req.json();
-
-    if (!toUserId) {
+    const body = await req.json();
+    const parsed = likeRequestSchema.safeParse(body);
+    
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ error: 'Missing toUserId' }),
+        JSON.stringify({ 
+          error: 'Invalid input', 
+          details: parsed.error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
+
+    const { toUserId, locationId, action } = parsed.data;
 
     // Only process if action is 'like', ignore 'pass'
     if (action !== 'like') {
@@ -54,7 +61,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`User ${user.id} liked ${toUserId} at location ${locationId}`);
+    console.log(`User action processed at location`);
 
     // Check if the other user already liked this user
     const { data: existingLike } = await supabaseClient
@@ -87,7 +94,7 @@ Deno.serve(async (req) => {
       if (matchError) {
         console.error('Error creating match:', matchError);
       } else {
-        console.log(`Match created between ${user.id} and ${toUserId}`);
+        console.log(`Match created successfully`);
       }
     }
 

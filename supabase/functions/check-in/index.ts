@@ -1,16 +1,19 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.0';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface CheckInRequest {
-  latitude: number;
-  longitude: number;
-  name: string;
-  address?: string;
-}
+const checkInSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  name: z.string().trim().min(1).max(200),
+  address: z.string().trim().max(500).optional(),
+  userLatitude: z.number().min(-90).max(90).optional(),
+  userLongitude: z.number().min(-180).max(180).optional(),
+});
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -38,14 +41,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { latitude, longitude, name, address, userLatitude, userLongitude }: CheckInRequest & { userLatitude?: number; userLongitude?: number } = await req.json();
+    const body = await req.json();
+    const parsed = checkInSchema.safeParse(body);
     
-    if (!latitude || !longitude || !name) {
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
+        JSON.stringify({ 
+          error: 'Invalid input', 
+          details: parsed.error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
+
+    const { latitude, longitude, name, address, userLatitude, userLongitude } = parsed.data;
 
     // Validate distance (max 100 meters)
     if (userLatitude !== undefined && userLongitude !== undefined) {
@@ -79,7 +88,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`User ${user.id} checking in at ${name} (${latitude}, ${longitude})`);
+    console.log(`User checking in at ${name}`);
 
     // Check if user has a previous check-in and decrement that location's count
     const { data: currentProfile } = await supabaseClient

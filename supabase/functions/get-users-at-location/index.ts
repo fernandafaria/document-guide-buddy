@@ -1,9 +1,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.0';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const locationIdSchema = z.string().min(1).max(100);
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -54,7 +57,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Getting users at location ${locationId}`);
+    // Validate locationId format
+    const validationResult = locationIdSchema.safeParse(locationId);
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid locationId format',
+          details: validationResult.error.errors.map(e => e.message)
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    console.log(`Getting users at location`);
 
     // Get all profiles with current check-in at this location
     const { data: profiles, error } = await supabaseClient
