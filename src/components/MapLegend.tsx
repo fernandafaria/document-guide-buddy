@@ -6,11 +6,7 @@ import { Info } from "lucide-react";
 export const MapLegend = () => {
   const legendItems = [
     {
-      icon: (
-        <div className="w-5 h-5 rounded-full bg-[#FF5722] border-2 border-white flex items-center justify-center text-white text-[10px] font-bold">
-          3
-        </div>
-      ),
+      icon: <div className="w-5 h-5 rounded-full bg-[#FF5722] border-2 border-white"></div>,
       label: "Check-ins ativos",
     },
     {
