@@ -73,14 +73,14 @@ export const AdvancedFiltersModal = ({ open, onOpenChange, onApply }: AdvancedFi
   };
 
   const categories = [
-    { id: "intention", name: "Intention", icon: "🤝", color: "bg-coral" },
-    { id: "gender", name: "Gender", icon: "👥", color: "bg-turquoise" },
-    { id: "age", name: "Age Range", icon: "📅", color: "bg-lavender" },
-    { id: "education", name: "Education", icon: "🎓", color: "bg-coral" },
-    { id: "profession", name: "Profession", icon: "💼", color: "bg-turquoise" },
-    { id: "alcohol", name: "Alcohol", icon: "🍷", color: "bg-pink-deep" },
-    { id: "music", name: "Music Style", icon: "🎸", color: "bg-coral" },
-    { id: "languages", name: "Languages", icon: "🌍", color: "bg-turquoise" },
+    { id: "intention", name: "Intenção", icon: "🤝", color: "bg-coral" },
+    { id: "gender", name: "Gênero", icon: "👥", color: "bg-turquoise" },
+    { id: "age", name: "Faixa Etária", icon: "📅", color: "bg-lavender" },
+    { id: "education", name: "Educação", icon: "🎓", color: "bg-coral" },
+    { id: "profession", name: "Profissão", icon: "💼", color: "bg-turquoise" },
+    { id: "alcohol", name: "Álcool", icon: "🍷", color: "bg-pink-deep" },
+    { id: "music", name: "Estilo Musical", icon: "🎸", color: "bg-coral" },
+    { id: "languages", name: "Idiomas", icon: "🌍", color: "bg-turquoise" },
   ];
 
   if (showCategory) {
@@ -161,7 +161,7 @@ export const AdvancedFiltersModal = ({ open, onOpenChange, onApply }: AdvancedFi
 
             {showCategory === "profession" && (
               <Input
-                placeholder="Search profession..."
+                placeholder="Buscar profissão..."
                 value={filters.profession}
                 onChange={(e) => setFilters({ ...filters, profession: e.target.value })}
                 className="text-base"
@@ -229,10 +229,10 @@ export const AdvancedFiltersModal = ({ open, onOpenChange, onApply }: AdvancedFi
               onClick={handleClear}
               className="flex-1 h-14 text-base"
             >
-              Clear
+              Limpar
             </Button>
             <Button onClick={handleApply} className="flex-1 h-14 text-base">
-              Apply
+              Aplicar
             </Button>
           </div>
         </DialogContent>
@@ -250,7 +250,7 @@ export const AdvancedFiltersModal = ({ open, onOpenChange, onApply }: AdvancedFi
           >
             <X className="w-6 h-6" />
           </button>
-          <DialogTitle className="text-center text-xl font-bold">Filters</DialogTitle>
+          <DialogTitle className="text-center text-xl font-bold">Filtros</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-2 py-6">
@@ -277,10 +277,10 @@ export const AdvancedFiltersModal = ({ open, onOpenChange, onApply }: AdvancedFi
             onClick={handleClear}
             className="flex-1 h-14 text-base"
           >
-            Clear
+            Limpar
           </Button>
           <Button onClick={handleApply} className="flex-1 h-14 text-base">
-            Apply
+            Aplicar
           </Button>
         </div>
       </DialogContent>
