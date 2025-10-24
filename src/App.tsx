@@ -17,6 +17,7 @@ import ProfileEdit from "./pages/ProfileEdit";
 import ProfileDetail from "./pages/ProfileDetail";
 import MatchScreen from "./pages/MatchScreen";
 import LikeSent from "./pages/LikeSent";
+import Likes from "./pages/Likes";
 import Chat from "./pages/Chat";
 import Settings from "./pages/Settings";
 import NotificationSettings from "./pages/NotificationSettings";
@@ -50,6 +51,7 @@ const App = () => (
         <Route path="/discovery" element={<ProtectedRoute><Discovery /></ProtectedRoute>} />
         <Route path="/filters" element={<ProtectedRoute><Filters /></ProtectedRoute>} />
         <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
+        <Route path="/likes" element={<ProtectedRoute><Likes /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
         <Route path="/profile/:id" element={<ProtectedRoute><ProfileDetail /></ProtectedRoute>} />

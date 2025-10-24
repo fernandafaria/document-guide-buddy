@@ -9,6 +9,7 @@ export const BottomNav = () => {
     { path: "/map", icon: MapPin, label: "Mapa" },
     { path: "/active-checkins", icon: Users, label: "Check-ins" },
     { path: "/discovery", icon: Compass, label: "Descobrir" },
+    { path: "/likes", icon: Heart, label: "Curtidas" },
     { path: "/matches", icon: Heart, label: "YO's" },
     { path: "/profile", icon: User, label: "Perfil" },
   ];
