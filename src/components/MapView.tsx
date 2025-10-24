@@ -266,7 +266,7 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
           strokeColor: '#ffffff',
           strokeWeight: 2
         },
-        label: (hasActiveUsers && !isCurrentCheckIn) ? {
+        label: hasActiveUsers ? {
           text: location.active_users_count.toString(),
           color: '#ffffff',
           fontSize: '12px',
