@@ -150,14 +150,20 @@ const Profile = () => {
 
       {/* Profile Photos */}
       <div className="px-6 mb-6">
-        <div className="relative w-full aspect-[3/4] rounded-3xl overflow-hidden shadow-card">
+        <div 
+          className="relative w-full aspect-[3/4] rounded-3xl overflow-hidden shadow-card cursor-pointer"
+          onClick={() => navigate(`/profile/${user?.id}`)}
+        >
           <img
             src={mainPhoto}
             alt="Profile"
             className="w-full h-full object-cover rounded-3xl"
           />
           <button 
-            onClick={() => navigate("/profile/edit")}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate("/profile/edit");
+            }}
             className="absolute bottom-4 right-4 w-12 h-12 bg-coral rounded-full flex items-center justify-center shadow-button hover:scale-105 transition-transform"
           >
             <Edit className="w-5 h-5 text-white" />

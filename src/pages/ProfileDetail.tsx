@@ -2,9 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Heart } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ProfileData {
   id: string;
@@ -23,9 +24,12 @@ interface ProfileData {
 const ProfileDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [currentPhoto, setCurrentPhoto] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [dragStart, setDragStart] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -50,8 +54,31 @@ const ProfileDetail = () => {
   }, [id]);
 
   const handleLike = () => {
-    // Mantemos a navegação para a tela de match como no mock original
     navigate("/match");
+  };
+
+  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    setDragStart(clientX);
+  };
+
+  const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (dragStart === null) return;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const diff = dragStart - clientX;
+    
+    if (Math.abs(diff) > 50) {
+      if (diff > 0 && currentPhoto < photos.length - 1) {
+        setCurrentPhoto(prev => prev + 1);
+      } else if (diff < 0 && currentPhoto > 0) {
+        setCurrentPhoto(prev => prev - 1);
+      }
+      setDragStart(null);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDragStart(null);
   };
 
   const getPhotoUrl = (photoPath: string) => {
@@ -82,7 +109,17 @@ const ProfileDetail = () => {
       </button>
 
       {/* Photo Gallery */}
-      <div className="relative h-[400px] bg-gray-light overflow-hidden">
+      <div 
+        ref={containerRef}
+        className="relative h-[400px] bg-gray-light overflow-hidden select-none"
+        onMouseDown={handleDragStart}
+        onMouseMove={handleDragMove}
+        onMouseUp={handleDragEnd}
+        onMouseLeave={handleDragEnd}
+        onTouchStart={handleDragStart}
+        onTouchMove={handleDragMove}
+        onTouchEnd={handleDragEnd}
+      >
         {loading ? (
           <Skeleton className="w-full h-[400px]" />
         ) : (
@@ -95,7 +132,7 @@ const ProfileDetail = () => {
                 key={idx}
                 src={photo}
                 alt={`${profile?.name || "Usuário"} - ${idx + 1}`}
-                className="w-full h-[400px] object-cover flex-shrink-0"
+                className="w-full h-[400px] object-cover flex-shrink-0 pointer-events-none"
                 loading={idx === 0 ? "eager" : "lazy"}
               />
             ))}
@@ -209,13 +246,15 @@ const ProfileDetail = () => {
         )}
       </div>
 
-      {/* Like Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-light">
-        <Button className="w-full h-14" onClick={handleLike} disabled={loading}>
-          <Heart className="mr-2 fill-white" />
-          Like
-        </Button>
-      </div>
+      {/* Like Button - apenas se não for o próprio perfil */}
+      {user?.id !== id && (
+        <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-light">
+          <Button className="w-full h-14" onClick={handleLike} disabled={loading}>
+            <Heart className="mr-2 fill-white" />
+            Like
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
