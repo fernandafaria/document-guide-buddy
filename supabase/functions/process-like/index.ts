@@ -113,6 +113,38 @@ Deno.serve(async (req) => {
       throw likeError;
     }
 
+    // Send notification to the user who received the like
+    try {
+      const { data: fromProfile } = await supabaseClient
+        .from('profiles')
+        .select('name')
+        .eq('id', user.id)
+        .single();
+
+      const notificationTitle = isMatch ? '🎉 Novo Match!' : '❤️ Nova Curtida!';
+      const notificationBody = isMatch 
+        ? `Você e ${fromProfile?.name} curtiram um ao outro!`
+        : `${fromProfile?.name} curtiu você!`;
+
+      await supabaseClient.functions.invoke('send-notification', {
+        body: {
+          userId: toUserId,
+          title: notificationTitle,
+          body: notificationBody,
+          data: {
+            type: isMatch ? 'match' : 'like',
+            fromUserId: user.id,
+            fromUserName: fromProfile?.name,
+          }
+        }
+      });
+
+      console.log(`Notification sent to user ${toUserId}`);
+    } catch (notifError) {
+      console.error('Error sending notification:', notifError);
+      // Don't fail the like if notification fails
+    }
+
     return new Response(
       JSON.stringify({ success: true, isMatch }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
