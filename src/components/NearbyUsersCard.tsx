@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useNavigate } from "react-router-dom";
 
 interface NearbyUser {
   id: string;
@@ -16,11 +17,21 @@ interface NearbyUsersCardProps {
 }
 
 export const NearbyUsersCard = ({ users }: NearbyUsersCardProps) => {
+  const navigate = useNavigate();
+
+  const handleUserClick = (userId: string) => {
+    navigate(`/profile/${userId}`);
+  };
+
   return (
     <ScrollArea className="h-[400px]">
       <div className="space-y-3">
         {users.map((user) => (
-          <Card key={user.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+          <Card 
+            key={user.id} 
+            className="p-4 hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+            onClick={() => handleUserClick(user.id)}
+          >
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12">
                 <AvatarImage src={user.photos[0]} alt={user.name} />
