@@ -361,10 +361,12 @@ const Map = () => {
 
   const handleCheckOut = async () => {
     try {
+      console.log('🚪 Starting checkout...');
       const { error } = await supabase.functions.invoke('checkout');
 
       if (error) throw error;
 
+      console.log('✅ Checkout successful');
       toast({
         title: "Check-out realizado!",
         description: "Você saiu do local",
@@ -373,7 +375,15 @@ const Map = () => {
       setIsCheckedIn(false);
       setCurrentCheckInLocationId(null);
       setCurrentCheckInCoords(null);
-      fetchNearbyLocations();
+      
+      // Refresh locations immediately after checkout
+      if (latitude && longitude) {
+        await fetchNearbyLocations();
+      } else {
+        await fetchNearbyLocationsDefault();
+      }
+      
+      console.log('🔄 Locations refreshed after checkout');
     } catch (error) {
       console.error('Error checking out:', error);
       toast({
