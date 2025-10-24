@@ -261,7 +261,7 @@ const ProfileDetail = () => {
         <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-light">
           <Button className="w-full h-14" onClick={handleLike} disabled={loading}>
             <Heart className="mr-2 fill-white" />
-            Like
+            Curtir
           </Button>
         </div>
       )}
