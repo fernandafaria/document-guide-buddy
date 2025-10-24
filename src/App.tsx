@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import ProfileEdit from "./pages/ProfileEdit";
 import ProfileDetail from "./pages/ProfileDetail";
 import MatchScreen from "./pages/MatchScreen";
+import LikeSent from "./pages/LikeSent";
 import Chat from "./pages/Chat";
 import Settings from "./pages/Settings";
 import NotificationSettings from "./pages/NotificationSettings";
@@ -53,6 +54,7 @@ const App = () => (
         <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
         <Route path="/profile/:id" element={<ProtectedRoute><ProfileDetail /></ProtectedRoute>} />
         <Route path="/match" element={<ProtectedRoute><MatchScreen /></ProtectedRoute>} />
+        <Route path="/like-sent" element={<ProtectedRoute><LikeSent /></ProtectedRoute>} />
         <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/settings/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />

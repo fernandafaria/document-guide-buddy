@@ -53,8 +53,44 @@ const ProfileDetail = () => {
     loadProfile();
   }, [id]);
 
-  const handleLike = () => {
-    navigate("/match");
+  const handleLike = async () => {
+    if (!id || !user) return;
+    
+    setLoading(true);
+    try {
+      // Get user's current location from profile
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('current_check_in')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const checkIn = userProfile?.current_check_in as any;
+      const locationId = checkIn?.location_id || 'unknown';
+
+      const { data, error } = await supabase.functions.invoke('process-like', {
+        body: {
+          toUserId: id,
+          locationId,
+          action: 'like'
+        }
+      });
+
+      if (error) throw error;
+
+      // Navegar baseado no resultado
+      if (data?.isMatch) {
+        // É um match! Navegar para tela de match
+        navigate("/match");
+      } else {
+        // Não é match, navegar para tela de aguardando
+        navigate("/like-sent", { state: { profileName: profile?.name } });
+      }
+    } catch (error) {
+      console.error('Error liking profile:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
