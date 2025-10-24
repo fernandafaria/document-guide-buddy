@@ -141,6 +141,9 @@ const ProfileDetail = () => {
                 alt={`${profile?.name || "Usuário"} - ${idx + 1}`}
                 className="w-full h-[400px] object-cover flex-shrink-0 pointer-events-none"
                 loading={idx === 0 ? "eager" : "lazy"}
+                onError={(e) => {
+                  e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(profile?.name || "User")}`;
+                }}
               />
             ))}
           </div>
