@@ -1,4 +1,4 @@
-import { MapPin, Users, Compass, Heart, User } from "lucide-react";
+import { MapPin, Users, Compass, Heart, User, Hand } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export const BottomNav = () => {
@@ -10,7 +10,7 @@ export const BottomNav = () => {
     { path: "/active-checkins", icon: Users, label: "Check-ins" },
     { path: "/discovery", icon: Compass, label: "Descobrir" },
     { path: "/likes", icon: Heart, label: "Curtidas" },
-    { path: "/matches", icon: Heart, label: "YO's" },
+    { path: "/matches", icon: Hand, label: "YO's" },
     { path: "/profile", icon: User, label: "Perfil" },
   ];
 
