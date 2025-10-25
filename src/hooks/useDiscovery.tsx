@@ -49,14 +49,23 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
       try {
         setLoading(true);
 
-        // Get current user's profile to exclude them
+        // Get current user's profile and their check-in location
         const { data: myProfile } = await supabase
           .from("profiles")
           .select("current_check_in")
           .eq("id", user.id)
           .single();
 
-        // Build query for users with active check-ins
+        // If user is not checked in, return empty array
+        if (!myProfile?.current_check_in) {
+          setUsers([]);
+          setLoading(false);
+          return;
+        }
+
+        const myLocationId = (myProfile.current_check_in as any).location_id;
+
+        // Build query for users with active check-ins at the same location
         let query = supabase
           .from("profiles")
           .select("*")
@@ -100,12 +109,13 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
 
         if (error) throw error;
 
-        // Filter out users with expired check-ins
+        // Filter users at the same location with non-expired check-ins
         const now = new Date();
         const activeUsers = (data || []).filter((profile) => {
           if (!profile.current_check_in) return false;
           const checkIn = profile.current_check_in as any;
           if (!checkIn.expires_at) return false;
+          if (checkIn.location_id !== myLocationId) return false; // Only same location
           const expiresAt = new Date(checkIn.expires_at);
           return expiresAt > now;
         });
