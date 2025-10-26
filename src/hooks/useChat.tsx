@@ -65,11 +65,15 @@ export const useChat = (matchId?: string) => {
             const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
 
             // Get other user's profile
-            const { data: profile } = await supabase
+            const { data: profile, error: profileError } = await supabase
               .from("profiles")
               .select("id, name, photos")
               .eq("id", otherUserId)
               .single();
+
+            if (profileError) {
+              console.error("Error fetching profile for user:", otherUserId, profileError);
+            }
 
             // Get last message
             const { data: lastMessage } = await supabase
