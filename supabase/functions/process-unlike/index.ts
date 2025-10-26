@@ -11,18 +11,19 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    );
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    
+    // Authenticated client (RLS applies with user context)
+    const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: req.headers.get('Authorization')! } },
+    });
+
+    // Admin client (bypasses RLS for server-side operations)
+    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
     if (authError || !user) {
       console.error('Auth error:', authError);
       return new Response(
@@ -32,7 +33,6 @@ Deno.serve(async (req) => {
     }
 
     const { toUserId } = await req.json();
-
     if (!toUserId) {
       return new Response(
         JSON.stringify({ error: 'toUserId is required' }),
@@ -42,8 +42,8 @@ Deno.serve(async (req) => {
 
     console.log(`Processing unlike from ${user.id} to ${toUserId}`);
 
-    // Get the like to check if it was a match
-    const { data: myLike } = await supabaseClient
+    // Get my like to this user
+    const { data: myLike } = await authClient
       .from('likes')
       .select('id, is_match')
       .eq('from_user_id', user.id)
@@ -57,8 +57,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Delete my like
-    const { error: deleteLikeError } = await supabaseClient
+    // Delete my like (owner can delete)
+    const { error: deleteLikeError } = await authClient
       .from('likes')
       .delete()
       .eq('id', myLike.id);
@@ -70,12 +70,11 @@ Deno.serve(async (req) => {
 
     console.log('Like deleted successfully');
 
-    // If it was a match, delete the match and update the other like
+    // If it was a match, delete the match and update the other like (admin privileges)
     if (myLike.is_match) {
       console.log('Was a match, cleaning up...');
 
-      // Delete the match record
-      const { error: deleteMatchError } = await supabaseClient
+      const { error: deleteMatchError } = await adminClient
         .from('matches')
         .delete()
         .or(`and(user1_id.eq.${user.id},user2_id.eq.${toUserId}),and(user1_id.eq.${toUserId},user2_id.eq.${user.id})`);
@@ -86,8 +85,7 @@ Deno.serve(async (req) => {
         console.log('Match deleted successfully');
       }
 
-      // Update the other user's like to not be a match anymore
-      const { error: updateOtherLikeError } = await supabaseClient
+      const { error: updateOtherLikeError } = await adminClient
         .from('likes')
         .update({ is_match: false })
         .eq('from_user_id', toUserId)
@@ -99,23 +97,20 @@ Deno.serve(async (req) => {
         console.log('Other user like updated to is_match=false');
       }
 
-      // Send notification to the other user
+      // Notify the other user
       try {
-        const { data: myProfile } = await supabaseClient
+        const { data: myProfile } = await authClient
           .from('profiles')
           .select('name')
           .eq('id', user.id)
           .single();
 
-        await supabaseClient.functions.invoke('send-notification', {
+        await adminClient.functions.invoke('send-notification', {
           body: {
             userId: toUserId,
             title: '💔 Match desfeito',
             body: `${myProfile?.name} descurtiu você`,
-            data: {
-              type: 'unlike',
-              fromUserId: user.id,
-            }
+            data: { type: 'unlike', fromUserId: user.id }
           }
         });
 

@@ -71,45 +71,9 @@ Deno.serve(async (req) => {
       .eq('to_user_id', user.id)
       .single();
 
-    let isMatch = false;
+    let isMatch = !!existingLike;
 
-    if (existingLike) {
-      // It's a match! Update both likes
-      isMatch = true;
-
-      await supabaseClient
-        .from('likes')
-        .update({ is_match: true })
-        .eq('id', existingLike.id);
-
-      // Check if match already exists (in either direction)
-      const { data: existingMatch } = await supabaseClient
-        .from('matches')
-        .select('id')
-        .or(`and(user1_id.eq.${user.id},user2_id.eq.${toUserId}),and(user1_id.eq.${toUserId},user2_id.eq.${user.id})`)
-        .maybeSingle();
-
-      // Only create match if it doesn't exist
-      if (!existingMatch) {
-        const { error: matchError } = await supabaseClient
-          .from('matches')
-          .insert({
-            user1_id: user.id,
-            user2_id: toUserId,
-            location_id: locationId,
-          });
-
-        if (matchError) {
-          console.error('Error creating match:', matchError);
-        } else {
-          console.log(`Match created successfully`);
-        }
-      } else {
-        console.log('Match already exists, skipping creation');
-      }
-    }
-
-    // Create the like record
+    // Create the like record first
     const { error: likeError } = await supabaseClient
       .from('likes')
       .insert({
@@ -122,6 +86,38 @@ Deno.serve(async (req) => {
     if (likeError) {
       console.error('Error creating like:', likeError);
       throw likeError;
+    }
+
+    if (isMatch) {
+      // Update the other like to is_match=true
+      await supabaseClient
+        .from('likes')
+        .update({ is_match: true })
+        .eq('id', existingLike.id);
+
+      // Check if match already exists (in either direction)
+      const { data: existingMatch } = await supabaseClient
+        .from('matches')
+        .select('id')
+        .or(`and(user1_id.eq.${user.id},user2_id.eq.${toUserId}),and(user1_id.eq.${toUserId},user2_id.eq.${user.id})`)
+        .maybeSingle();
+
+      if (!existingMatch) {
+        const { error: matchError } = await supabaseClient
+          .from('matches')
+          .insert({
+            user1_id: user.id,
+            user2_id: toUserId,
+            location_id: locationId,
+          });
+        if (matchError) {
+          console.error('Error creating match:', matchError);
+        } else {
+          console.log('Match created successfully');
+        }
+      } else {
+        console.log('Match already exists, skipping creation');
+      }
     }
 
     // Send notification to the user who received the like
