@@ -41,6 +41,8 @@ const Chat = () => {
 
   const getPhotoUrl = (photoPath: string) => {
     if (!photoPath) return "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
+    // If already a full URL, return as is. Otherwise, build public URL from storage.
+    if (/^https?:\/\//i.test(photoPath)) return photoPath;
     const { data } = supabase.storage.from("profile-photos").getPublicUrl(photoPath);
     return data.publicUrl;
   };
