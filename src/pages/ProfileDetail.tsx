@@ -28,15 +28,18 @@ const ProfileDetail = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [currentPhoto, setCurrentPhoto] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [likeId, setLikeId] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (!id) return;
+      if (!id || !user) return;
       setLoading(true);
       console.log("Loading profile for ID:", id);
       
+      // Load profile data
       const { data, error } = await supabase
         .from("profiles")
         .select(
@@ -53,60 +56,92 @@ const ProfileDetail = () => {
       }
       
       setProfile(data as ProfileData | null);
+
+      // Check if user has already liked this profile
+      const { data: existingLike } = await supabase
+        .from("likes")
+        .select("id")
+        .eq("from_user_id", user.id)
+        .eq("to_user_id", id)
+        .maybeSingle();
+
+      if (existingLike) {
+        setHasLiked(true);
+        setLikeId(existingLike.id);
+      }
+      
       setLoading(false);
     };
 
     loadProfile();
-  }, [id]);
+  }, [id, user]);
 
-  const handleLike = async () => {
+  const handleLikeToggle = async () => {
     if (!id || !user) return;
     
     setLoading(true);
     try {
-      // Get user's current location from profile
-      const { data: userProfile } = await supabase
-        .from('profiles')
-        .select('current_check_in')
-        .eq('id', user.id)
-        .maybeSingle();
+      if (hasLiked && likeId) {
+        // Descurtir - remover a curtida
+        const { error } = await supabase
+          .from("likes")
+          .delete()
+          .eq("id", likeId);
 
-      const checkIn = userProfile?.current_check_in as any;
-      const locationId = checkIn?.location_id || 'unknown';
+        if (error) throw error;
 
-      const { data, error } = await supabase.functions.invoke('process-like', {
-        body: {
-          toUserId: id,
-          locationId,
-          action: 'like'
-        }
-      });
-
-      if (error) throw error;
-
-      // Navegar baseado no resultado
-      if (data?.isMatch) {
-        // Get match_id to navigate to chat
-        const { data: matchData } = await supabase
-          .from("matches")
-          .select("id")
-          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-          .or(`user1_id.eq.${id},user2_id.eq.${id}`)
-          .single();
-        
-        // É um match! Navegar para tela de match com os dados
-        navigate("/match", { 
-          state: { 
-            matchProfile: profile,
-            matchId: matchData?.id 
-          } 
-        });
+        setHasLiked(false);
+        setLikeId(null);
+        console.log("Like removido com sucesso");
       } else {
-        // Não é match, navegar para tela de aguardando
-        navigate("/like-sent", { state: { profileName: profile?.name } });
+        // Curtir - adicionar curtida
+        // Get user's current location from profile
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('current_check_in')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        const checkIn = userProfile?.current_check_in as any;
+        const locationId = checkIn?.location_id || 'unknown';
+
+        const { data, error } = await supabase.functions.invoke('process-like', {
+          body: {
+            toUserId: id,
+            locationId,
+            action: 'like'
+          }
+        });
+
+        if (error) throw error;
+
+        // Atualizar estado local
+        setHasLiked(true);
+
+        // Navegar baseado no resultado
+        if (data?.isMatch) {
+          // Get match_id to navigate to chat
+          const { data: matchData } = await supabase
+            .from("matches")
+            .select("id")
+            .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+            .or(`user1_id.eq.${id},user2_id.eq.${id}`)
+            .single();
+          
+          // É um match! Navegar para tela de match com os dados
+          navigate("/match", { 
+            state: { 
+              matchProfile: profile,
+              matchId: matchData?.id 
+            } 
+          });
+        } else {
+          // Não é match, mas curtida foi registrada
+          console.log("Curtida enviada com sucesso");
+        }
       }
     } catch (error) {
-      console.error('Error liking profile:', error);
+      console.error('Error toggling like:', error);
     } finally {
       setLoading(false);
     }
@@ -325,9 +360,13 @@ const ProfileDetail = () => {
       {/* Like Button - apenas se não for o próprio perfil */}
       {user?.id !== id && (
         <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-light">
-          <Button className="w-full h-14" onClick={handleLike} disabled={loading}>
-            <Heart className="mr-2 fill-white" />
-            Curtir
+          <Button 
+            className={`w-full h-14 ${hasLiked ? 'bg-gray-medium hover:bg-gray-dark' : ''}`}
+            onClick={handleLikeToggle} 
+            disabled={loading}
+          >
+            <Heart className={`mr-2 ${hasLiked ? 'fill-white' : 'fill-white'}`} />
+            {hasLiked ? 'Descurtir' : 'Curtir'}
           </Button>
         </div>
       )}
