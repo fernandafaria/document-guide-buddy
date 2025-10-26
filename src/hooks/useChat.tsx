@@ -126,7 +126,7 @@ export const useChat = (matchId?: string) => {
 
     fetchMatches();
 
-    // Subscribe to new matches
+    // Subscribe to matches changes (new matches and deleted matches)
     const matchesChannel = supabase
       .channel("matches-changes")
       .on(
@@ -135,9 +135,9 @@ export const useChat = (matchId?: string) => {
           event: "*",
           schema: "public",
           table: "matches",
-          filter: `user1_id=eq.${user.id},user2_id=eq.${user.id}`,
         },
-        () => {
+        (payload) => {
+          console.log("Match changed:", payload);
           fetchMatches();
         }
       )

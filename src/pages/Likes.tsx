@@ -73,13 +73,25 @@ export default function Likes() {
 
     fetchLikes();
 
-    // Realtime para novas curtidas
+    // Realtime para novas curtidas e updates
     const channel = supabase
       .channel("likes-received")
       .on(
         "postgres_changes",
         {
           event: "INSERT",
+          schema: "public",
+          table: "likes",
+          filter: `to_user_id=eq.${user.id}`,
+        },
+        () => {
+          fetchLikes();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
           schema: "public",
           table: "likes",
           filter: `to_user_id=eq.${user.id}`,

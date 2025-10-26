@@ -82,11 +82,12 @@ const ProfileDetail = () => {
     setLoading(true);
     try {
       if (hasLiked && likeId) {
-        // Descurtir - remover a curtida
-        const { error } = await supabase
-          .from("likes")
-          .delete()
-          .eq("id", likeId);
+        // Descurtir usando edge function
+        const { error } = await supabase.functions.invoke('process-unlike', {
+          body: {
+            toUserId: id
+          }
+        });
 
         if (error) throw error;
 
