@@ -115,8 +115,17 @@ const ProfileDetail = () => {
 
         if (error) throw error;
 
+        // Buscar o ID da curtida recém criada
+        const { data: newLike } = await supabase
+          .from("likes")
+          .select("id")
+          .eq("from_user_id", user.id)
+          .eq("to_user_id", id)
+          .single();
+
         // Atualizar estado local
         setHasLiked(true);
+        setLikeId(newLike?.id || null);
 
         // Navegar baseado no resultado
         if (data?.isMatch) {
@@ -137,7 +146,7 @@ const ProfileDetail = () => {
           });
         } else {
           // Não é match, mas curtida foi registrada
-          console.log("Curtida enviada com sucesso");
+          console.log("Curtida enviada com sucesso, ID:", newLike?.id);
         }
       }
     } catch (error) {
