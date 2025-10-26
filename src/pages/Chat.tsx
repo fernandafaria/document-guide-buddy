@@ -17,10 +17,15 @@ const Chat = () => {
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   // Find the current match
   const currentMatch = matches.find((m) => m.id === matchId);
   
-  // Early return if match not found
+  // Conditional rendering if match not found
   if (!currentMatch || !currentMatch.otherUser) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -33,11 +38,6 @@ const Chat = () => {
   const receiverId = currentMatch.user1_id === user?.id 
     ? currentMatch.user2_id 
     : currentMatch.user1_id;
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   const getPhotoUrl = (photoPath: string) => {
     if (!photoPath) return "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
