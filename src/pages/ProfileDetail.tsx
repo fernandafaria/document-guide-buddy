@@ -35,6 +35,8 @@ const ProfileDetail = () => {
     const loadProfile = async () => {
       if (!id) return;
       setLoading(true);
+      console.log("Loading profile for ID:", id);
+      
       const { data, error } = await supabase
         .from("profiles")
         .select(
@@ -44,8 +46,12 @@ const ProfileDetail = () => {
         .single();
 
       if (error) {
-        console.error("Error loading profile", error);
+        console.error("Error loading profile:", error);
+        console.error("Error details:", JSON.stringify(error, null, 2));
+      } else {
+        console.log("Profile loaded successfully:", data?.name);
       }
+      
       setProfile(data as ProfileData | null);
       setLoading(false);
     };
@@ -80,8 +86,21 @@ const ProfileDetail = () => {
 
       // Navegar baseado no resultado
       if (data?.isMatch) {
-        // É um match! Navegar para tela de match
-        navigate("/match");
+        // Get match_id to navigate to chat
+        const { data: matchData } = await supabase
+          .from("matches")
+          .select("id")
+          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+          .or(`user1_id.eq.${id},user2_id.eq.${id}`)
+          .single();
+        
+        // É um match! Navegar para tela de match com os dados
+        navigate("/match", { 
+          state: { 
+            matchProfile: profile,
+            matchId: matchData?.id 
+          } 
+        });
       } else {
         // Não é match, navegar para tela de aguardando
         navigate("/like-sent", { state: { profileName: profile?.name } });
@@ -209,6 +228,17 @@ const ProfileDetail = () => {
             <Skeleton className="h-7 w-48" />
             <Skeleton className="h-5 w-32" />
             <Skeleton className="h-24 w-full" />
+          </div>
+        ) : !profile ? (
+          <div className="text-center py-12">
+            <p className="text-gray-medium text-lg">Perfil não encontrado</p>
+            <Button 
+              onClick={() => navigate(-1)}
+              variant="outline"
+              className="mt-4"
+            >
+              Voltar
+            </Button>
           </div>
         ) : (
           <>
