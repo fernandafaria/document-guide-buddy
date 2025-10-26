@@ -49,6 +49,7 @@ export const useChat = (matchId?: string) => {
     const fetchMatches = async () => {
       try {
         setLoading(true);
+        console.log("Fetching matches for user:", user.id);
         
         // Get all matches where user is either user1 or user2
         const { data: matchesData, error: matchesError } = await supabase
@@ -57,12 +58,18 @@ export const useChat = (matchId?: string) => {
           .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
           .order("last_activity", { ascending: false });
 
-        if (matchesError) throw matchesError;
+        if (matchesError) {
+          console.error("Error fetching matches:", matchesError);
+          throw matchesError;
+        }
+
+        console.log("Matches found:", matchesData?.length);
 
         // For each match, get the other user's profile and last message
         const matchesWithData = await Promise.all(
           (matchesData || []).map(async (match) => {
             const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
+            console.log("Fetching profile for user:", otherUserId);
 
             // Get other user's profile
             const { data: profile, error: profileError } = await supabase
@@ -73,6 +80,8 @@ export const useChat = (matchId?: string) => {
 
             if (profileError) {
               console.error("Error fetching profile for user:", otherUserId, profileError);
+            } else {
+              console.log("Profile fetched successfully:", profile?.name);
             }
 
             // Get last message
@@ -101,6 +110,7 @@ export const useChat = (matchId?: string) => {
           })
         );
 
+        console.log("Matches with data:", matchesWithData.length);
         setMatches(matchesWithData);
       } catch (error: any) {
         console.error("Error fetching matches:", error);
