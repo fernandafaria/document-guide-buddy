@@ -9,6 +9,7 @@ import { Heart, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
+import Header from "@/components/Header";
 
 interface LikeProfile {
   id: string;
@@ -146,9 +147,10 @@ export default function Likes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white pb-20">
+      <div className="min-h-screen bg-white pb-20">
+        <Header />
         <div className="p-6">
-          <h1 className="text-2xl font-bold mb-6">Quem curtiu você</h1>
+          <h1 className="text-2xl font-bold mb-6">Curtidas</h1>
           <div className="flex justify-center items-center h-64">
             <Loader2 className="w-8 h-8 animate-spin text-coral" />
           </div>
@@ -159,9 +161,10 @@ export default function Likes() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white pb-20">
+    <div className="min-h-screen bg-white pb-20">
+      <Header />
       <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Quem curtiu você</h1>
+        <h1 className="text-2xl font-bold mb-6">Curtidas</h1>
 
         {likes.length === 0 ? (
           <div className="text-center py-12">
