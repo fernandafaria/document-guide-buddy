@@ -110,8 +110,24 @@ export default function Likes() {
       if (error) throw error;
 
       if (data?.isMatch) {
+        // Get the match profile data
+        const matchProfile = likes.find(like => like.id === userId);
+        
+        // Get match_id to navigate to chat
+        const { data: matchData } = await supabase
+          .from("matches")
+          .select("id")
+          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+          .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+          .single();
+        
         toast.success("É um match! 🎉");
-        navigate("/match");
+        navigate("/match", { 
+          state: { 
+            matchProfile,
+            matchId: matchData?.id 
+          } 
+        });
       } else {
         toast.success("Curtida enviada!");
         setLikes((prev) => prev.filter((like) => like.id !== userId));

@@ -153,61 +153,19 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
     if (!user) return;
 
     try {
-      // Check if already liked
-      const { data: existingLike } = await supabase
-        .from("likes")
-        .select("*")
-        .eq("from_user_id", user.id)
-        .eq("to_user_id", toUserId)
-        .maybeSingle();
+      // Use the edge function to process the like
+      const { data, error } = await supabase.functions.invoke('process-like', {
+        body: {
+          toUserId,
+          locationId,
+          action: 'like',
+        },
+      });
 
-      if (existingLike) {
-        toast({
-          title: "Aviso",
-          description: "Você já enviou um YO para este usuário",
-        });
-        return;
-      }
+      if (error) throw error;
 
-      // Create the like
-      const { data: like, error: likeError } = await supabase
-        .from("likes")
-        .insert({
-          from_user_id: user.id,
-          to_user_id: toUserId,
-          location_id: locationId,
-        })
-        .select()
-        .single();
-
-      if (likeError) throw likeError;
-
-      // Check if it's a match (they also liked me)
-      const { data: reciprocalLike } = await supabase
-        .from("likes")
-        .select("*")
-        .eq("from_user_id", toUserId)
-        .eq("to_user_id", user.id)
-        .maybeSingle();
-
-      if (reciprocalLike) {
-        // It's a match! Create match record
-        const { error: matchError } = await supabase
-          .from("matches")
-          .insert({
-            user1_id: user.id,
-            user2_id: toUserId,
-            location_id: locationId,
-          });
-
-        if (matchError) throw matchError;
-
-        // Update both likes to mark as match
-        await supabase
-          .from("likes")
-          .update({ is_match: true })
-          .in("id", [like.id, reciprocalLike.id]);
-
+      // Show appropriate message based on match status
+      if (data?.isMatch) {
         toast({
           title: "🎉 É um Match!",
           description: "Vocês deram match! Agora podem conversar.",

@@ -1,13 +1,40 @@
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const MatchScreen = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
+  const { matchProfile, matchId } = location.state || {};
 
   useEffect(() => {
-    // Play celebration animation
-  }, []);
+    // If no match data, redirect to discovery
+    if (!matchProfile) {
+      navigate("/discovery");
+    }
+  }, [matchProfile, navigate]);
+
+  const getPhotoUrl = (photoPath: string) => {
+    if (!photoPath) return "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
+    const { data } = supabase.storage.from("profile-photos").getPublicUrl(photoPath);
+    return data.publicUrl;
+  };
+
+  const myPhoto = user ? getPhotoUrl("") : "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
+  const matchPhoto = matchProfile?.photos?.[0] 
+    ? getPhotoUrl(matchProfile.photos[0]) 
+    : "https://api.dicebear.com/7.x/avataaars/svg?seed=Match";
+
+  const handleSendMessage = () => {
+    if (matchId) {
+      navigate(`/chat/${matchId}`);
+    } else {
+      navigate("/matches");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 relative overflow-hidden">
@@ -38,21 +65,21 @@ const MatchScreen = () => {
       <div className="relative mb-8">
         <div className="flex items-center gap-8">
           <img
-            src="https://api.dicebear.com/7.x/avataaars/svg?seed=User"
-            alt="You"
+            src={myPhoto}
+            alt="Você"
             className="w-36 h-36 rounded-full object-cover ring-4 ring-white shadow-elevated"
           />
           
           {/* Heart Icon */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
             <div className="w-24 h-24 bg-pink-soft rounded-full flex items-center justify-center animate-pulse shadow-elevated">
-              <span className="text-6xl">😊</span>
+              <span className="text-6xl">💕</span>
             </div>
           </div>
           
           <img
-            src="https://api.dicebear.com/7.x/avataaars/svg?seed=Ana"
-            alt="Match"
+            src={matchPhoto}
+            alt={matchProfile?.name || "Match"}
             className="w-36 h-36 rounded-full object-cover ring-4 ring-white shadow-elevated"
           />
         </div>
@@ -61,25 +88,24 @@ const MatchScreen = () => {
       {/* Match Text */}
       <h2 className="text-4xl font-bold text-black-soft mb-2">É um Match!</h2>
       <p className="text-lg text-gray-medium text-center mb-12 max-w-sm">
-        Você e Ana deram like um no outro!
+        Você e {matchProfile?.name || "essa pessoa"} deram like um no outro!
       </p>
 
       {/* Action Buttons */}
       <div className="w-full max-w-md space-y-4">
         <Button
-          className="w-full h-14"
-          onClick={() => navigate("/chat/1")}
-        >
-          <span className="mr-2">👋</span>
-          Enviar YO!
-        </Button>
-        <Button
-          variant="outline"
-          className="w-full h-14 bg-pink-deep border-pink-deep text-white hover:bg-pink-deep/90 hover:text-white"
-          onClick={() => navigate("/chat/1")}
+          className="w-full h-14 bg-coral hover:bg-coral/90"
+          onClick={handleSendMessage}
         >
           <span className="mr-2">💬</span>
           Enviar Mensagem
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full h-14"
+          onClick={() => navigate("/matches")}
+        >
+          Ver Matches
         </Button>
       </div>
 
