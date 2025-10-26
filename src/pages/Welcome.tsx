@@ -1,9 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { BottomNav } from "@/components/BottomNav";
 import welcomeMap from "@/assets/welcome-map-hand.png";
+import { useEffect } from "react";
 
 const Welcome = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Redirect logged-in users to map
+  useEffect(() => {
+    if (user) {
+      navigate("/map");
+    }
+  }, [user, navigate]);
 
   return (
     <div className="h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col overflow-hidden">
@@ -51,6 +62,9 @@ const Welcome = () => {
           Entrar
         </Button>
       </div>
+
+      {/* Bottom Navigation for logged in users */}
+      {user && <BottomNav />}
     </div>
   );
 };
