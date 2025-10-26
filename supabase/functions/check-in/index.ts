@@ -16,21 +16,29 @@ const checkInSchema = z.object({
 });
 
 Deno.serve(async (req) => {
+  console.log('🚀 Check-in function invoked');
+  
   if (req.method === 'OPTIONS') {
+    console.log('⚙️ Handling OPTIONS request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('🔐 Creating Supabase client');
+    const authHeader = req.headers.get('Authorization');
+    console.log('🔑 Auth header present:', !!authHeader);
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader! },
         },
       }
     );
 
+    console.log('👤 Getting user from token');
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     
     if (authError || !user) {

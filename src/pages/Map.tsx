@@ -294,31 +294,18 @@ const Map = () => {
 
       if (error) {
         console.error('❌ Check-in error:', error);
+        console.error('❌ Error details:', JSON.stringify(error, null, 2));
         
-        // Try to get detailed error message from response
         let errorMessage = "Não foi possível fazer check-in. Tente novamente.";
         
-        try {
-          // The error might contain a response with our custom error
-          const response = await supabase.functions.invoke('check-in', {
-            body: {
-              latitude: selectedLocationForCheckIn.latitude,
-              longitude: selectedLocationForCheckIn.longitude,
-              name: selectedLocationForCheckIn.name,
-              address: selectedLocationForCheckIn.address,
-              userLatitude: latitude,
-              userLongitude: longitude,
-            },
-          });
-          
-          if (response.error && typeof response.error === 'object') {
-            const errorData = response.error as any;
-            if (errorData.message) {
-              errorMessage = errorData.message;
-            }
+        // Check if error has context or message
+        if (typeof error === 'object' && error !== null) {
+          const errorObj = error as any;
+          if (errorObj.context?.error) {
+            errorMessage = errorObj.context.error;
+          } else if (errorObj.message) {
+            errorMessage = errorObj.message;
           }
-        } catch (e) {
-          // If we can't get a better error, use default
         }
         
         toast({
