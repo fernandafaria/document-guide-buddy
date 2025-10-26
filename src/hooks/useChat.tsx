@@ -65,9 +65,32 @@ export const useChat = (matchId?: string) => {
 
         console.log("Matches found:", matchesData?.length);
 
+        // Validate matches - ensure both users have liked each other
+        const validatedMatches = [];
+        for (const match of matchesData || []) {
+          // Check if both likes exist
+          const { data: likesCheck } = await supabase
+            .from("likes")
+            .select("from_user_id, to_user_id")
+            .or(
+              `and(from_user_id.eq.${match.user1_id},to_user_id.eq.${match.user2_id}),and(from_user_id.eq.${match.user2_id},to_user_id.eq.${match.user1_id})`
+            );
+
+          // Only include match if both users have liked each other
+          if (likesCheck && likesCheck.length === 2) {
+            validatedMatches.push(match);
+          } else {
+            console.warn("Invalid match found (missing reciprocal likes):", match.id);
+            // Delete invalid match
+            await supabase.from("matches").delete().eq("id", match.id);
+          }
+        }
+
+        console.log("Valid matches after validation:", validatedMatches.length);
+
         // For each match, get the other user's profile and last message
         const matchesWithData = await Promise.all(
-          (matchesData || []).map(async (match) => {
+          validatedMatches.map(async (match) => {
             const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
             console.log("Fetching profile for user:", otherUserId);
 
