@@ -238,6 +238,32 @@ export const useChat = (matchId?: string) => {
           first_message_by: user.id,
         })
         .eq("id", matchId);
+
+      // Send notification to receiver
+      try {
+        const { data: senderProfile } = await supabase
+          .from("profiles")
+          .select("name")
+          .eq("id", user.id)
+          .single();
+
+        await supabase.functions.invoke("send-notification", {
+          body: {
+            userId: receiverId,
+            title: `💬 Nova mensagem de ${senderProfile?.name}`,
+            body: text.length > 50 ? text.substring(0, 50) + "..." : text,
+            data: {
+              type: "message",
+              matchId: matchId,
+              fromUserId: user.id,
+              fromUserName: senderProfile?.name,
+            },
+          },
+        });
+      } catch (notifError) {
+        console.error("Error sending notification:", notifError);
+        // Don't fail the message if notification fails
+      }
     } catch (error: any) {
       console.error("Error sending message:", error);
       toast({

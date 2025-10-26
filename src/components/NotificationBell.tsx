@@ -106,6 +106,8 @@ export const NotificationBell = () => {
       navigate('/matches');
     } else if (notification.data?.type === 'like' && notification.data?.fromUserId) {
       navigate(`/profile/${notification.data.fromUserId}`);
+    } else if (notification.data?.type === 'message' && notification.data?.matchId) {
+      navigate(`/chat/${notification.data.matchId}`);
     }
     
     setOpen(false);
