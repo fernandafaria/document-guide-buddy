@@ -74,13 +74,18 @@ const Chat = () => {
           <ArrowLeft className="w-6 h-6" />
         </button>
         
-        <img
-          src={photo}
-          alt={otherUser.name}
-          className="w-10 h-10 rounded-full object-cover ring-2 ring-white"
-        />
-        
-        <h2 className="text-lg font-bold text-white flex-1">{otherUser.name}</h2>
+        <button
+          onClick={() => navigate(`/profile/${otherUser.id}`)}
+          className="flex items-center gap-3 flex-1 hover:opacity-90 transition-opacity"
+        >
+          <img
+            src={photo}
+            alt={otherUser.name}
+            className="w-10 h-10 rounded-full object-cover ring-2 ring-white"
+          />
+          
+          <h2 className="text-lg font-bold text-white">{otherUser.name}</h2>
+        </button>
       </div>
 
       {/* Messages */}
