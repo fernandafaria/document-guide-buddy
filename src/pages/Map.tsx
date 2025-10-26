@@ -284,7 +284,7 @@ const Map = () => {
           latitude: selectedLocationForCheckIn.latitude,
           longitude: selectedLocationForCheckIn.longitude,
           name: selectedLocationForCheckIn.name,
-          address: selectedLocationForCheckIn.address,
+          address: selectedLocationForCheckIn.address ?? undefined,
           userLatitude: latitude,
           userLongitude: longitude,
         },

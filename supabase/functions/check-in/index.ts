@@ -10,7 +10,7 @@ const checkInSchema = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
   name: z.string().trim().min(1).max(200),
-  address: z.string().trim().max(500).optional(),
+  address: z.string().trim().max(500).optional().nullable(),
   userLatitude: z.number().min(-90).max(90).optional(),
   userLongitude: z.number().min(-180).max(180).optional(),
 });
