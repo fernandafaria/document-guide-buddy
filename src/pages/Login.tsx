@@ -27,20 +27,9 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const fromState = (location.state as { from?: string } | null)?.from;
-  const fromQuery = new URLSearchParams(location.search).get('from');
-  const fromPath = fromState || fromQuery;
   
-  // Se vier de /settings ou outras páginas de configuração, redireciona para /map
-  // Isso evita que após logout volte para a página de onde saiu
-  const shouldRedirectToMap = fromPath && (
-    fromPath.startsWith('/settings') || 
-    fromPath === '/profile' ||
-    fromPath === '/profile/edit'
-  );
-  
-  const redirectPath = shouldRedirectToMap ? '/map' : (fromPath || '/map');
+  // Sempre redireciona para /map após o login
+  const redirectPath = '/map';
 
   useEffect(() => {
     if (logoutParam) {
@@ -58,7 +47,7 @@ const Login = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/login?from=${encodeURIComponent(redirectPath)}`
+          redirectTo: `${window.location.origin}/login`
         }
       });
       
