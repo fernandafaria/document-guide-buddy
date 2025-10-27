@@ -133,21 +133,15 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
         );
         console.log("💑 Already matched users:", matchedUserIds.size);
 
-        // Keep matched users even if already liked; otherwise remove liked
-        const usersToShow = activeUsers.filter((profile) => {
-          const alreadyLiked = likedUserIds.has(profile.id);
-          const alreadyMatched = matchedUserIds.has(profile.id);
-
-          if (alreadyMatched) {
-            console.log(`✅ ${profile.name}: Matched - keep in discovery`);
-            return true;
-          }
-          if (alreadyLiked) {
-            console.log(`❌ ${profile.name}: Already liked (no match)`);
-            return false;
-          }
-          return true;
+        // Do NOT remove liked users; keep them and mark as YO enviado (except when already matched)
+        const likedNotMatchedIds = Array.from(likedUserIds).filter((id) => !matchedUserIds.has(id));
+        setSentYos((prev) => {
+          const union = new Set(prev);
+          likedNotMatchedIds.forEach((id) => union.add(id));
+          return union;
         });
+
+        const usersToShow = activeUsers; // show everyone active at location
 
         console.log("🎯 Final users to show:", usersToShow.length);
         setUsers(usersToShow as any);
@@ -235,6 +229,13 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
     console.log("📤 Sending YO to:", toUserId, "at location:", locationId);
 
     try {
+      // Optimistic: mark as YO sent immediately
+      setSentYos((prev) => {
+        const s = new Set(prev);
+        s.add(toUserId);
+        return s;
+      });
+
       // Use the edge function to process the like
       const { data, error } = await supabase.functions.invoke('process-like', {
         body: {
