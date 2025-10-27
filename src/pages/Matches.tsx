@@ -98,15 +98,15 @@ const Matches = () => {
 
             const myGenderLower = myGender?.toLowerCase();
             const otherGenderLower = match.otherUser.gender?.toLowerCase();
-            
-            const isMale = myGenderLower === 'homem' || myGenderLower === 'masculino';
-            const isFemale = myGenderLower === 'mulher' || myGenderLower === 'feminino';
-            const otherIsMale = otherGenderLower === 'homem' || otherGenderLower === 'masculino';
-            const otherIsFemale = otherGenderLower === 'mulher' || otherGenderLower === 'feminino';
-            
-            // Same gender matches can both start conversation
-            const isSameGenderMatch = (isMale && otherIsMale) || (isFemale && otherIsFemale);
-            const canOpenChat = isSameGenderMatch || isFemale || match.conversation_started;
+
+            const norm = (g?: string) => g?.trim();
+            const isMale = (g?: string) => ["homem", "masculino", "male", "m", "masc"].includes(norm(g || ""));
+            const isFemale = (g?: string) => ["mulher", "feminino", "female", "f", "fem"].includes(norm(g || ""));
+
+            const heteroPair = (isMale(myGenderLower) && isFemale(otherGenderLower)) || (isFemale(myGenderLower) && isMale(otherGenderLower));
+
+            // Chat liberado para qualquer caso que não seja homem-mulher; mulheres sempre podem iniciar em hetero
+            const canOpenChat = !heteroPair || isFemale(myGenderLower) || match.conversation_started;
 
             return (
               <div
