@@ -40,6 +40,13 @@ const Discovery = () => {
 
   const getPhotoUrl = (photoPath: string) => {
     if (!photoPath) return "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
+    
+    // Se já for uma URL completa, retorna direto
+    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+      return photoPath;
+    }
+    
+    // Caso contrário, gera a URL pública do storage
     const { data } = supabase.storage.from("profile-photos").getPublicUrl(photoPath);
     return data.publicUrl;
   };
