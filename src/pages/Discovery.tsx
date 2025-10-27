@@ -148,6 +148,9 @@ const Discovery = () => {
               ? getPhotoUrl(discoveryUser.photos[0])
               : "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
 
+            const hasSeentYo = sentYos.has(discoveryUser.id);
+            console.log(`User ${discoveryUser.name} - YO sent:`, hasSeentYo);
+
             return (
               <div
                 key={discoveryUser.id}
@@ -214,7 +217,7 @@ const Discovery = () => {
                       <X className="w-4 h-4 mr-1" />
                       Pular
                     </Button>
-                    {sentYos.has(discoveryUser.id) ? (
+                    {hasSeentYo ? (
                       <Button
                         variant="outline"
                         size="sm"

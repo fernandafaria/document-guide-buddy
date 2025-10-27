@@ -268,7 +268,12 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
         console.log("✅ YO sent successfully");
         
         // Mark as YO sent but keep in list
-        setSentYos((prev) => new Set(prev).add(toUserId));
+        setSentYos((prev) => {
+          const newSet = new Set(prev);
+          newSet.add(toUserId);
+          console.log("📝 Updated sentYos:", Array.from(newSet));
+          return newSet;
+        });
         
         toast({
           title: "YO enviado!",
