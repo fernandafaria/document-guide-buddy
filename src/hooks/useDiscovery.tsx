@@ -226,7 +226,12 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
   }, [user, filters, fetchDiscoveryUsers]);
 
   const sendYo = async (toUserId: string, locationId?: string) => {
-    if (!user) return;
+    if (!user) {
+      console.error("❌ No user found");
+      return;
+    }
+
+    console.log("📤 Sending YO to:", toUserId, "at location:", locationId);
 
     try {
       // Use the edge function to process the like
@@ -238,15 +243,19 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
         },
       });
 
+      console.log("📥 Response from process-like:", { data, error });
+
       if (error) throw error;
 
       // Show appropriate message based on match status
       if (data?.isMatch) {
+        console.log("🎉 It's a match!");
         toast({
           title: "🎉 É um Match!",
           description: "Vocês deram match! Agora podem conversar.",
         });
       } else {
+        console.log("✅ YO sent successfully");
         toast({
           title: "YO enviado!",
           description: "Aguarde para ver se vai dar match",
@@ -256,10 +265,10 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
       // Remove user from discovery list
       setUsers((prev) => prev.filter((u) => u.id !== toUserId));
     } catch (error: any) {
-      console.error("Error sending YO:", error);
+      console.error("❌ Error sending YO:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível enviar o YO",
+        description: error?.message || "Não foi possível enviar o YO",
         variant: "destructive",
       });
     }
