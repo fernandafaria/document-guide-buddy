@@ -130,9 +130,18 @@ const Map = () => {
       )
       .subscribe();
 
+    // Fallback polling every 30 seconds to ensure updates even if realtime misses events
+    const pollingInterval = setInterval(() => {
+      checkUserCheckInStatus();
+      if (latitude && longitude) {
+        fetchNearbyLocations();
+      }
+    }, 30000);
+
     return () => {
       supabase.removeChannel(locationsChannel);
       supabase.removeChannel(profilesChannel);
+      clearInterval(pollingInterval);
     };
   }, [user, latitude, longitude]);
 
