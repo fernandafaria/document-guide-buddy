@@ -71,58 +71,15 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
         const myLocationId = (myProfile.current_check_in as any).location_id;
         console.log("📍 My location ID:", myLocationId);
 
-        // Build query for users with active check-ins at the same location (server-side filtered)
-        let query = supabase
-          .from("profiles")
-          .select("*")
-          .not("id", "eq", user.id)
-          .filter("current_check_in->>location_id", "eq", myLocationId)
-          .filter("current_check_in->>expires_at", "gt", new Date().toISOString());
-
-        // Apply filters
-        if (filters?.intentions && filters.intentions.length > 0) {
-          query = query.overlaps("intentions", filters.intentions);
-          console.log("🎯 Filtering by intentions:", filters.intentions);
-        }
-
-        if (filters?.genders && filters.genders.length > 0) {
-          query = query.in("gender", filters.genders);
-          console.log("👤 Filtering by genders:", filters.genders);
-        }
-
-        if (filters?.minAge) {
-          query = query.gte("age", filters.minAge);
-          console.log("📅 Min age:", filters.minAge);
-        }
-
-        if (filters?.maxAge) {
-          query = query.lte("age", filters.maxAge);
-          console.log("📅 Max age:", filters.maxAge);
-        }
-
-        if (filters?.education) {
-          query = query.eq("education", filters.education);
-          console.log("🎓 Filtering by education:", filters.education);
-        }
-
-        if (filters?.alcohol) {
-          query = query.eq("alcohol", filters.alcohol);
-          console.log("🍷 Filtering by alcohol:", filters.alcohol);
-        }
-
-        if (filters?.musicalStyles && filters.musicalStyles.length > 0) {
-          query = query.overlaps("musical_styles", filters.musicalStyles);
-          console.log("🎵 Filtering by musical styles:", filters.musicalStyles);
-        }
-
-        if (filters?.languages && filters.languages.length > 0) {
-          query = query.overlaps("languages", filters.languages);
-          console.log("🌍 Filtering by languages:", filters.languages);
-        }
-
-        const { data, error } = await query;
+        // Fetch users at my location via backend function (authoritative)
+        const { data: usersResp, error } = await supabase.functions.invoke('get-users-at-location', {
+          body: { locationId: myLocationId },
+        });
 
         if (error) throw error;
+
+        // Raw users from backend
+        let data = (usersResp as any)?.users || [];
 
         console.log("📦 Total profiles from query:", data?.length || 0);
 
