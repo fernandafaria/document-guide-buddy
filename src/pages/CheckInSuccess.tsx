@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { NearbyUsersCard } from "@/components/NearbyUsersCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,37 +30,13 @@ const CheckInSuccess = () => {
   const [locationName, setLocationName] = useState("");
   const [showConfetti, setShowConfetti] = useState(true);
 
+  // Auto-hide confetti after 2 seconds
   useEffect(() => {
-    if (user) {
-      fetchCheckInInfo();
-    }
-  }, [user]);
+    const timer = setTimeout(() => setShowConfetti(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
-  useEffect(() => {
-    if (!user) return;
-
-    // Subscribe to realtime updates on profiles table
-    const channel = supabase
-      .channel('profiles-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles',
-        },
-        () => {
-          fetchCheckInInfo();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
-  const fetchCheckInInfo = async () => {
+  const fetchCheckInInfo = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -95,9 +71,15 @@ const CheckInSuccess = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, navigate]);
 
-  const handleCheckOut = async () => {
+  useEffect(() => {
+    if (user) {
+      fetchCheckInInfo();
+    }
+  }, [user, fetchCheckInInfo]);
+
+  const handleCheckOut = useCallback(async () => {
     try {
       const { error } = await supabase.functions.invoke('checkout');
 
@@ -117,25 +99,25 @@ const CheckInSuccess = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
-      {/* Confetti Animation - Reduzido e mais rápido */}
+      {/* Confetti Animation - Otimizado */}
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none z-50">
-          {[...Array(25)].map((_, i) => (
+          {[...Array(12)].map((_, i) => (
             <div
               key={i}
-              className="absolute animate-[fall_1.5s_ease-in-out_forwards]"
+              className="absolute animate-[fall_1.2s_ease-in-out_forwards]"
               style={{
                 left: `${Math.random() * 100}%`,
-                top: `-${Math.random() * 20}%`,
-                animationDelay: `${Math.random() * 0.5}s`,
-                fontSize: `${Math.random() * 15 + 10}px`,
+                top: `-${Math.random() * 15}%`,
+                animationDelay: `${Math.random() * 0.3}s`,
+                fontSize: `${Math.random() * 12 + 12}px`,
               }}
             >
-              {['🎉', '🎊', '✨'][Math.floor(Math.random() * 3)]}
+              {['🎉', '✨'][i % 2]}
             </div>
           ))}
         </div>
@@ -145,11 +127,10 @@ const CheckInSuccess = () => {
         {/* Success Animation Header */}
         <div className="bg-gradient-to-br from-coral via-pink-deep to-coral/80 text-white p-8">
           <div className="text-center space-y-6">
-            {/* Check Icon with Animation - Otimizado */}
+            {/* Check Icon with Animation */}
             <div className="relative inline-flex items-center justify-center">
-              <div className="absolute w-32 h-32 bg-white/20 rounded-full animate-[ping_1s_ease-out]"></div>
-              <div className="relative w-32 h-32 bg-white rounded-full flex items-center justify-center animate-scale-in shadow-2xl">
-                <Check className="w-20 h-20 text-coral" strokeWidth={4} />
+              <div className="relative w-28 h-28 bg-white rounded-full flex items-center justify-center animate-scale-in shadow-2xl">
+                <Check className="w-16 h-16 text-coral" strokeWidth={4} />
               </div>
             </div>
             
