@@ -68,14 +68,31 @@ Deno.serve(async (req) => {
 
     console.log(`Finding locations near ${latitude}, ${longitude} within ${radius}km`);
 
-    // Get locations from database with active check-ins (last 30 minutes)
-    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-    
+    // Get all profiles with active check-ins to calculate real-time user counts
+    const { data: activeProfiles, error: profilesError } = await supabaseClient
+      .from('profiles')
+      .select('id, current_check_in')
+      .not('current_check_in', 'is', null);
+
+    if (profilesError) {
+      console.error('Error fetching active profiles:', profilesError);
+    }
+
+    // Group active users by location_id
+    const usersByLocation = new Map<string, number>();
+    activeProfiles?.forEach((profile) => {
+      const locationId = profile.current_check_in?.location_id;
+      if (locationId) {
+        usersByLocation.set(locationId, (usersByLocation.get(locationId) || 0) + 1);
+      }
+    });
+
+    console.log(`Found ${activeProfiles?.length || 0} active check-ins across ${usersByLocation.size} locations`);
+
+    // Get all locations from database (not just active ones)
     const { data: dbLocations, error: dbError } = await supabaseClient
       .from('locations')
-      .select('*')
-      .gt('active_users_count', 0)
-      .gte('last_activity', thirtyMinutesAgo);
+      .select('*');
 
     if (dbError) {
       console.error('Error fetching database locations:', dbError);
@@ -136,21 +153,27 @@ Deno.serve(async (req) => {
       console.error('Error fetching POIs from Overpass:', error);
     }
 
-    // Combine database locations and POIs
+    // Combine database locations and POIs with real-time active user counts
     const dbNearbyLocations = (dbLocations || [])
       .filter((location) => {
         const distance = calculateDistance(latitude, longitude, location.latitude, location.longitude);
         return distance <= radius;
       })
-      .map((location) => ({
-        ...location,
-        distance: calculateDistance(latitude, longitude, location.latitude, location.longitude),
-        type: 'user_location',
-      }));
+      .map((location) => {
+        // Get real-time active user count for this location
+        const activeCount = usersByLocation.get(location.location_id) || 0;
+        return {
+          ...location,
+          active_users_count: activeCount, // Use real-time count
+          distance: calculateDistance(latitude, longitude, location.latitude, location.longitude),
+          type: 'user_location',
+        };
+      })
+      .filter((location) => location.active_users_count > 0); // Only show locations with active users
 
     const allLocations = [...dbNearbyLocations, ...pois].sort((a, b) => a.distance - b.distance);
 
-    console.log(`Found ${dbNearbyLocations.length} user locations and ${pois.length} POIs (total: ${allLocations.length})`);
+    console.log(`Found ${dbNearbyLocations.length} user locations with active users and ${pois.length} POIs (total: ${allLocations.length})`);
 
     return new Response(
       JSON.stringify({ locations: allLocations }),
