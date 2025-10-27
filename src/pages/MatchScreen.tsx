@@ -24,7 +24,7 @@ const MatchScreen = () => {
       
       const { data } = await supabase
         .from("profiles")
-        .select("photos")
+        .select("photos, gender")
         .eq("id", user.id)
         .single();
       
@@ -51,6 +51,8 @@ const MatchScreen = () => {
   const matchPhoto = matchProfile?.photos?.[0] 
     ? getPhotoUrl(matchProfile.photos[0]) 
     : "https://api.dicebear.com/7.x/avataaars/svg?seed=Match";
+
+  const isWoman = myProfile?.gender?.toLowerCase() === 'mulher' || myProfile?.gender?.toLowerCase() === 'feminino';
 
   const handleSendMessage = () => {
     if (matchId) {
@@ -125,13 +127,25 @@ const MatchScreen = () => {
 
       {/* Action Buttons */}
       <div className="w-full max-w-md space-y-4">
-        <Button
-          className="w-full h-14 bg-coral hover:bg-coral/90 text-lg font-semibold"
-          onClick={handleSendMessage}
-        >
-          <span className="mr-2">👋</span>
-          Enviar um Yo!
-        </Button>
+        {isWoman ? (
+          <Button
+            className="w-full h-14 bg-coral hover:bg-coral/90 text-lg font-semibold"
+            onClick={handleSendMessage}
+          >
+            <span className="mr-2">👋</span>
+            Enviar um Yo!
+          </Button>
+        ) : (
+          <div className="w-full p-6 bg-gray-light rounded-2xl text-center">
+            <p className="text-lg text-gray-dark font-medium mb-2">
+              ⏳ Aguarde ela dar o primeiro passo
+            </p>
+            <p className="text-sm text-gray-medium">
+              No YO!, as mulheres têm o poder de iniciar a conversa
+            </p>
+          </div>
+        )}
+        
         <Button
           variant="outline"
           className="w-full h-14"
