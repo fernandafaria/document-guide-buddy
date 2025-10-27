@@ -86,8 +86,7 @@ Deno.serve(async (req) => {
     const usersAtLocation = profiles
       ?.filter((profile) => {
         return profile.current_check_in?.location_id === locationId && profile.id !== user.id;
-      })
-      .map(({ current_check_in, ...profile }) => profile) || [];
+      }) || [];
 
     console.log(`Found ${usersAtLocation.length} users at location`);
 
