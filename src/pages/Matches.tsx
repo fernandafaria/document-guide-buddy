@@ -2,6 +2,7 @@ import { MapPin, Heart, User, Users } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useChat } from "@/hooks/useChat";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
@@ -37,8 +38,21 @@ const Matches = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-gray-medium">Carregando matches...</p>
+      <div className="min-h-screen bg-white pb-20">
+        <Header />
+        <div className="divide-y divide-gray-light">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="px-6 py-4 flex items-center gap-4 animate-pulse">
+              <Skeleton className="w-16 h-16 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+              <Skeleton className="h-4 w-16" />
+            </div>
+          ))}
+        </div>
+        <BottomNav />
       </div>
     );
   }
@@ -49,7 +63,7 @@ const Matches = () => {
 
       {/* Matches List */}
       {matches.length === 0 ? (
-        <div className="px-6 py-12 text-center">
+        <div className="px-6 py-12 text-center animate-fade-in">
           <p className="text-gray-medium text-lg">
             Você ainda não tem matches
           </p>
@@ -59,7 +73,7 @@ const Matches = () => {
         </div>
       ) : (
         <div className="divide-y divide-gray-light">
-          {matches.map((match) => {
+          {matches.map((match, index) => {
             const photo = match.otherUser.photos?.[0] 
               ? getPhotoUrl(match.otherUser.photos[0])
               : "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
@@ -68,14 +82,16 @@ const Matches = () => {
               <div
                 key={match.id}
                 onClick={() => navigate(`/chat/${match.id}`)}
-                className="px-6 py-4 flex items-center gap-4 cursor-pointer hover:bg-gray-light/50 transition-colors"
+                className="px-6 py-4 flex items-center gap-4 cursor-pointer hover:bg-gray-light/50 transition-all duration-200 active:scale-[0.98] animate-scale-in"
+                style={{ animationDelay: `${index * 30}ms` }}
               >
                 {/* Photo */}
                 <div className="relative">
                   <img
                     src={photo}
                     alt={match.otherUser.name}
-                    className="w-16 h-16 rounded-full object-cover"
+                    loading="lazy"
+                    className="w-16 h-16 rounded-full object-cover transition-transform duration-200 hover:scale-110"
                   />
                   {match.unreadCount > 0 && (
                     <div className="absolute -top-1 -right-1 w-6 h-6 bg-coral rounded-full flex items-center justify-center">

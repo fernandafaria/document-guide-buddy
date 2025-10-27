@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/BottomNav";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 import { Filter, X, Heart } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -71,8 +72,24 @@ const Discovery = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center pb-20">
-        <p className="text-gray-medium">Carregando usuários...</p>
+      <div className="min-h-screen bg-white pb-20">
+        <Header />
+        <div className="px-6 space-y-4 mt-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-2xl shadow-card p-4 flex gap-4 animate-pulse">
+              <Skeleton className="w-28 h-28 rounded-xl" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-4 w-24" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-16" />
+                  <Skeleton className="h-6 w-16" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <BottomNav />
       </div>
     );
   }
@@ -109,7 +126,7 @@ const Discovery = () => {
 
       {/* User Cards */}
       {users.length === 0 ? (
-        <div className="px-6 py-12 text-center">
+        <div className="px-6 py-12 text-center animate-fade-in">
           <p className="text-gray-medium text-lg mb-2">
             Nenhum usuário disponível no momento
           </p>
@@ -119,7 +136,7 @@ const Discovery = () => {
         </div>
       ) : (
         <div className="px-6 space-y-4">
-          {users.map((discoveryUser) => {
+          {users.map((discoveryUser, index) => {
             const photo = discoveryUser.photos?.[0]
               ? getPhotoUrl(discoveryUser.photos[0])
               : "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
@@ -127,7 +144,8 @@ const Discovery = () => {
             return (
               <div
                 key={discoveryUser.id}
-                className="bg-white rounded-2xl shadow-card p-4 flex gap-4 relative"
+                className="bg-white rounded-2xl shadow-card p-4 flex gap-4 relative animate-scale-in hover:shadow-elevated transition-all duration-300"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
                 {/* Photo */}
                 <div
@@ -137,7 +155,8 @@ const Discovery = () => {
                   <img
                     src={photo}
                     alt={discoveryUser.name}
-                    className="w-28 h-28 rounded-xl object-cover flex-shrink-0"
+                    loading="lazy"
+                    className="w-28 h-28 rounded-xl object-cover flex-shrink-0 transition-transform duration-300 hover:scale-105"
                   />
                 </div>
 

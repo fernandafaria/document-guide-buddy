@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "@/hooks/use-toast";
@@ -41,13 +41,13 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
   const { user } = useAuth();
   const [users, setUsers] = useState<DiscoveryUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const debounceTimerRef = useRef<NodeJS.Timeout>();
+  const isFetchingRef = useRef(false);
 
-  useEffect(() => {
-    if (!user) return;
-
-    let debounceTimer: NodeJS.Timeout;
-
-    const fetchDiscoveryUsers = async () => {
+  const fetchDiscoveryUsers = useCallback(async () => {
+    if (!user || isFetchingRef.current) return;
+    
+    isFetchingRef.current = true;
       try {
         setLoading(true);
 
@@ -142,20 +142,26 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
           title: "Erro",
           description: "Não foi possível carregar os usuários",
           variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+      });
+    } finally {
+      setLoading(false);
+      isFetchingRef.current = false;
+    }
+  }, [user, filters]);
+
+  useEffect(() => {
+    if (!user) return;
 
     fetchDiscoveryUsers();
 
-    // Debounced refetch function
+    // Debounced refetch function with improved timing
     const debouncedRefetch = () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      debounceTimerRef.current = setTimeout(() => {
         fetchDiscoveryUsers();
-      }, 1000); // Wait 1s before refetching
+      }, 800);
     };
 
     // Subscribe to profile changes (check-ins/check-outs)
@@ -191,11 +197,13 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
       .subscribe();
 
     return () => {
-      clearTimeout(debounceTimer);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
       supabase.removeChannel(profilesChannel);
       supabase.removeChannel(likesChannel);
     };
-  }, [user, filters]);
+  }, [user, filters, fetchDiscoveryUsers]);
 
   const sendYo = async (toUserId: string, locationId?: string) => {
     if (!user) return;

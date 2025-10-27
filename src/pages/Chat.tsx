@@ -29,7 +29,19 @@ const Chat = () => {
   if (!currentMatch || !currentMatch.otherUser) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-gray-medium">Carregando...</p>
+        <div className="space-y-3 w-full max-w-md px-6">
+          <div className="animate-pulse flex items-center gap-3">
+            <div className="w-10 h-10 bg-gray-light rounded-full" />
+            <div className="h-6 bg-gray-light rounded w-32" />
+          </div>
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
+                <div className="animate-pulse bg-gray-light rounded-2xl h-16 w-48" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -81,7 +93,8 @@ const Chat = () => {
           <img
             src={photo}
             alt={otherUser.name}
-            className="w-10 h-10 rounded-full object-cover ring-2 ring-white"
+            loading="lazy"
+            className="w-10 h-10 rounded-full object-cover ring-2 ring-white transition-transform duration-200 hover:scale-110"
           />
           
           <h2 className="text-lg font-bold text-white">{otherUser.name}</h2>
@@ -91,17 +104,21 @@ const Chat = () => {
       {/* Messages */}
       <div className="flex-1 px-6 py-4 space-y-4 overflow-y-auto">
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center justify-center h-full animate-fade-in">
             <p className="text-gray-medium text-center">
               Envie a primeira mensagem para começar a conversa!
             </p>
           </div>
         ) : (
-          messages.map((msg) => (
-            <div key={msg.id}>
+          messages.map((msg, index) => (
+            <div 
+              key={msg.id}
+              className="animate-scale-in"
+              style={{ animationDelay: `${index * 20}ms` }}
+            >
               {msg.type === "yo" ? (
                 <div className="flex justify-center">
-                  <div className="bg-yellow-soft px-6 py-3 rounded-2xl max-w-xs text-center">
+                  <div className="bg-yellow-soft px-6 py-3 rounded-2xl max-w-xs text-center animate-bounce-in">
                     <span className="text-2xl">👋</span>
                     <p className="text-sm text-black-soft font-medium mt-1">
                       {msg.sender_id === user?.id ? "Você enviou" : otherUser.name} enviou um YO!
@@ -111,7 +128,7 @@ const Chat = () => {
               ) : (
                 <div className={`flex ${msg.sender_id === user?.id ? "justify-end" : "justify-start"}`}>
                   <div
-                    className={`max-w-[70%] px-5 py-3 rounded-2xl ${
+                    className={`max-w-[70%] px-5 py-3 rounded-2xl transition-all duration-200 hover:scale-[1.02] ${
                       msg.sender_id === user?.id
                         ? "bg-coral text-white rounded-tr-sm"
                         : "bg-gray-light text-black-soft rounded-tl-sm"
