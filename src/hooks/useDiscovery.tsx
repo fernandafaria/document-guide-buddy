@@ -45,6 +45,8 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
   useEffect(() => {
     if (!user) return;
 
+    let debounceTimer: NodeJS.Timeout;
+
     const fetchDiscoveryUsers = async () => {
       try {
         setLoading(true);
@@ -147,6 +149,52 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
     };
 
     fetchDiscoveryUsers();
+
+    // Debounced refetch function
+    const debouncedRefetch = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchDiscoveryUsers();
+      }, 1000); // Wait 1s before refetching
+    };
+
+    // Subscribe to profile changes (check-ins/check-outs)
+    const profilesChannel = supabase
+      .channel("profiles-discovery-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profiles",
+        },
+        () => {
+          debouncedRefetch();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to likes changes
+    const likesChannel = supabase
+      .channel("likes-discovery-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "likes",
+        },
+        () => {
+          debouncedRefetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      clearTimeout(debounceTimer);
+      supabase.removeChannel(profilesChannel);
+      supabase.removeChannel(likesChannel);
+    };
   }, [user, filters]);
 
   const sendYo = async (toUserId: string, locationId?: string) => {

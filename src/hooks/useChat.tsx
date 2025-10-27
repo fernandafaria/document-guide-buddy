@@ -46,10 +46,15 @@ export const useChat = (matchId?: string) => {
   useEffect(() => {
     if (!user) return;
 
+    let isFetching = false;
+    let debounceTimer: NodeJS.Timeout;
+
     const fetchMatches = async () => {
+      if (isFetching) return;
+      
       try {
+        isFetching = true;
         setLoading(true);
-        console.log("Fetching matches for user:", user.id);
         
         // Get all matches where user is either user1 or user2
         const { data: matchesData, error: matchesError } = await supabase
@@ -58,82 +63,70 @@ export const useChat = (matchId?: string) => {
           .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
           .order("last_activity", { ascending: false });
 
-        if (matchesError) {
-          console.error("Error fetching matches:", matchesError);
-          throw matchesError;
+        if (matchesError) throw matchesError;
+
+        if (!matchesData || matchesData.length === 0) {
+          setMatches([]);
+          return;
         }
 
-        console.log("Matches found:", matchesData?.length);
+        // Get all other user IDs
+        const otherUserIds = matchesData.map(match => 
+          match.user1_id === user.id ? match.user2_id : match.user1_id
+        );
 
-        // Validate matches - ensure both users have liked each other
-        const validatedMatches = [];
-        for (const match of matchesData || []) {
-          // Check if both likes exist
-          const { data: likesCheck } = await supabase
-            .from("likes")
-            .select("from_user_id, to_user_id")
-            .or(
-              `and(from_user_id.eq.${match.user1_id},to_user_id.eq.${match.user2_id}),and(from_user_id.eq.${match.user2_id},to_user_id.eq.${match.user1_id})`
-            );
+        // Batch fetch all profiles in one query
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, name, photos")
+          .in("id", otherUserIds);
 
-          // Only include match if both users have liked each other
-          if (likesCheck && likesCheck.length === 2) {
-            validatedMatches.push(match);
-          } else {
-            console.warn("Invalid match found (missing reciprocal likes):", match.id);
-            // Delete invalid match
-            await supabase.from("matches").delete().eq("id", match.id);
+        const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+        // Batch fetch last messages for all matches
+        const matchIds = matchesData.map(m => m.id);
+        const { data: allMessages } = await supabase
+          .from("messages")
+          .select("*")
+          .in("match_id", matchIds)
+          .order("sent_at", { ascending: false });
+
+        // Create a map of last message per match
+        const lastMessagesMap = new Map();
+        allMessages?.forEach(msg => {
+          if (!lastMessagesMap.has(msg.match_id)) {
+            lastMessagesMap.set(msg.match_id, msg);
           }
-        }
+        });
 
-        console.log("Valid matches after validation:", validatedMatches.length);
-
-        // For each match, get the other user's profile and last message
-        const matchesWithData = await Promise.all(
-          validatedMatches.map(async (match) => {
-            const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
-            console.log("Fetching profile for user:", otherUserId);
-
-            // Get other user's profile
-            const { data: profile, error: profileError } = await supabase
-              .from("profiles")
-              .select("id, name, photos")
-              .eq("id", otherUserId)
-              .single();
-
-            if (profileError) {
-              console.error("Error fetching profile for user:", otherUserId, profileError);
-            } else {
-              console.log("Profile fetched successfully:", profile?.name);
-            }
-
-            // Get last message
-            const { data: lastMessage } = await supabase
-              .from("messages")
-              .select("*")
-              .eq("match_id", match.id)
-              .order("sent_at", { ascending: false })
-              .limit(1)
-              .maybeSingle();
-
-            // Get unread count
-            const { count: unreadCount } = await supabase
+        // Batch count unread messages for all matches
+        const unreadCounts = await Promise.all(
+          matchesData.map(async (match) => {
+            const { count } = await supabase
               .from("messages")
               .select("*", { count: "exact", head: true })
               .eq("match_id", match.id)
               .eq("receiver_id", user.id)
               .is("read_at", null);
-
-            return {
-              ...match,
-              otherUser: profile || { id: otherUserId, name: "Unknown", photos: [] },
-              lastMessage,
-              unreadCount: unreadCount || 0,
-            };
+            return { matchId: match.id, count: count || 0 };
           })
         );
 
-        console.log("Matches with data:", matchesWithData.length);
+        const unreadCountsMap = new Map(unreadCounts.map(u => [u.matchId, u.count]));
+
+        // Combine all data
+        const matchesWithData: MatchWithProfile[] = matchesData.map((match) => {
+          const otherUserId = match.user1_id === user.id ? match.user2_id : match.user1_id;
+          const profile = profilesMap.get(otherUserId);
+          
+          return {
+            ...match,
+            otherUser: profile || { id: otherUserId, name: "Unknown", photos: [] },
+            lastMessage: lastMessagesMap.get(match.id),
+            unreadCount: unreadCountsMap.get(match.id) || 0,
+          };
+        });
+
         setMatches(matchesWithData);
       } catch (error: any) {
         console.error("Error fetching matches:", error);
@@ -144,12 +137,21 @@ export const useChat = (matchId?: string) => {
         });
       } finally {
         setLoading(false);
+        isFetching = false;
       }
     };
 
     fetchMatches();
 
-    // Subscribe to matches changes (new matches and deleted matches)
+    // Debounced refetch function
+    const debouncedRefetch = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchMatches();
+      }, 500); // Wait 500ms before refetching
+    };
+
+    // Subscribe to matches changes
     const matchesChannel = supabase
       .channel("matches-changes")
       .on(
@@ -159,15 +161,32 @@ export const useChat = (matchId?: string) => {
           schema: "public",
           table: "matches",
         },
-        (payload) => {
-          console.log("Match changed:", payload);
-          fetchMatches();
+        () => {
+          debouncedRefetch();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to messages changes to update unread counts and last message
+    const messagesChannel = supabase
+      .channel("messages-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+        },
+        () => {
+          debouncedRefetch();
         }
       )
       .subscribe();
 
     return () => {
+      clearTimeout(debounceTimer);
       supabase.removeChannel(matchesChannel);
+      supabase.removeChannel(messagesChannel);
     };
   }, [user]);
 
