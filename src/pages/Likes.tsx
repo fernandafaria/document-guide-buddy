@@ -153,6 +153,17 @@ export default function Likes() {
     }
   };
 
+  const getPhotoUrl = (photoPath: string) => {
+    if (!photoPath) return "/placeholder.svg";
+    if (photoPath.startsWith("http")) return photoPath;
+    
+    const { data } = supabase.storage
+      .from("profiles")
+      .getPublicUrl(photoPath);
+    
+    return data.publicUrl || "/placeholder.svg";
+  };
+
   const handleProfileClick = (userId: string) => {
     navigate(`/profile/${userId}`);
   };
@@ -196,7 +207,7 @@ export default function Likes() {
                     onClick={() => handleProfileClick(profile.id)}
                   >
                     <AvatarImage
-                      src={profile.photos[0]}
+                      src={getPhotoUrl(profile.photos[0])}
                       alt={profile.name}
                       className="object-cover"
                     />
