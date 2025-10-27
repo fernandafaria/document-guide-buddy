@@ -94,6 +94,9 @@ const ProfileDetail = () => {
         setHasLiked(false);
         setLikeId(null);
         console.log("Like removido com sucesso");
+        
+        // Navegar de volta para matches após descurtir
+        navigate('/matches');
       } else {
         // Curtir - adicionar curtida
         // Get user's current location from profile
