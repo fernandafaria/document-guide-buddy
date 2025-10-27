@@ -142,8 +142,8 @@ const Chat = () => {
             placeholder="Mensagem..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && !sending && handleSend()}
-            disabled={sending}
+            onKeyDown={(e) => e.key === "Enter" && !sending && handleSend()}
+            disabled={false}
             className="flex-1 h-12 bg-gray-light border-0 rounded-full px-5"
           />
           <Button

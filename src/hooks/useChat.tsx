@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "@/hooks/use-toast";
@@ -41,6 +41,7 @@ export const useChat = (matchId?: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const seenMessageIds = useRef<Set<string>>(new Set());
 
   // Fetch all matches for the current user
   useEffect(() => {
@@ -205,6 +206,7 @@ export const useChat = (matchId?: string) => {
         if (error) throw error;
 
         setMessages(data || []);
+        seenMessageIds.current = new Set((data || []).map((m) => m.id));
 
         // Mark messages as read
         await supabase
@@ -237,14 +239,20 @@ export const useChat = (matchId?: string) => {
           filter: `match_id=eq.${matchId}`,
         },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
-          
+          const newMsg = payload.new as Message;
+          // Skip if we've already seen this message (prevents duplicates with optimistic UI)
+          if (seenMessageIds.current.has(newMsg.id)) return;
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === newMsg.id)) return prev;
+            seenMessageIds.current.add(newMsg.id);
+            return [...prev, newMsg];
+          });
           // Mark as read if I'm the receiver
-          if ((payload.new as Message).receiver_id === user.id) {
+          if (newMsg.receiver_id === user.id) {
             supabase
               .from("messages")
               .update({ read_at: new Date().toISOString() })
-              .eq("id", (payload.new as Message).id);
+              .eq("id", newMsg.id);
           }
         }
       )
@@ -258,20 +266,46 @@ export const useChat = (matchId?: string) => {
   const sendMessage = async (matchId: string, receiverId: string, text: string) => {
     if (!user || !text.trim()) return;
 
+    // Optimistic UI: add temp message immediately
+    const tempId = `temp-${Date.now()}`;
+    const optimistic: Message = {
+      id: tempId,
+      match_id: matchId,
+      sender_id: user.id,
+      receiver_id: receiverId,
+      message: text,
+      type: "text",
+      sent_at: new Date().toISOString(),
+      read_at: null,
+    };
+    setMessages((prev) => [...prev, optimistic]);
+
     try {
       setSending(true);
 
-      const { error } = await supabase.from("messages").insert({
-        match_id: matchId,
-        sender_id: user.id,
-        receiver_id: receiverId,
-        message: text,
-        type: "text",
-      });
+      const { data: inserted, error } = await supabase
+        .from("messages")
+        .insert({
+          match_id: matchId,
+          sender_id: user.id,
+          receiver_id: receiverId,
+          message: text,
+          type: "text",
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      // Update match's last_activity
+      if (inserted) {
+        // Replace optimistic message with real one and track id to avoid duplicate on realtime event
+        seenMessageIds.current.add(inserted.id);
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? (inserted as Message) : m))
+        );
+      }
+
+      // Update match's last_activity (keep existing behavior)
       await supabase
         .from("matches")
         .update({
@@ -281,7 +315,7 @@ export const useChat = (matchId?: string) => {
         })
         .eq("id", matchId);
 
-      // Send notification to receiver
+      // Send notification to receiver (non-blocking)
       try {
         const { data: senderProfile } = await supabase
           .from("profiles")
@@ -308,6 +342,8 @@ export const useChat = (matchId?: string) => {
       }
     } catch (error: any) {
       console.error("Error sending message:", error);
+      // Remove optimistic message on failure
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       toast({
         title: "Erro",
         description: "Não foi possível enviar a mensagem",
