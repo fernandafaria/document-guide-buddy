@@ -1,4 +1,5 @@
 import { MapPin, Heart, User, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/BottomNav";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -101,16 +102,7 @@ const Matches = () => {
             return (
               <div
                 key={match.id}
-                onClick={() => {
-                  if (canOpenChat) {
-                    navigate(`/chat/${match.id}`);
-                  }
-                }}
-                className={`px-6 py-4 flex items-center gap-4 transition-all duration-200 animate-scale-in ${
-                  canOpenChat 
-                    ? 'cursor-pointer hover:bg-gray-light/50 active:scale-[0.98]' 
-                    : 'cursor-not-allowed opacity-60'
-                }`}
+                className="px-6 py-4 flex items-center gap-4 transition-all duration-200 animate-scale-in"
                 style={{ animationDelay: `${index * 30}ms` }}
               >
                 {/* Photo */}
@@ -131,7 +123,14 @@ const Matches = () => {
                 </div>
 
                 {/* Info */}
-                <div className="flex-1 min-w-0">
+                <div 
+                  className="flex-1 min-w-0 cursor-pointer"
+                  onClick={() => {
+                    if (canOpenChat) {
+                      navigate(`/chat/${match.id}`);
+                    }
+                  }}
+                >
                   <h3 className="text-lg font-bold text-black-soft">
                     {match.otherUser.name}
                   </h3>
@@ -150,12 +149,21 @@ const Matches = () => {
                   </p>
                 </div>
 
-                {/* Time */}
-                {match.last_activity && (
+                {/* Action Button or Time */}
+                {!canOpenChat && !match.conversation_started ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/profile/${match.otherUser.id}`)}
+                    className="whitespace-nowrap"
+                  >
+                    Ver Perfil
+                  </Button>
+                ) : match.last_activity ? (
                   <span className="text-sm text-gray-medium whitespace-nowrap">
                     {formatTime(match.last_activity)}
                   </span>
-                )}
+                ) : null}
               </div>
             );
           })}
