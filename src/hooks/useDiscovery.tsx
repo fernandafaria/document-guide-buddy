@@ -59,18 +59,14 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
           .eq("id", user.id)
           .single();
 
-        console.log("🔍 My profile:", myProfile);
-
         // If user is not checked in, return empty array
         if (!myProfile?.current_check_in) {
-          console.log("❌ User not checked in");
           setUsers([]);
           setLoading(false);
           return;
         }
 
         const myLocationId = (myProfile.current_check_in as any).location_id;
-        console.log("📍 My location ID:", myLocationId);
 
         // Fetch users at my location via backend function (authoritative)
         const { data: usersResp, error } = await supabase.functions.invoke('get-users-at-location', {
@@ -82,34 +78,17 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
         // Raw users from backend
         let data = (usersResp as any)?.users || [];
 
-        console.log("📦 Total profiles from query:", data?.length || 0);
-
         // Filter users at the same location with non-expired check-ins
         const now = new Date();
         const activeUsers = (data || []).filter((profile) => {
-          if (!profile.current_check_in) {
-            console.log(`❌ ${profile.name}: No check-in`);
-            return false;
-          }
+          if (!profile.current_check_in) return false;
           const checkIn = profile.current_check_in as any;
-          if (!checkIn.expires_at) {
-            console.log(`❌ ${profile.name}: No expiration date`);
-            return false;
-          }
-          if (checkIn.location_id !== myLocationId) {
-            console.log(`❌ ${profile.name}: Different location (${checkIn.location_id} vs ${myLocationId})`);
-            return false;
-          }
+          if (!checkIn.expires_at) return false;
+          if (checkIn.location_id !== myLocationId) return false;
           const expiresAt = new Date(checkIn.expires_at);
-          if (expiresAt <= now) {
-            console.log(`❌ ${profile.name}: Check-in expired`);
-            return false;
-          }
-          console.log(`✅ ${profile.name}: Active at same location`);
+          if (expiresAt <= now) return false;
           return true;
         });
-
-        console.log("✅ Active users at same location:", activeUsers.length);
 
         // Get users I've already liked
         const { data: myLikes } = await supabase
@@ -118,7 +97,6 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
           .eq("from_user_id", user.id);
 
         const likedUserIds = new Set(myLikes?.map((like) => like.to_user_id) || []);
-        console.log("💕 Already liked users:", likedUserIds.size);
 
         // Get users I've already matched with
         const { data: myMatches } = await supabase
@@ -131,7 +109,6 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
             match.user1_id === user.id ? match.user2_id : match.user1_id
           )
         );
-        console.log("💑 Already matched users:", matchedUserIds.size);
 
         // Do NOT remove liked users; keep them and mark as YO enviado (except when already matched)
         const likedNotMatchedIds = Array.from(likedUserIds).filter((id) => !matchedUserIds.has(id));
@@ -143,7 +120,6 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
 
         const usersToShow = activeUsers; // show everyone active at location
 
-        console.log("🎯 Final users to show:", usersToShow.length);
         setUsers(usersToShow as any);
       } catch (error: any) {
         console.error("Error fetching discovery users:", error);
@@ -205,16 +181,7 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
       )
       .subscribe();
 
-    // Fallback polling to ensure updates even if realtime misses events
-    const interval = setInterval(() => {
-      fetchDiscoveryUsers();
-    }, 10000); // every 10s
-
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-      clearInterval(interval);
       supabase.removeChannel(profilesChannel);
       supabase.removeChannel(likesChannel);
     };
@@ -222,11 +189,8 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
 
   const sendYo = async (toUserId: string, locationId?: string, matchProfile?: any) => {
     if (!user) {
-      console.error("❌ No user found");
       return null;
     }
-
-    console.log("📤 Sending YO to:", toUserId, "at location:", locationId);
 
     try {
       // Optimistic: mark as YO sent immediately
@@ -245,13 +209,10 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
         },
       });
 
-      console.log("📥 Response from process-like:", { data, error });
-
       if (error) throw error;
 
       // Show appropriate message based on match status
       if (data?.isMatch) {
-        console.log("🎉 It's a match!");
         
         // Get match_id for navigation
         const { data: matchData } = await supabase
@@ -266,13 +227,11 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
         
         return { isMatch: true, matchId: matchData?.id, matchProfile };
       } else {
-        console.log("✅ YO sent successfully");
         
         // Mark as YO sent but keep in list
         setSentYos((prev) => {
           const newSet = new Set(prev);
           newSet.add(toUserId);
-          console.log("📝 Updated sentYos:", Array.from(newSet));
           return newSet;
         });
         

@@ -130,18 +130,9 @@ const Map = () => {
       )
       .subscribe();
 
-    // Fallback polling every 30 seconds to ensure updates even if realtime misses events
-    const pollingInterval = setInterval(() => {
-      checkUserCheckInStatus();
-      if (latitude && longitude) {
-        fetchNearbyLocations();
-      }
-    }, 30000);
-
     return () => {
       supabase.removeChannel(locationsChannel);
       supabase.removeChannel(profilesChannel);
-      clearInterval(pollingInterval);
     };
   }, [user, latitude, longitude]);
 
@@ -223,12 +214,6 @@ const Map = () => {
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [selectedLocationForCheckIn, setSelectedLocationForCheckIn] = useState<Location | null>(null);
-  
-  // Add effect to log when dialog state changes
-  useEffect(() => {
-    console.log('🔔 confirmDialogOpen changed to:', confirmDialogOpen);
-    console.log('🔔 selectedLocationForCheckIn:', selectedLocationForCheckIn);
-  }, [confirmDialogOpen, selectedLocationForCheckIn]);
   const [checkingIn, setCheckingIn] = useState(false);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -247,8 +232,6 @@ const Map = () => {
   };
 
   const handleCheckInRequest = useCallback((location: Location) => {
-    console.log('handleCheckInRequest called with location:', location);
-    
     // Check if user location is available
     if (!latitude || !longitude) {
       toast({
@@ -259,9 +242,8 @@ const Map = () => {
       return;
     }
     
-    // Calculate and log distance for debugging
+    // Calculate distance
     const distance = calculateDistance(latitude, longitude, location.latitude, location.longitude);
-    console.log('Distance to location:', distance, 'meters');
     
     // Show warning if far from location
     if (distance > 100) {
@@ -282,16 +264,10 @@ const Map = () => {
     
     setSelectedLocationForCheckIn(location);
     setConfirmDialogOpen(true);
-    console.log('Dialog should open now, confirmDialogOpen will be set to true');
   }, [latitude, longitude, toast]);
 
   const handleCheckInConfirm = async () => {
-    console.log('🎯 handleCheckInConfirm called');
-    console.log('Selected location:', selectedLocationForCheckIn);
-    console.log('User location:', { latitude, longitude });
-    
     if (!selectedLocationForCheckIn || !latitude || !longitude) {
-      console.error('❌ Missing location data');
       toast({
         title: "Erro",
         description: "Localização não disponível",
@@ -302,14 +278,6 @@ const Map = () => {
 
     try {
       setCheckingIn(true);
-      console.log('📤 Invoking check-in function with:', {
-        latitude: selectedLocationForCheckIn.latitude,
-        longitude: selectedLocationForCheckIn.longitude,
-        name: selectedLocationForCheckIn.name,
-        address: selectedLocationForCheckIn.address,
-        userLatitude: latitude,
-        userLongitude: longitude,
-      });
       
       const { data, error } = await supabase.functions.invoke('check-in', {
         body: {
@@ -322,11 +290,7 @@ const Map = () => {
         },
       });
 
-      console.log('📥 Check-in response:', { data, error });
-
       if (error) {
-        console.error('❌ Check-in error:', error);
-        console.error('❌ Error details:', JSON.stringify(error, null, 2));
         
         let errorMessage = "Não foi possível fazer check-in. Tente novamente.";
         
@@ -348,7 +312,6 @@ const Map = () => {
         return;
       }
 
-      console.log('✅ Check-in successful, showing toast');
       toast({
         title: "✨ Check-in realizado!",
         description: `Você está em ${selectedLocationForCheckIn.name}`,
@@ -363,10 +326,8 @@ const Map = () => {
       setCurrentCheckInCoords({ lat: selectedLocationForCheckIn.latitude, lng: selectedLocationForCheckIn.longitude });
       
       // Navigate immediately to success page
-      console.log('🔄 Navigating to success page...');
       navigate("/check-in-success");
     } catch (error) {
-      console.error('❌ Error checking in:', error);
       toast({
         title: "Erro",
         description: "Não foi possível fazer check-in. Tente novamente.",
@@ -374,18 +335,15 @@ const Map = () => {
       });
     } finally {
       setCheckingIn(false);
-      console.log('🏁 Check-in process finished');
     }
   };
 
   const handleCheckOut = async () => {
     try {
-      console.log('🚪 Starting checkout...');
       const { error } = await supabase.functions.invoke('checkout');
 
       if (error) throw error;
 
-      console.log('✅ Checkout successful');
       toast({
         title: "Check-out realizado!",
         description: "Você saiu do local",
@@ -401,8 +359,6 @@ const Map = () => {
       } else {
         await fetchNearbyLocationsDefault();
       }
-      
-      console.log('🔄 Locations refreshed after checkout');
     } catch (error) {
       console.error('Error checking out:', error);
       toast({
@@ -423,7 +379,6 @@ const Map = () => {
     // Calculate distance to validate if within 100 meters
     if (latitude && longitude) {
       const distance = calculateDistance(latitude, longitude, place.lat, place.lng);
-      console.log('Distance to searched place:', distance, 'meters');
       
       if (distance <= 100) {
         // Within range - show check-in button

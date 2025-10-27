@@ -55,11 +55,9 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
       if (apiInitialized) return;
 
       try {
-        console.log('🔧 Fetching Google Maps API key...');
         const { data, error } = await supabase.functions.invoke('get-google-maps-key');
         
         if (error) {
-          console.error('❌ Error fetching API key:', error);
           toast({
             title: "Erro ao carregar mapa",
             description: "Não foi possível obter a chave da API",
@@ -71,21 +69,17 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
 
         const apiKey = data?.apiKey;
         if (!apiKey) {
-          console.error('❌ No API key returned');
           setIsLoading(false);
           return;
         }
 
-        console.log('✅ API key obtained, setting options...');
-        setOptions({ 
+        setOptions({
           key: apiKey,
           v: 'weekly'
         });
 
         setApiInitialized(true);
-        console.log('✅ Google Maps API initialized');
       } catch (error) {
-        console.error('❌ Error initializing API:', error);
         toast({
           title: "Erro ao carregar mapa",
           description: "Ocorreu um erro ao inicializar o Google Maps",

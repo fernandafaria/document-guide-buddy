@@ -149,7 +149,6 @@ const Discovery = () => {
               : "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
 
             const hasSeentYo = sentYos.has(discoveryUser.id);
-            console.log(`User ${discoveryUser.name} - YO sent:`, hasSeentYo);
 
             return (
               <div
