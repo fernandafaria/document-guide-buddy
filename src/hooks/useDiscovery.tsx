@@ -179,11 +179,43 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
       )
       .subscribe();
 
+    // Subscribe to matches changes (unmatch should refresh buttons)
+    const matchesChannel = supabase
+      .channel("matches-discovery-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "matches",
+        },
+        () => {
+          debouncedRefetch();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(profilesChannel);
       supabase.removeChannel(likesChannel);
+      supabase.removeChannel(matchesChannel);
     };
   }, [user, filters, fetchDiscoveryUsers]);
+
+  // Also refresh when window regains focus or tab becomes visible
+  useEffect(() => {
+    if (!user) return;
+    const onFocus = () => fetchDiscoveryUsers();
+    const onVisibility = () => {
+      if (!document.hidden) fetchDiscoveryUsers();
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [user, fetchDiscoveryUsers]);
 
   const sendYo = async (toUserId: string, locationId?: string, matchProfile?: any) => {
     if (!user) {
