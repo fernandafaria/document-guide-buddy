@@ -71,12 +71,13 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
         const myLocationId = (myProfile.current_check_in as any).location_id;
         console.log("📍 My location ID:", myLocationId);
 
-        // Build query for users with active check-ins at the same location
+        // Build query for users with active check-ins at the same location (server-side filtered)
         let query = supabase
           .from("profiles")
           .select("*")
           .not("id", "eq", user.id)
-          .not("current_check_in", "is", null);
+          .filter("current_check_in->>location_id", "eq", myLocationId)
+          .filter("current_check_in->>expires_at", "gt", new Date().toISOString());
 
         // Apply filters
         if (filters?.intentions && filters.intentions.length > 0) {
@@ -234,10 +235,16 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
       )
       .subscribe();
 
+    // Fallback polling to ensure updates even if realtime misses events
+    const interval = setInterval(() => {
+      fetchDiscoveryUsers();
+    }, 10000); // every 10s
+
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
+      clearInterval(interval);
       supabase.removeChannel(profilesChannel);
       supabase.removeChannel(likesChannel);
     };
