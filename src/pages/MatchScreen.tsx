@@ -11,6 +11,7 @@ const MatchScreen = () => {
   const { matchProfile, matchId } = location.state || {};
   const [myProfile, setMyProfile] = useState<any>(null);
   const [matchData, setMatchData] = useState<any>(null);
+  const [otherProfile, setOtherProfile] = useState<any>(null);
 
   useEffect(() => {
     // If no match data, redirect to discovery
@@ -49,28 +50,50 @@ const MatchScreen = () => {
     fetchMatchData();
   }, [matchProfile, navigate, user, matchId]);
 
-  // Auto-redirect to chat if both users are same gender
+  // Ensure other user's profile is fully loaded (gender/photos)
   useEffect(() => {
-    if (!myProfile || !matchProfile || !matchId) return;
+    const loadOther = async () => {
+      if (!user || !matchId) return;
+      try {
+        const { data: matchRow } = await supabase
+          .from("matches")
+          .select("user1_id, user2_id")
+          .eq("id", matchId)
+          .single();
+        if (!matchRow) return;
+        const otherId = matchRow.user1_id === user.id ? matchRow.user2_id : matchRow.user1_id;
+        const { data } = await supabase
+          .from("profiles")
+          .select("name, photos, gender")
+          .eq("id", otherId)
+          .single();
+        if (data) setOtherProfile(data);
+      } catch (e) {
+        console.error("Error fetching other profile", e);
+      }
+    };
+    loadOther();
+  }, [user, matchId]);
 
-    const myGender = myProfile.gender?.toLowerCase();
-    const matchGender = matchProfile.gender?.toLowerCase();
-    
-    const isMale = myGender === 'homem' || myGender === 'masculino';
-    const isFemale = myGender === 'mulher' || myGender === 'feminino';
-    const matchIsMale = matchGender === 'homem' || matchGender === 'masculino';
-    const matchIsFemale = matchGender === 'mulher' || matchGender === 'feminino';
+  // Auto-redirect to chat for all cases except explicit man-woman pairs
+  useEffect(() => {
+    if (!myProfile || !matchId) return;
 
-    // If both are same gender (male-male or female-female), go directly to chat
-    const isSameGenderMatch = (isMale && matchIsMale) || (isFemale && matchIsFemale);
-    
-    if (isSameGenderMatch) {
-      // Small delay for user to see the match screen
+    const norm = (g?: string) => g?.toLowerCase()?.trim();
+    const isMale = (g?: string) => ["homem", "masculino", "male", "m", "masc"].includes(norm(g) || "");
+    const isFemale = (g?: string) => ["mulher", "feminino", "female", "f", "fem"].includes(norm(g) || "");
+
+    const myG = myProfile.gender;
+    const otherG = (otherProfile?.gender ?? matchProfile?.gender);
+
+    const isHetero = (isMale(myG) && isFemale(otherG)) || (isFemale(myG) && isMale(otherG));
+
+    if (!isHetero) {
       setTimeout(() => {
         navigate(`/chat/${matchId}`);
       }, 2000);
     }
-  }, [myProfile, matchProfile, matchId, navigate]);
+  }, [myProfile, otherProfile, matchProfile, matchId, navigate]);
 
   const getPhotoUrl = (photoPath: string) => {
     if (!photoPath) return "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
@@ -86,20 +109,22 @@ const MatchScreen = () => {
     ? getPhotoUrl(myProfile.photos[0])
     : "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
     
-  const matchPhoto = matchProfile?.photos?.[0] 
-    ? getPhotoUrl(matchProfile.photos[0]) 
+  const other = otherProfile || matchProfile;
+
+  const matchPhoto = other?.photos?.[0] 
+    ? getPhotoUrl(other.photos[0]) 
     : "https://api.dicebear.com/7.x/avataaars/svg?seed=Match";
 
-  const myGender = myProfile?.gender?.toLowerCase();
-  const matchGender = matchProfile?.gender?.toLowerCase();
-  
-  const isMale = myGender === 'homem' || myGender === 'masculino';
-  const isFemale = myGender === 'mulher' || myGender === 'feminino';
-  const matchIsMale = matchGender === 'homem' || matchGender === 'masculino';
-  const matchIsFemale = matchGender === 'mulher' || matchGender === 'feminino';
+  const norm = (g?: string) => g?.toLowerCase()?.trim();
+  const isMale = (g?: string) => ["homem", "masculino", "male", "m", "masc"].includes(norm(g) || "");
+  const isFemale = (g?: string) => ["mulher", "feminino", "female", "f", "fem"].includes(norm(g) || "");
 
-  const isSameGenderMatch = (isMale && matchIsMale) || (isFemale && matchIsFemale);
-  const isWoman = isFemale;
+  const myG = myProfile?.gender;
+  const otherG = other?.gender;
+
+  const isHetero = (isMale(myG) && isFemale(otherG)) || (isFemale(myG) && isMale(otherG));
+  const canDirectChat = !isHetero;
+  const isWoman = isFemale(myG);
   const conversationStarted = matchData?.conversation_started || false;
 
   const handleSendMessage = () => {
@@ -166,7 +191,7 @@ const MatchScreen = () => {
           <div className="relative animate-scale-in" style={{ animationDelay: '0.1s' }}>
             <img
               src={matchPhoto}
-              alt={matchProfile?.name || "Match"}
+              alt={other?.name || "Match"}
               loading="lazy"
               className="w-36 h-36 rounded-full object-cover ring-4 ring-white shadow-elevated"
             />
@@ -177,12 +202,12 @@ const MatchScreen = () => {
       {/* Match Text */}
       <h2 className="text-4xl font-bold text-black-soft mb-2">É um Match!</h2>
       <p className="text-lg text-gray-medium text-center mb-12 max-w-sm">
-        Você e {matchProfile?.name || "essa pessoa"} deram like um no outro!
+        Você e {other?.name || "essa pessoa"} deram like um no outro!
       </p>
 
       {/* Action Buttons */}
       <div className="w-full max-w-md space-y-4">
-        {isSameGenderMatch ? (
+        {canDirectChat ? (
           <div className="w-full p-6 bg-coral/10 rounded-2xl text-center">
             <p className="text-lg text-coral font-medium mb-2">
               🎉 Redirecionando para o chat...
