@@ -41,6 +41,7 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
   const { user } = useAuth();
   const [users, setUsers] = useState<DiscoveryUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sentYos, setSentYos] = useState<Set<string>>(new Set());
   const debounceTimerRef = useRef<NodeJS.Timeout>();
   const isFetchingRef = useRef(false);
 
@@ -225,10 +226,10 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
     };
   }, [user, filters, fetchDiscoveryUsers]);
 
-  const sendYo = async (toUserId: string, locationId?: string) => {
+  const sendYo = async (toUserId: string, locationId?: string, matchProfile?: any) => {
     if (!user) {
       console.error("❌ No user found");
-      return;
+      return null;
     }
 
     console.log("📤 Sending YO to:", toUserId, "at location:", locationId);
@@ -250,20 +251,32 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
       // Show appropriate message based on match status
       if (data?.isMatch) {
         console.log("🎉 It's a match!");
-        toast({
-          title: "🎉 É um Match!",
-          description: "Vocês deram match! Agora podem conversar.",
-        });
+        
+        // Get match_id for navigation
+        const { data: matchData } = await supabase
+          .from("matches")
+          .select("id")
+          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+          .or(`user1_id.eq.${toUserId},user2_id.eq.${toUserId}`)
+          .single();
+
+        // Remove user from discovery list on match
+        setUsers((prev) => prev.filter((u) => u.id !== toUserId));
+        
+        return { isMatch: true, matchId: matchData?.id, matchProfile };
       } else {
         console.log("✅ YO sent successfully");
+        
+        // Mark as YO sent but keep in list
+        setSentYos((prev) => new Set(prev).add(toUserId));
+        
         toast({
           title: "YO enviado!",
           description: "Aguarde para ver se vai dar match",
         });
+        
+        return { isMatch: false };
       }
-
-      // Remove user from discovery list
-      setUsers((prev) => prev.filter((u) => u.id !== toUserId));
     } catch (error: any) {
       console.error("❌ Error sending YO:", error);
       toast({
@@ -271,6 +284,7 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
         description: error?.message || "Não foi possível enviar o YO",
         variant: "destructive",
       });
+      return null;
     }
   };
 
@@ -283,5 +297,6 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
     loading,
     sendYo,
     skipUser,
+    sentYos,
   };
 };

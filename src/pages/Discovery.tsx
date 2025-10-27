@@ -16,7 +16,7 @@ const Discovery = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [filters, setFilters] = useState<DiscoveryFilters>({});
-  const { users, loading, sendYo, skipUser } = useDiscovery(filters);
+  const { users, loading, sendYo, skipUser, sentYos } = useDiscovery(filters);
 
   // Check if we're returning from filters page with new filters
   useEffect(() => {
@@ -214,14 +214,40 @@ const Discovery = () => {
                       <X className="w-4 h-4 mr-1" />
                       Pular
                     </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => sendYo(discoveryUser.id, discoveryUser.current_check_in?.location_id)}
-                      className="flex-1 bg-coral hover:bg-coral/90"
-                    >
-                      <Heart className="w-4 h-4 mr-1" />
-                      YO!
-                    </Button>
+                    {sentYos.has(discoveryUser.id) ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/profile/${discoveryUser.id}`)}
+                        className="flex-1 border-coral text-coral hover:bg-coral/10"
+                      >
+                        ✓ YO enviado
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={async () => {
+                          const result = await sendYo(
+                            discoveryUser.id,
+                            discoveryUser.current_check_in?.location_id,
+                            discoveryUser
+                          );
+                          
+                          if (result?.isMatch) {
+                            navigate("/match", {
+                              state: {
+                                matchProfile: discoveryUser,
+                                matchId: result.matchId
+                              }
+                            });
+                          }
+                        }}
+                        className="flex-1 bg-coral hover:bg-coral/90"
+                      >
+                        <Heart className="w-4 h-4 mr-1" />
+                        YO!
+                      </Button>
+                    )}
                   </div>
                 </div>
 
