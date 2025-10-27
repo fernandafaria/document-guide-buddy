@@ -31,7 +31,7 @@ export const NearbyUsersCard = ({ users }: NearbyUsersCardProps) => {
   };
 
   const handleUserClick = (userId: string) => {
-    navigate(`/profile/${userId}`);
+    navigate(`/profile/${userId}`, { state: { fromCheckIn: true } });
   };
 
   return (

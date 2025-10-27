@@ -35,6 +35,7 @@ const ProfileDetail = () => {
   const [dragStart, setDragStart] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const fromChat = location.state?.fromChat || false;
+  const fromCheckIn = location.state?.fromCheckIn || false;
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -203,6 +204,12 @@ const ProfileDetail = () => {
   };
 
   const handleBackClick = async () => {
+    // If coming from check-in success, go to discovery
+    if (fromCheckIn) {
+      navigate('/discovery', { replace: true });
+      return;
+    }
+
     // If coming from chat, check if match still exists
     if (fromChat && user && id) {
       const { data: matchExists } = await supabase
