@@ -120,22 +120,22 @@ const CheckInSuccess = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col animate-fade-in relative overflow-hidden">
-      {/* Confetti Animation */}
+    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+      {/* Confetti Animation - Reduzido e mais rápido */}
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none z-50">
-          {[...Array(50)].map((_, i) => (
+          {[...Array(25)].map((_, i) => (
             <div
               key={i}
-              className="absolute animate-[fall_3s_ease-in-out_forwards]"
+              className="absolute animate-[fall_1.5s_ease-in-out_forwards]"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `-${Math.random() * 20}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                fontSize: `${Math.random() * 20 + 10}px`,
+                animationDelay: `${Math.random() * 0.5}s`,
+                fontSize: `${Math.random() * 15 + 10}px`,
               }}
             >
-              {['🎉', '🎊', '✨', '⭐', '🌟'][Math.floor(Math.random() * 5)]}
+              {['🎉', '🎊', '✨'][Math.floor(Math.random() * 3)]}
             </div>
           ))}
         </div>
@@ -143,17 +143,17 @@ const CheckInSuccess = () => {
 
       <div className="flex-1 overflow-y-auto">
         {/* Success Animation Header */}
-        <div className="bg-gradient-to-br from-coral via-pink-deep to-coral/80 text-white p-8 animate-slide-down">
+        <div className="bg-gradient-to-br from-coral via-pink-deep to-coral/80 text-white p-8">
           <div className="text-center space-y-6">
-            {/* Check Icon with Animation */}
+            {/* Check Icon with Animation - Otimizado */}
             <div className="relative inline-flex items-center justify-center">
-              <div className="absolute w-32 h-32 bg-white/20 rounded-full animate-ping"></div>
+              <div className="absolute w-32 h-32 bg-white/20 rounded-full animate-[ping_1s_ease-out]"></div>
               <div className="relative w-32 h-32 bg-white rounded-full flex items-center justify-center animate-scale-in shadow-2xl">
-                <Check className="w-20 h-20 text-coral animate-bounce-in" strokeWidth={4} />
+                <Check className="w-20 h-20 text-coral" strokeWidth={4} />
               </div>
             </div>
             
-            <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <div className="animate-fade-in">
               <h1 className="text-5xl font-fredoka font-bold mb-3">
                 Check!
               </h1>
@@ -164,7 +164,7 @@ const CheckInSuccess = () => {
           </div>
             
             {/* Location Badge */}
-            <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
+            <div className="animate-fade-in">
               <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/20 backdrop-blur-sm rounded-full border-2 border-white/30">
                 <span className="text-lg font-semibold">{locationName}</span>
               </div>
