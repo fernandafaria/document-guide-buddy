@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -9,21 +9,45 @@ const MatchScreen = () => {
   const location = useLocation();
   const { user } = useAuth();
   const { matchProfile, matchId } = location.state || {};
+  const [myProfile, setMyProfile] = useState<any>(null);
 
   useEffect(() => {
     // If no match data, redirect to discovery
     if (!matchProfile) {
       navigate("/discovery");
+      return;
     }
-  }, [matchProfile, navigate]);
+
+    // Fetch current user's profile to get their photo
+    const fetchMyProfile = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("photos")
+        .eq("id", user.id)
+        .single();
+      
+      setMyProfile(data);
+    };
+
+    fetchMyProfile();
+  }, [matchProfile, navigate, user]);
 
   const getPhotoUrl = (photoPath: string) => {
     if (!photoPath) return "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
+    // Se já for uma URL completa, retorna direto
+    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+      return photoPath;
+    }
     const { data } = supabase.storage.from("profile-photos").getPublicUrl(photoPath);
     return data.publicUrl;
   };
 
-  const myPhoto = user ? getPhotoUrl("") : "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
+  const myPhoto = myProfile?.photos?.[0]
+    ? getPhotoUrl(myProfile.photos[0])
+    : "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
+    
   const matchPhoto = matchProfile?.photos?.[0] 
     ? getPhotoUrl(matchProfile.photos[0]) 
     : "https://api.dicebear.com/7.x/avataaars/svg?seed=Match";
@@ -63,25 +87,33 @@ const MatchScreen = () => {
 
       {/* Photos */}
       <div className="relative mb-8">
-        <div className="flex items-center gap-8">
-          <img
-            src={myPhoto}
-            alt="Você"
-            className="w-36 h-36 rounded-full object-cover ring-4 ring-white shadow-elevated"
-          />
+        <div className="flex items-center justify-center gap-4">
+          {/* My Photo */}
+          <div className="relative animate-scale-in">
+            <img
+              src={myPhoto}
+              alt="Você"
+              loading="lazy"
+              className="w-36 h-36 rounded-full object-cover ring-4 ring-white shadow-elevated"
+            />
+          </div>
           
           {/* Heart Icon */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-            <div className="w-24 h-24 bg-pink-soft rounded-full flex items-center justify-center animate-pulse shadow-elevated">
-              <span className="text-6xl">💕</span>
+          <div className="z-10 mx-4">
+            <div className="w-20 h-20 bg-pink-soft rounded-full flex items-center justify-center animate-bounce-in shadow-elevated">
+              <span className="text-5xl">💕</span>
             </div>
           </div>
           
-          <img
-            src={matchPhoto}
-            alt={matchProfile?.name || "Match"}
-            className="w-36 h-36 rounded-full object-cover ring-4 ring-white shadow-elevated"
-          />
+          {/* Match Photo */}
+          <div className="relative animate-scale-in" style={{ animationDelay: '0.1s' }}>
+            <img
+              src={matchPhoto}
+              alt={matchProfile?.name || "Match"}
+              loading="lazy"
+              className="w-36 h-36 rounded-full object-cover ring-4 ring-white shadow-elevated"
+            />
+          </div>
         </div>
       </div>
 
@@ -94,11 +126,11 @@ const MatchScreen = () => {
       {/* Action Buttons */}
       <div className="w-full max-w-md space-y-4">
         <Button
-          className="w-full h-14 bg-coral hover:bg-coral/90"
+          className="w-full h-14 bg-coral hover:bg-coral/90 text-lg font-semibold"
           onClick={handleSendMessage}
         >
-          <span className="mr-2">💬</span>
-          Enviar Mensagem
+          <span className="mr-2">👋</span>
+          Enviar um Yo!
         </Button>
         <Button
           variant="outline"
