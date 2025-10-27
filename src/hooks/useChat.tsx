@@ -306,14 +306,27 @@ export const useChat = (matchId?: string) => {
         );
       }
 
-      // Update match's last_activity (keep existing behavior)
+      // Update match's last_activity and mark conversation as started
+      // Only update first_message_by if it's null (first message)
+      const { data: currentMatch } = await supabase
+        .from("matches")
+        .select("first_message_by, conversation_started")
+        .eq("id", matchId)
+        .single();
+
+      const updateData: any = {
+        last_activity: new Date().toISOString(),
+      };
+
+      // Only update conversation_started and first_message_by if not already set
+      if (!currentMatch?.conversation_started) {
+        updateData.conversation_started = true;
+        updateData.first_message_by = user.id;
+      }
+
       await supabase
         .from("matches")
-        .update({
-          last_activity: new Date().toISOString(),
-          conversation_started: true,
-          first_message_by: user.id,
-        })
+        .update(updateData)
         .eq("id", matchId);
 
       // Send notification to receiver (non-blocking)

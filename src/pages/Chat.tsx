@@ -16,6 +16,21 @@ const Chat = () => {
   const { messages, matches, sending, sendMessage } = useChat(matchId);
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [myGender, setMyGender] = useState<string>("");
+
+  // Fetch my gender
+  useEffect(() => {
+    const fetchMyProfile = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("gender")
+        .eq("id", user.id)
+        .single();
+      setMyGender(data?.gender || "");
+    };
+    fetchMyProfile();
+  }, [user]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -75,6 +90,17 @@ const Chat = () => {
     ? getPhotoUrl(otherUser.photos[0])
     : "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
 
+  // Check if chat input should be disabled (hetero match + male user + conversation not started)
+  const myGenderLower = myGender?.toLowerCase();
+  const otherGenderLower = otherUser.gender?.toLowerCase();
+  
+  const norm = (g?: string) => g?.trim();
+  const isMale = (g?: string) => ["homem", "masculino", "male", "m", "masc"].includes(norm(g || ""));
+  const isFemale = (g?: string) => ["mulher", "feminino", "female", "f", "fem"].includes(norm(g || ""));
+  
+  const heteroPair = (isMale(myGenderLower) && isFemale(otherGenderLower)) || (isFemale(myGenderLower) && isMale(otherGenderLower));
+  const isInputDisabled = heteroPair && isMale(myGenderLower) && !currentMatch.conversation_started;
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
@@ -106,7 +132,9 @@ const Chat = () => {
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full animate-fade-in">
             <p className="text-gray-medium text-center">
-              Envie a primeira mensagem para começar a conversa!
+              {isInputDisabled 
+                ? "⏳ Aguarde a outra pessoa iniciar a conversa!" 
+                : "Envie a primeira mensagem para começar a conversa!"}
             </p>
           </div>
         ) : (
@@ -153,25 +181,33 @@ const Chat = () => {
 
       {/* Input */}
       <div className="px-6 py-4 bg-white border-t border-gray-light">
-        <div className="flex items-center gap-3">
-          <Input
-            type="text"
-            placeholder="Mensagem..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !sending && handleSend()}
-            disabled={false}
-            className="flex-1 h-12 bg-gray-light border-0 rounded-full px-5"
-          />
-          <Button
-            size="icon"
-            onClick={handleSend}
-            disabled={!message.trim() || sending}
-            className="w-12 h-12 rounded-full"
-          >
-            <Send className="w-5 h-5" />
-          </Button>
-        </div>
+        {isInputDisabled ? (
+          <div className="text-center py-3">
+            <p className="text-gray-medium text-sm">
+              ⏳ Aguarde {otherUser.name} iniciar a conversa
+            </p>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Input
+              type="text"
+              placeholder="Mensagem..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !sending && handleSend()}
+              disabled={sending}
+              className="flex-1 h-12 bg-gray-light border-0 rounded-full px-5"
+            />
+            <Button
+              size="icon"
+              onClick={handleSend}
+              disabled={!message.trim() || sending}
+              className="w-12 h-12 rounded-full"
+            >
+              <Send className="w-5 h-5" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
