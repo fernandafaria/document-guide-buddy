@@ -119,33 +119,14 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
         const likedUserIds = new Set(myLikes?.map((like) => like.to_user_id) || []);
         console.log("💕 Already liked users:", likedUserIds.size);
 
-        // Get users I've already matched with
-        const { data: myMatches } = await supabase
-          .from("matches")
-          .select("user1_id, user2_id")
-          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
-
-        const matchedUserIds = new Set(
-          myMatches?.map((match) => 
-            match.user1_id === user.id ? match.user2_id : match.user1_id
-          ) || []
-        );
-        console.log("💑 Already matched users:", matchedUserIds.size);
-
-        // Filter out users I've already liked OR matched with
+        // Filter out users I've already liked (but NOT matched users - they should still appear)
         const usersToShow = activeUsers.filter(
           (profile) => {
             const alreadyLiked = likedUserIds.has(profile.id);
-            const alreadyMatched = matchedUserIds.has(profile.id);
-            
             if (alreadyLiked) {
               console.log(`❌ ${profile.name}: Already liked`);
             }
-            if (alreadyMatched) {
-              console.log(`❌ ${profile.name}: Already matched`);
-            }
-            
-            return !alreadyLiked && !alreadyMatched;
+            return !alreadyLiked;
           }
         );
 
