@@ -49,6 +49,29 @@ const MatchScreen = () => {
     fetchMatchData();
   }, [matchProfile, navigate, user, matchId]);
 
+  // Auto-redirect to chat if both users are same gender
+  useEffect(() => {
+    if (!myProfile || !matchProfile || !matchId) return;
+
+    const myGender = myProfile.gender?.toLowerCase();
+    const matchGender = matchProfile.gender?.toLowerCase();
+    
+    const isMale = myGender === 'homem' || myGender === 'masculino';
+    const isFemale = myGender === 'mulher' || myGender === 'feminino';
+    const matchIsMale = matchGender === 'homem' || matchGender === 'masculino';
+    const matchIsFemale = matchGender === 'mulher' || matchGender === 'feminino';
+
+    // If both are same gender (male-male or female-female), go directly to chat
+    const isSameGenderMatch = (isMale && matchIsMale) || (isFemale && matchIsFemale);
+    
+    if (isSameGenderMatch) {
+      // Small delay for user to see the match screen
+      setTimeout(() => {
+        navigate(`/chat/${matchId}`);
+      }, 2000);
+    }
+  }, [myProfile, matchProfile, matchId, navigate]);
+
   const getPhotoUrl = (photoPath: string) => {
     if (!photoPath) return "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
     // Se já for uma URL completa, retorna direto
@@ -67,7 +90,16 @@ const MatchScreen = () => {
     ? getPhotoUrl(matchProfile.photos[0]) 
     : "https://api.dicebear.com/7.x/avataaars/svg?seed=Match";
 
-  const isWoman = myProfile?.gender?.toLowerCase() === 'mulher' || myProfile?.gender?.toLowerCase() === 'feminino';
+  const myGender = myProfile?.gender?.toLowerCase();
+  const matchGender = matchProfile?.gender?.toLowerCase();
+  
+  const isMale = myGender === 'homem' || myGender === 'masculino';
+  const isFemale = myGender === 'mulher' || myGender === 'feminino';
+  const matchIsMale = matchGender === 'homem' || matchGender === 'masculino';
+  const matchIsFemale = matchGender === 'mulher' || matchGender === 'feminino';
+
+  const isSameGenderMatch = (isMale && matchIsMale) || (isFemale && matchIsFemale);
+  const isWoman = isFemale;
   const conversationStarted = matchData?.conversation_started || false;
 
   const handleSendMessage = () => {
@@ -150,7 +182,16 @@ const MatchScreen = () => {
 
       {/* Action Buttons */}
       <div className="w-full max-w-md space-y-4">
-        {isWoman ? (
+        {isSameGenderMatch ? (
+          <div className="w-full p-6 bg-coral/10 rounded-2xl text-center">
+            <p className="text-lg text-coral font-medium mb-2">
+              🎉 Redirecionando para o chat...
+            </p>
+            <p className="text-sm text-gray-medium">
+              Vocês já podem conversar!
+            </p>
+          </div>
+        ) : isWoman ? (
           <Button
             className="w-full h-14 bg-coral hover:bg-coral/90 text-lg font-semibold"
             onClick={handleSendMessage}
