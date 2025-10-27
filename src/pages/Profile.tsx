@@ -90,7 +90,9 @@ const Profile = () => {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-5xl font-bold text-coral mb-4">YO!</h1>
+          <h1 className="text-7xl font-fredoka font-bold text-coral tracking-tight mb-4">
+            Yo!
+          </h1>
           <p className="text-gray-medium">Carregando perfil...</p>
         </div>
       </div>
