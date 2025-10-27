@@ -112,11 +112,9 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
 
         // Do NOT remove liked users; keep them and mark as YO enviado (except when already matched)
         const likedNotMatchedIds = Array.from(likedUserIds).filter((id) => !matchedUserIds.has(id));
-        setSentYos((prev) => {
-          const union = new Set(prev);
-          likedNotMatchedIds.forEach((id) => union.add(id));
-          return union;
-        });
+        
+        // Replace sentYos with current likes (removes unliked users)
+        setSentYos(new Set(likedNotMatchedIds));
 
         const usersToShow = activeUsers; // show everyone active at location
 
