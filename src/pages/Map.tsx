@@ -536,18 +536,6 @@ const Map = () => {
             
             <MapLegend />
             <MapFilters filters={filters} onFilterChange={handleFilterChange} />
-            <MapControls
-              onZoomIn={() => {
-                // Will be implemented in MapView
-                console.log('Zoom in');
-              }}
-              onZoomOut={() => {
-                console.log('Zoom out');
-              }}
-              onCenterUser={() => {
-                console.log('Center on user');
-              }}
-            />
 
             {/* Acesso rápido ao check-in do local pesquisado */}
             {searchMarker && !confirmDialogOpen && latitude && longitude && (
