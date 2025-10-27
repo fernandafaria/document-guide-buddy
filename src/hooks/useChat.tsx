@@ -30,6 +30,7 @@ export interface MatchWithProfile extends Match {
     id: string;
     name: string;
     photos: string[];
+    gender?: string;
   };
   lastMessage?: Message;
   unreadCount: number;
@@ -79,7 +80,7 @@ export const useChat = (matchId?: string) => {
         // Batch fetch all profiles in one query
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id, name, photos")
+          .select("id, name, photos, gender")
           .in("id", otherUserIds);
 
         const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);

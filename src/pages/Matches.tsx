@@ -96,8 +96,17 @@ const Matches = () => {
               ? getPhotoUrl(match.otherUser.photos[0])
               : "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
 
-            const isWoman = myGender?.toLowerCase() === 'mulher' || myGender?.toLowerCase() === 'feminino';
-            const canOpenChat = isWoman || match.conversation_started;
+            const myGenderLower = myGender?.toLowerCase();
+            const otherGenderLower = match.otherUser.gender?.toLowerCase();
+            
+            const isMale = myGenderLower === 'homem' || myGenderLower === 'masculino';
+            const isFemale = myGenderLower === 'mulher' || myGenderLower === 'feminino';
+            const otherIsMale = otherGenderLower === 'homem' || otherGenderLower === 'masculino';
+            const otherIsFemale = otherGenderLower === 'mulher' || otherGenderLower === 'feminino';
+            
+            // Same gender matches can both start conversation
+            const isSameGenderMatch = (isMale && otherIsMale) || (isFemale && otherIsFemale);
+            const canOpenChat = isSameGenderMatch || isFemale || match.conversation_started;
 
             return (
               <div
