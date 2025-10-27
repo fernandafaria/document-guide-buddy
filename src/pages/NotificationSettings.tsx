@@ -142,10 +142,10 @@ const NotificationSettings = () => {
         <div className="flex items-center justify-between py-4">
           <div className="flex-1">
             <Label htmlFor="checkIns" className="text-lg font-semibold text-black-soft">
-              Check-ins
+              Check-in
             </Label>
             <p className="text-sm text-gray-medium mt-1">
-              Receba notificações sobre seus check-ins ativos
+              Receba notificações sobre seus check-in ativos
             </p>
           </div>
           <Switch

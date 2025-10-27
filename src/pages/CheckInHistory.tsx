@@ -129,7 +129,7 @@ const CheckInHistory = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-bold text-foreground">Histórico de Check-ins</h1>
+          <h1 className="text-2xl font-bold text-foreground">Histórico de Check-in</h1>
         </div>
 
         {/* Estatísticas */}
@@ -173,7 +173,7 @@ const CheckInHistory = () => {
 
         {/* Histórico */}
         <div className="space-y-3">
-          <h2 className="text-lg font-semibold">Últimos Check-ins</h2>
+          <h2 className="text-lg font-semibold">Últimos Check-in</h2>
           
           {history.length === 0 ? (
             <Card>

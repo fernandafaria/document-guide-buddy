@@ -7,7 +7,7 @@ export const BottomNav = () => {
 
   const navItems = [
     { path: "/map", icon: MapPin, label: "Mapa" },
-    { path: "/active-checkins", icon: Users, label: "Check-ins" },
+    { path: "/active-checkins", icon: Users, label: "Check-in" },
     { path: "/discovery", icon: Compass, label: "Descobrir" },
     { path: "/likes", icon: Heart, label: "Curtidas" },
     { path: "/matches", icon: Hand, label: "YO's" },

@@ -47,7 +47,7 @@ export const MapFilters = ({ filters, onFilterChange }: MapFiltersProps) => {
           ))}
           <div className="flex items-center justify-between border-t pt-3">
             <Label htmlFor="filter-users" className="text-sm font-semibold cursor-pointer">
-              👥 Check-ins Ativos
+              👥 Check-in Ativos
             </Label>
             <Switch
               id="filter-users"
@@ -109,7 +109,7 @@ export const MapFilters = ({ filters, onFilterChange }: MapFiltersProps) => {
                   className="text-lg font-semibold cursor-pointer flex items-center gap-3 flex-1"
                 >
                   <span className="text-2xl">👥</span>
-                  <span>Check-ins Ativos</span>
+                  <span>Check-in Ativos</span>
                 </Label>
                 <Switch
                   id="filter-mobile-users"

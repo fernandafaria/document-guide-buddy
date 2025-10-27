@@ -190,7 +190,7 @@ const ActiveCheckIns = () => {
               <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">Nenhum local popular</h3>
               <p className="text-muted-foreground mb-4">
-                Não há locais com check-ins ativos próximos a você no momento.
+                Não há locais com check-in ativos próximos a você no momento.
               </p>
               <Button onClick={() => navigate('/map')}>
                 <MapPin className="w-4 h-4 mr-2" />
