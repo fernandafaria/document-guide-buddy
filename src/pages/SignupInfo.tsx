@@ -64,10 +64,7 @@ const SignupInfo = () => {
   };
 
   const handleContinue = () => {
-    console.log("handleContinue called", { hasEmail: !!email, hasPassword: !!password });
-    
     if (!email || !password) {
-      console.error("Missing email or password");
       toast({
         title: "Erro",
         description: "Dados de autenticação não encontrados",

@@ -67,9 +67,10 @@ const Login = () => {
       
       const validation = loginSchema.safeParse({ email, password });
       if (!validation.success) {
+        const firstError = validation.error.issues[0];
         toast({
           title: "Dados inválidos",
-          description: validation.error.errors[0].message,
+          description: firstError.message,
           variant: "destructive",
         });
         return;
