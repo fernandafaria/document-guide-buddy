@@ -54,18 +54,22 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
         // Get current user's profile and their check-in location
         const { data: myProfile } = await supabase
           .from("profiles")
-          .select("current_check_in")
+          .select("current_check_in, gender")
           .eq("id", user.id)
           .single();
 
+        console.log("🔍 My profile:", myProfile);
+
         // If user is not checked in, return empty array
         if (!myProfile?.current_check_in) {
+          console.log("❌ User not checked in");
           setUsers([]);
           setLoading(false);
           return;
         }
 
         const myLocationId = (myProfile.current_check_in as any).location_id;
+        console.log("📍 My location ID:", myLocationId);
 
         // Build query for users with active check-ins at the same location
         let query = supabase
@@ -77,50 +81,76 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
         // Apply filters
         if (filters?.intentions && filters.intentions.length > 0) {
           query = query.overlaps("intentions", filters.intentions);
+          console.log("🎯 Filtering by intentions:", filters.intentions);
         }
 
         if (filters?.genders && filters.genders.length > 0) {
           query = query.in("gender", filters.genders);
+          console.log("👤 Filtering by genders:", filters.genders);
         }
 
         if (filters?.minAge) {
           query = query.gte("age", filters.minAge);
+          console.log("📅 Min age:", filters.minAge);
         }
 
         if (filters?.maxAge) {
           query = query.lte("age", filters.maxAge);
+          console.log("📅 Max age:", filters.maxAge);
         }
 
         if (filters?.education) {
           query = query.eq("education", filters.education);
+          console.log("🎓 Filtering by education:", filters.education);
         }
 
         if (filters?.alcohol) {
           query = query.eq("alcohol", filters.alcohol);
+          console.log("🍷 Filtering by alcohol:", filters.alcohol);
         }
 
         if (filters?.musicalStyles && filters.musicalStyles.length > 0) {
           query = query.overlaps("musical_styles", filters.musicalStyles);
+          console.log("🎵 Filtering by musical styles:", filters.musicalStyles);
         }
 
         if (filters?.languages && filters.languages.length > 0) {
           query = query.overlaps("languages", filters.languages);
+          console.log("🌍 Filtering by languages:", filters.languages);
         }
 
         const { data, error } = await query;
 
         if (error) throw error;
 
+        console.log("📦 Total profiles from query:", data?.length || 0);
+
         // Filter users at the same location with non-expired check-ins
         const now = new Date();
         const activeUsers = (data || []).filter((profile) => {
-          if (!profile.current_check_in) return false;
+          if (!profile.current_check_in) {
+            console.log(`❌ ${profile.name}: No check-in`);
+            return false;
+          }
           const checkIn = profile.current_check_in as any;
-          if (!checkIn.expires_at) return false;
-          if (checkIn.location_id !== myLocationId) return false; // Only same location
+          if (!checkIn.expires_at) {
+            console.log(`❌ ${profile.name}: No expiration date`);
+            return false;
+          }
+          if (checkIn.location_id !== myLocationId) {
+            console.log(`❌ ${profile.name}: Different location (${checkIn.location_id} vs ${myLocationId})`);
+            return false;
+          }
           const expiresAt = new Date(checkIn.expires_at);
-          return expiresAt > now;
+          if (expiresAt <= now) {
+            console.log(`❌ ${profile.name}: Check-in expired`);
+            return false;
+          }
+          console.log(`✅ ${profile.name}: Active at same location`);
+          return true;
         });
+
+        console.log("✅ Active users at same location:", activeUsers.length);
 
         // Get users I've already liked
         const { data: myLikes } = await supabase
@@ -129,12 +159,20 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
           .eq("from_user_id", user.id);
 
         const likedUserIds = new Set(myLikes?.map((like) => like.to_user_id) || []);
+        console.log("💕 Already liked users:", likedUserIds.size);
 
         // Filter out users I've already liked
         const usersToShow = activeUsers.filter(
-          (profile) => !likedUserIds.has(profile.id)
+          (profile) => {
+            const alreadyLiked = likedUserIds.has(profile.id);
+            if (alreadyLiked) {
+              console.log(`❌ ${profile.name}: Already liked`);
+            }
+            return !alreadyLiked;
+          }
         );
 
+        console.log("🎯 Final users to show:", usersToShow.length);
         setUsers(usersToShow as any);
       } catch (error: any) {
         console.error("Error fetching discovery users:", error);
