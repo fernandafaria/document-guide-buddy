@@ -92,7 +92,7 @@ const Map = () => {
     if (!user) return;
 
     // Subscribe to realtime updates on locations table
-    const channel = supabase
+    const locationsChannel = supabase
       .channel('locations-changes')
       .on(
         'postgres_changes',
@@ -109,8 +109,30 @@ const Map = () => {
       )
       .subscribe();
 
+    // Subscribe to profile changes to detect check-in/check-out
+    const profilesChannel = supabase
+      .channel('profiles-checkin-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`,
+        },
+        () => {
+          // User's profile was updated (check-in/check-out)
+          checkUserCheckInStatus();
+          if (latitude && longitude) {
+            fetchNearbyLocations();
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(locationsChannel);
+      supabase.removeChannel(profilesChannel);
     };
   }, [user, latitude, longitude]);
 
