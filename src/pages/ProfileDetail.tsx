@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
+import { NotificationBell } from "@/components/NotificationBell";
 
 interface ProfileData {
   id: string;
@@ -217,6 +218,11 @@ const ProfileDetail = () => {
       >
         <ArrowLeft className="w-6 h-6 text-black-soft" />
       </button>
+
+      {/* Notification Bell */}
+      <div className="fixed top-6 right-6 z-10">
+        <NotificationBell />
+      </div>
 
       {/* Photo Gallery */}
       <div 
