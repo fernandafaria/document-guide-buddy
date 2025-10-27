@@ -57,10 +57,11 @@ export default function Likes() {
         if (profilesError) throw profilesError;
 
         // Combinar dados de likes com perfis
-        const profilesWithLocation = profilesData?.map((profile) => ({
-          ...profile,
-          locationId: likesData.find((like) => like.from_user_id === profile.id)?.location_id,
-        })) || [];
+        const profilesWithLocation =
+          profilesData?.map((profile) => ({
+            ...profile,
+            locationId: likesData.find((like) => like.from_user_id === profile.id)?.location_id,
+          })) || [];
 
         setLikes(profilesWithLocation);
       } catch (error) {
@@ -107,6 +108,18 @@ export default function Likes() {
     };
   }, [user]);
 
+  // Constrói URL pública para fotos do bucket correto
+  const getPhotoUrl = (photoPath: string) => {
+    if (!photoPath) return "/placeholder.svg";
+    if (photoPath.startsWith("http")) return photoPath;
+
+    const { data } = supabase.storage
+      .from("profile-photos")
+      .getPublicUrl(photoPath);
+
+    return data.publicUrl || "/placeholder.svg";
+  };
+
   const handleLikeBack = async (userId: string, locationId?: string) => {
     if (!user) return;
 
@@ -124,8 +137,8 @@ export default function Likes() {
 
       if (data?.isMatch) {
         // Get the match profile data
-        const matchProfile = likes.find(like => like.id === userId);
-        
+        const matchProfile = likes.find((like) => like.id === userId);
+
         // Get match_id to navigate to chat
         const { data: matchData } = await supabase
           .from("matches")
@@ -133,13 +146,13 @@ export default function Likes() {
           .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
           .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
           .single();
-        
+
         toast.success("É um match! 🎉");
-        navigate("/match", { 
-          state: { 
+        navigate("/match", {
+          state: {
             matchProfile,
-            matchId: matchData?.id 
-          } 
+            matchId: matchData?.id,
+          },
         });
       } else {
         toast.success("Curtida enviada!");
@@ -151,17 +164,6 @@ export default function Likes() {
     } finally {
       setProcessingLike(null);
     }
-  };
-
-  const getPhotoUrl = (photoPath: string) => {
-    if (!photoPath) return "/placeholder.svg";
-    if (photoPath.startsWith("http")) return photoPath;
-    
-    const { data } = supabase.storage
-      .from("profiles")
-      .getPublicUrl(photoPath);
-    
-    return data.publicUrl || "/placeholder.svg";
   };
 
   const handleProfileClick = (userId: string) => {
@@ -210,6 +212,10 @@ export default function Likes() {
                       src={getPhotoUrl(profile.photos[0])}
                       alt={profile.name}
                       className="object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = "/placeholder.svg";
+                      }}
                     />
                     <AvatarFallback>{profile.name[0]}</AvatarFallback>
                   </Avatar>
