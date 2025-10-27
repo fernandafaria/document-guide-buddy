@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { Search, MapPin, LogOut, Users, History, Heart, User } from "lucide-react";
+import { Search, MapPin, History, LogOut } from "lucide-react";
 import Header from "@/components/Header";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +9,7 @@ import { MapLegend } from "@/components/MapLegend";
 import { MapFilters } from "@/components/MapFilters";
 import { CheckInConfirmDialog } from "@/components/CheckInConfirmDialog";
 import { PlaceSearch } from "@/components/PlaceSearch";
+import { NotificationBell } from "@/components/NotificationBell";
 
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { supabase } from "@/integrations/supabase/client";
@@ -475,16 +476,7 @@ const Map = () => {
           >
             <History className="h-5 w-5" />
           </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => {
-              window.location.assign('/login?logout=1');
-            }}
-            className="h-10 w-10 text-coral hover:bg-coral/10"
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
+          <NotificationBell />
         </div>
       </div>
       
