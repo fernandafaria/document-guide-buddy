@@ -116,7 +116,8 @@ export const useDiscovery = (filters?: DiscoveryFilters) => {
         // Replace sentYos with current likes (removes unliked users)
         setSentYos(new Set(likedNotMatchedIds));
 
-        const usersToShow = activeUsers; // show everyone active at location
+        // Remove matched users from discovery - they should only appear in Matches page
+        const usersToShow = activeUsers.filter((user: any) => !matchedUserIds.has(user.id));
 
         setUsers(usersToShow as any);
       } catch (error: any) {
