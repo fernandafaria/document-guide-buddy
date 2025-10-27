@@ -80,7 +80,7 @@ const Chat = () => {
       {/* Header */}
       <div className="bg-gradient-header px-6 py-4 flex items-center gap-4 shadow-sm">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/matches")}
           className="text-white hover:opacity-80 transition-opacity"
         >
           <ArrowLeft className="w-6 h-6" />
