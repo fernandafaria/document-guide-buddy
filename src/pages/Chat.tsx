@@ -87,7 +87,7 @@ const Chat = () => {
         </button>
         
         <button
-          onClick={() => navigate(`/profile/${otherUser.id}`)}
+          onClick={() => navigate(`/profile/${otherUser.id}`, { state: { fromChat: true } })}
           className="flex items-center gap-3 flex-1 hover:opacity-90 transition-opacity"
         >
           <img

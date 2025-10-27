@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Heart } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,6 +24,7 @@ interface ProfileData {
 
 const ProfileDetail = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const { user } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -33,6 +34,7 @@ const ProfileDetail = () => {
   const [likeId, setLikeId] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const fromChat = location.state?.fromChat || false;
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -200,6 +202,27 @@ const ProfileDetail = () => {
     return data.publicUrl;
   };
 
+  const handleBackClick = async () => {
+    // If coming from chat, check if match still exists
+    if (fromChat && user && id) {
+      const { data: matchExists } = await supabase
+        .from("matches")
+        .select("id")
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .or(`user1_id.eq.${id},user2_id.eq.${id}`)
+        .maybeSingle();
+
+      if (!matchExists) {
+        // Match was removed (user unliked), redirect to matches page
+        navigate('/matches', { replace: true });
+        return;
+      }
+    }
+    
+    // Otherwise, go back normally
+    navigate(-1);
+  };
+
   const photos = profile?.photos && profile.photos.length > 0
     ? profile.photos.map(getPhotoUrl)
     : [
@@ -215,7 +238,7 @@ const ProfileDetail = () => {
       
       {/* Back Button */}
       <button
-        onClick={() => navigate(-1)}
+        onClick={handleBackClick}
         className="fixed top-6 left-6 z-10 w-12 h-12 bg-white rounded-full shadow-elevated flex items-center justify-center hover:scale-105 transition-transform"
         aria-label="Voltar"
       >
