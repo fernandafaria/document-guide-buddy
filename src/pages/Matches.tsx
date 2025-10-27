@@ -153,7 +153,7 @@ const Matches = () => {
                     }`}
                   >
                     {!canOpenChat && !match.conversation_started 
-                      ? "⏳ Aguardando ela iniciar..." 
+                      ? "⏳ Aguardando iniciar..." 
                       : getLastMessageText(match)}
                   </p>
                 </div>

@@ -118,6 +118,39 @@ Deno.serve(async (req) => {
       } else {
         console.log('Match already exists, skipping creation');
       }
+
+      // Ensure conversation is unlocked immediately for same-gender matches
+      try {
+        // Find the match id (inserted above or existing)
+        const { data: ensuredMatch } = await supabaseClient
+          .from('matches')
+          .select('id')
+          .or(`and(user1_id.eq.${user.id},user2_id.eq.${toUserId}),and(user1_id.eq.${toUserId},user2_id.eq.${user.id})`)
+          .single();
+
+        // Fetch both users' genders
+        const { data: genders } = await supabaseClient
+          .from('profiles')
+          .select('id, gender')
+          .in('id', [user.id, toUserId]);
+
+        const g1 = genders?.find((p) => p.id === user.id)?.gender?.toLowerCase();
+        const g2 = genders?.find((p) => p.id === toUserId)?.gender?.toLowerCase();
+
+        const isMale = (g?: string) => g === 'homem' || g === 'masculino';
+        const isFemale = (g?: string) => g === 'mulher' || g === 'feminino';
+        const sameGender = (isMale(g1) && isMale(g2)) || (isFemale(g1) && isFemale(g2));
+
+        if (sameGender && ensuredMatch?.id) {
+          await supabaseClient
+            .from('matches')
+            .update({ conversation_started: true, last_activity: new Date().toISOString() })
+            .eq('id', ensuredMatch.id);
+          console.log('Conversation unlocked automatically for same-gender match');
+        }
+      } catch (genderErr) {
+        console.error('Error ensuring same-gender conversation unlock:', genderErr);
+      }
     }
 
     // Send notification to the user who received the like
