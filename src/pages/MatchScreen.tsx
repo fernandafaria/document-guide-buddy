@@ -10,6 +10,7 @@ const MatchScreen = () => {
   const { user } = useAuth();
   const { matchProfile, matchId } = location.state || {};
   const [myProfile, setMyProfile] = useState<any>(null);
+  const [matchData, setMatchData] = useState<any>(null);
 
   useEffect(() => {
     // If no match data, redirect to discovery
@@ -18,7 +19,7 @@ const MatchScreen = () => {
       return;
     }
 
-    // Fetch current user's profile to get their photo
+    // Fetch current user's profile to get their photo and gender
     const fetchMyProfile = async () => {
       if (!user) return;
       
@@ -31,8 +32,22 @@ const MatchScreen = () => {
       setMyProfile(data);
     };
 
+    // Fetch match data to check conversation status
+    const fetchMatchData = async () => {
+      if (!matchId) return;
+      
+      const { data } = await supabase
+        .from("matches")
+        .select("conversation_started, first_message_by")
+        .eq("id", matchId)
+        .single();
+      
+      setMatchData(data);
+    };
+
     fetchMyProfile();
-  }, [matchProfile, navigate, user]);
+    fetchMatchData();
+  }, [matchProfile, navigate, user, matchId]);
 
   const getPhotoUrl = (photoPath: string) => {
     if (!photoPath) return "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
@@ -53,8 +68,14 @@ const MatchScreen = () => {
     : "https://api.dicebear.com/7.x/avataaars/svg?seed=Match";
 
   const isWoman = myProfile?.gender?.toLowerCase() === 'mulher' || myProfile?.gender?.toLowerCase() === 'feminino';
+  const conversationStarted = matchData?.conversation_started || false;
 
   const handleSendMessage = () => {
+    // Only women can start conversation, men must wait
+    if (!isWoman && !conversationStarted) {
+      return; // Block access for men if no conversation yet
+    }
+    
     if (matchId) {
       navigate(`/chat/${matchId}`);
     } else {

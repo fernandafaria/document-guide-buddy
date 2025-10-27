@@ -4,13 +4,30 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useChat } from "@/hooks/useChat";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useState, useEffect } from "react";
 
 const Matches = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { matches, loading } = useChat();
+  const [myGender, setMyGender] = useState<string>("");
+
+  useEffect(() => {
+    const fetchMyProfile = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("gender")
+        .eq("id", user.id)
+        .single();
+      setMyGender(data?.gender || "");
+    };
+    fetchMyProfile();
+  }, [user]);
 
   const getPhotoUrl = (photoPath: string) => {
     if (!photoPath) return "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
@@ -78,11 +95,22 @@ const Matches = () => {
               ? getPhotoUrl(match.otherUser.photos[0])
               : "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
 
+            const isWoman = myGender?.toLowerCase() === 'mulher' || myGender?.toLowerCase() === 'feminino';
+            const canOpenChat = isWoman || match.conversation_started;
+
             return (
               <div
                 key={match.id}
-                onClick={() => navigate(`/chat/${match.id}`)}
-                className="px-6 py-4 flex items-center gap-4 cursor-pointer hover:bg-gray-light/50 transition-all duration-200 active:scale-[0.98] animate-scale-in"
+                onClick={() => {
+                  if (canOpenChat) {
+                    navigate(`/chat/${match.id}`);
+                  }
+                }}
+                className={`px-6 py-4 flex items-center gap-4 transition-all duration-200 animate-scale-in ${
+                  canOpenChat 
+                    ? 'cursor-pointer hover:bg-gray-light/50 active:scale-[0.98]' 
+                    : 'cursor-not-allowed opacity-60'
+                }`}
                 style={{ animationDelay: `${index * 30}ms` }}
               >
                 {/* Photo */}
@@ -110,13 +138,15 @@ const Matches = () => {
                   <p
                     className={`text-base truncate ${
                       !match.lastMessage
-                        ? "text-gray-medium"
+                        ? "text-gray-medium italic"
                         : match.lastMessage.type === "yo"
                         ? "text-coral font-medium"
                         : "text-black-soft"
                     }`}
                   >
-                    {getLastMessageText(match)}
+                    {!canOpenChat && !match.conversation_started 
+                      ? "⏳ Aguardando ela iniciar..." 
+                      : getLastMessageText(match)}
                   </p>
                 </div>
 
