@@ -1,0 +1,132 @@
+# Codemagic configuration file for YO App
+# Documentation: https://docs.codemagic.io/yaml/yaml-getting-started/
+
+workflows:
+  ios-release:
+    name: iOS Release Build
+    instance_type: mac_mini_m1
+    max_build_duration: 60
+    environment:
+      groups:
+        # Adicione suas variáveis de ambiente no Codemagic UI
+        - app_store_credentials
+        - app_secrets
+      vars:
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_SCHEME: "App"
+      node: 20
+      xcode: latest
+      cocoapods: default
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+          source: true
+      cancel_previous_builds: true
+    scripts:
+      - name: Install npm dependencies
+        script: |
+          npm install
+      
+      - name: Build web application
+        script: |
+          npm run build
+      
+      - name: Update Capacitor iOS
+        script: |
+          npx cap sync ios
+      
+      - name: Set up keychain
+        script: |
+          keychain initialize
+      
+      - name: Fetch signing files
+        script: |
+          app-store-connect fetch-signing-files "com.yoapp.mobile" \
+            --type IOS_APP_STORE \
+            --create
+      
+      - name: Set up signing certificate
+        script: |
+          keychain add-certificates
+      
+      - name: Update project settings
+        script: |
+          xcode-project use-profiles
+      
+      - name: Build iOS app
+        script: |
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+    
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    
+    publishing:
+      email:
+        recipients:
+          - seu-email@exemplo.com
+        notify:
+          success: true
+          failure: true
+      
+      app_store_connect:
+        # Configurar no Codemagic UI:
+        # - App Store Connect API key
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        
+        # Submit para TestFlight
+        submit_to_testflight: true
+        
+        # Opcional: Submit para App Store Review
+        # submit_to_app_store: true
+
+  ios-debug:
+    name: iOS Debug Build
+    instance_type: mac_mini_m1
+    max_build_duration: 30
+    environment:
+      groups:
+        - app_secrets
+      vars:
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_SCHEME: "App"
+      node: 20
+      xcode: latest
+      cocoapods: default
+    triggering:
+      events:
+        - pull_request
+      cancel_previous_builds: true
+    scripts:
+      - name: Install dependencies
+        script: npm install
+      
+      - name: Build web
+        script: npm run build
+      
+      - name: Sync Capacitor
+        script: npx cap sync ios
+      
+      - name: Run lint
+        script: npm run lint
+      
+      - name: Build iOS (debug)
+        script: |
+          xcodebuild \
+            -workspace "$XCODE_WORKSPACE" \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+    
+    artifacts:
+      - /tmp/xcodebuild_logs/*.log
