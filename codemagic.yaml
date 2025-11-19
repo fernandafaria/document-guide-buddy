@@ -12,8 +12,16 @@ workflows:
         - app_store_credentials
         - app_secrets
       vars:
+        # Xcode project configuration
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
+
+        # iOS Bundle Identifier - Set this in Codemagic UI environment variables
+        # BUNDLE_ID: "com.yoapp.mobile"
+
+        # App Store Connect API Key credentials - Set these in Codemagic UI
+        # APP_STORE_KEY_ID: "YOUR_KEY_ID"
+        # APP_STORE_PRIVATE_KEY_B64: "YOUR_BASE64_ENCODED_PRIVATE_KEY"
       node: 20
       xcode: latest
       cocoapods: default
@@ -26,46 +34,72 @@ workflows:
           source: true
       cancel_previous_builds: true
     scripts:
+      - name: Update iOS bundle identifier
+        script: |
+          # Update bundle identifier if BUNDLE_ID environment variable is set
+          if [ -n "$BUNDLE_ID" ]; then
+            echo "Updating iOS bundle identifier to: $BUNDLE_ID"
+            ./scripts/update_bundle_id_ios.sh "$BUNDLE_ID"
+          else
+            echo "BUNDLE_ID not set, skipping bundle identifier update"
+          fi
+
+      - name: Decode App Store Connect private key
+        script: |
+          # Decode App Store Connect API private key from base64
+          if [ -n "$APP_STORE_KEY_ID" ] && [ -n "$APP_STORE_PRIVATE_KEY_B64" ]; then
+            echo "Decoding App Store Connect private key..."
+            ./scripts/decode_appstore_key.sh "$APP_STORE_KEY_ID" "$APP_STORE_PRIVATE_KEY_B64"
+          else
+            echo "APP_STORE_KEY_ID or APP_STORE_PRIVATE_KEY_B64 not set, skipping key decode"
+          fi
+
       - name: Install npm dependencies
         script: |
           npm install
-      
+
       - name: Build web application
         script: |
           npm run build
-      
+
       - name: Update Capacitor iOS
         script: |
           npx cap sync ios
-      
+
       - name: Set up keychain
         script: |
           keychain initialize
-      
+
       - name: Fetch signing files
         script: |
+          # Fetch signing files from App Store Connect
+          # This uses the decoded private key from /tmp/AuthKey_${APP_STORE_KEY_ID}.p8
+          # Example: app-store-connect fetch-signing-files
           app-store-connect fetch-signing-files "com.yoapp.mobile" \
             --type IOS_APP_STORE \
             --create
-      
+
       - name: Set up signing certificate
         script: |
           keychain add-certificates
-      
+
       - name: Update project settings
         script: |
           xcode-project use-profiles
-      
+
       - name: Build iOS app
         script: |
+          # Build and archive iOS app
+          # Replace this with your actual build commands
+          # Example using xcode-project:
           xcode-project build-ipa \
             --workspace "$XCODE_WORKSPACE" \
             --scheme "$XCODE_SCHEME"
-    
+
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-    
+
     publishing:
       email:
         recipients:
@@ -73,17 +107,17 @@ workflows:
         notify:
           success: true
           failure: true
-      
+
       app_store_connect:
         # Configurar no Codemagic UI:
         # - App Store Connect API key
         api_key: $APP_STORE_CONNECT_PRIVATE_KEY
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        
+
         # Submit para TestFlight
         submit_to_testflight: true
-        
+
         # Opcional: Submit para App Store Review
         # submit_to_app_store: true
 
@@ -107,16 +141,16 @@ workflows:
     scripts:
       - name: Install dependencies
         script: npm install
-      
+
       - name: Build web
         script: npm run build
-      
+
       - name: Sync Capacitor
         script: npx cap sync ios
-      
+
       - name: Run lint
         script: npm run lint
-      
+
       - name: Build iOS (debug)
         script: |
           xcodebuild \
@@ -127,6 +161,6 @@ workflows:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
-    
+
     artifacts:
       - /tmp/xcodebuild_logs/*.log
