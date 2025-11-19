@@ -12,7 +12,7 @@ Use este checklist para garantir que tudo está pronto antes de submeter o app Y
 ## 🔧 Configuração do Projeto
 
 ### Arquivos de Configuração
-- [x] `capacitor.config.ts` - App ID válido: `com.yoapp.mobile`
+- [x] `capacitor.config.ts` - App ID válido: `com.fernandafaria.yoappsocial`
 - [x] `package.json` - Versão: 1.0.0
 - [x] `ionic.config.json` - Configurado
 - [x] `.gitignore` - Arquivos iOS excluídos
@@ -72,7 +72,7 @@ Use este checklist para garantir que tudo está pronto antes de submeter o app Y
 - [ ] Preencher:
   - Platform: iOS
   - Name: YO
-  - Bundle ID: com.yoapp.mobile
+  - Bundle ID: com.fernandafaria.yoappsocial
   - SKU: YO-APP-001
 
 ### App Information

@@ -44,7 +44,7 @@ workflows:
       
       - name: Fetch signing files
         script: |
-          app-store-connect fetch-signing-files "com.yoapp.mobile" \
+          app-store-connect fetch-signing-files "com.fernandafaria.yoappsocial" \
             --type IOS_APP_STORE \
             --create
       
