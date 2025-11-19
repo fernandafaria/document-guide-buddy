@@ -15,7 +15,7 @@ workflows:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
       node: 18
-      xcode: 14.3
+      xcode: latest
       cocoapods: default
     triggering:
       events:
@@ -98,7 +98,7 @@ workflows:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
       node: 18
-      xcode: 14.3
+      xcode: latest
       cocoapods: default
     triggering:
       events:

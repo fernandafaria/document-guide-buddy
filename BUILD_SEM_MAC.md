@@ -39,8 +39,8 @@ Como você não tem acesso a um Mac com Xcode, existem várias alternativas para
 - 500 minutos grátis por mês
 - Configuração via YAML (incluída: `codemagic.yaml`)
 - Site: https://codemagic.io
-- **Nota**: O projeto usa Xcode 14.3 (versão LTS estável)
-- Para verificar versões disponíveis: https://docs.codemagic.io/specs/versions-macos/
+- **Nota**: O projeto usa `xcode: latest` para sempre usar a versão mais recente disponível
+- Para versões específicas, consulte: https://docs.codemagic.io/specs/versions-macos/
 
 ### Bitrise
 - 200 builds grátis por mês
