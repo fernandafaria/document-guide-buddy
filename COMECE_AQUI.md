@@ -1,4 +1,13 @@
-# 🎯 COMECE AQUI - Publicar YO na App Store
+# 🎯 COMECE AQUI - Publicar YO na App Store (SEM Mac)
+
+## ⚠️ VOCÊ NÃO PRECISA DE Mac OU Xcode!
+
+Todas as soluções fazem build **100% na nuvem**. Funciona em:
+- ✅ Windows
+- ✅ Linux  
+- ✅ Mac (se tiver)
+
+---
 
 ## ✅ O que já está pronto
 
@@ -51,6 +60,8 @@ Depois do primeiro build, se precisar de mais:
 
 | Arquivo | Quando Usar | Tempo |
 |---------|-------------|-------|
+| **[SEM_MAC_GUIA.md](./SEM_MAC_GUIA.md)** | 🪟 Não tem Mac? Leia PRIMEIRO | 10 min |
+| **[ALTERNATIVAS_SIMPLES.md](./ALTERNATIVAS_SIMPLES.md)** | 🔄 Alternativas ao Appflow | 10 min |
 | **[SOLUCAO_ESCOLHIDA.md](./SOLUCAO_ESCOLHIDA.md)** | 📖 Entender a solução | 5 min |
 | **[APPFLOW_QUICKSTART.md](./APPFLOW_QUICKSTART.md)** | 🚀 Fazer o build | 45 min |
 | **[CHECKLIST_SUBMISSAO.md](./CHECKLIST_SUBMISSAO.md)** | ✅ Submeter App Store | 2-3h |
@@ -62,7 +73,10 @@ Depois do primeiro build, se precisar de mais:
 ## ❓ Perguntas Frequentes
 
 **Q: Preciso de Mac ou Xcode?**  
-A: NÃO! O build é feito na nuvem pelo Ionic Appflow.
+A: **NÃO!** O build é feito 100% na nuvem. ➡️ Leia [SEM_MAC_GUIA.md](./SEM_MAC_GUIA.md)
+
+**Q: Qual a solução mais simples?**  
+A: **Codemagic** - Interface visual, 500 min grátis. ➡️ Leia [ALTERNATIVAS_SIMPLES.md](./ALTERNATIVAS_SIMPLES.md)
 
 **Q: Quanto tempo até publicar?**  
 A: ~1 dia (setup 30min + build 15min + App Store 2-3h + review 24-72h)
@@ -71,7 +85,7 @@ A: ~1 dia (setup 30min + build 15min + App Store 2-3h + review 24-72h)
 A: $99/ano (Apple Developer). Primeiro build é grátis.
 
 **Q: E se eu quiser usar outra ferramenta?**  
-A: Veja [BUILD_SEM_MAC.md](./BUILD_SEM_MAC.md) para Codemagic e Bitrise.
+A: Veja [ALTERNATIVAS_SIMPLES.md](./ALTERNATIVAS_SIMPLES.md) para Codemagic, EAS Build e Bitrise.
 
 **Q: Preciso programar?**  
 A: NÃO! Apenas seguir os guias passo a passo.
