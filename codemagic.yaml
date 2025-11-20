@@ -1,5 +1,22 @@
 # Codemagic configuration file for YO App
 # Documentation: https://docs.codemagic.io/yaml/yaml-getting-started/
+#
+# PREREQUISITOS para ios-release workflow:
+# 1. Configurar variáveis de ambiente no Codemagic UI em "Environment variables":
+#    Grupo: app_store_credentials
+#    - APP_STORE_CONNECT_PRIVATE_KEY (chave privada .p8 da App Store Connect API)
+#    - APP_STORE_CONNECT_KEY_IDENTIFIER (Key ID)
+#    - APP_STORE_CONNECT_ISSUER_ID (Issuer ID)
+#    Obtenha em: https://appstoreconnect.apple.com/access/api
+#
+# 2. Criar certificados iOS manualmente:
+#    - Acesse Apple Developer Portal: https://developer.apple.com/account/resources/certificates/list
+#    - Crie um certificado "iOS Distribution" 
+#    - Registre o Bundle ID: com.fernandafaria.yoappsocial
+#    - Crie um Provisioning Profile para App Store
+#    - Faça upload do certificado (.p12) e provisioning profile no Codemagic UI
+#
+# Para builds de teste sem assinatura, use o workflow "ios-debug"
 
 workflows:
   ios-release:
@@ -44,9 +61,10 @@ workflows:
       
       - name: Fetch signing files
         script: |
+          # Remove --create se você já tem certificados criados manualmente
+          # ou se não tem permissão Account Holder/Admin no Apple Developer
           app-store-connect fetch-signing-files "com.fernandafaria.yoappsocial" \
-            --type IOS_APP_STORE \
-            --create
+            --type IOS_APP_STORE
       
       - name: Set up signing certificate
         script: |
