@@ -1,188 +1,38 @@
-# Codemagic configuration file for YO App
-# Documentation: https://docs.codemagic.io/yaml/yaml-getting-started/
-#
-# PREREQUISITOS para ios-release workflow:
-# 1. Configurar variáveis de ambiente no Codemagic UI em "Environment variables":
-#    Grupo: app_store_credentials
-#    - APP_STORE_CONNECT_PRIVATE_KEY (chave privada .p8 da App Store Connect API)
-#    - APP_STORE_CONNECT_KEY_IDENTIFIER (Key ID)
-#    - APP_STORE_CONNECT_ISSUER_ID (Issuer ID)
-#    Obtenha em: https://appstoreconnect.apple.com/access/api
-#
-# 2. Criar certificados iOS manualmente:
-#    - Acesse Apple Developer Portal: https://developer.apple.com/account/resources/certificates/list
-#    - Crie um certificado "iOS Distribution" 
-#    - Registre o Bundle ID: com.fernandafaria.yoappsocial
-#    - Crie um Provisioning Profile para App Store
-#    - Faça upload do certificado (.p12) e provisioning profile no Codemagic UI
-#
-# Para builds de teste sem assinatura, use o workflow "ios-debug"
-
 workflows:
-  ios-release:
-    name: iOS Release Build
+  ios-development:
+    name: YoApp Social - Development Build
     instance_type: mac_mini_m1
     max_build_duration: 60
     environment:
-      groups:
-        # Adicione suas variáveis de ambiente no Codemagic UI
-        - app_store_credentials
-        - app_secrets
-      vars:
-        # Xcode project configuration
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
-        XCODE_SCHEME: "App"
-
-        # iOS Bundle Identifier - Set this in Codemagic UI environment variables
-        # BUNDLE_ID: "com.yoapp.mobile"
-
-        # App Store Connect API Key credentials - Set these in Codemagic UI
-        # APP_STORE_KEY_ID: "YOUR_KEY_ID"
-        # APP_STORE_PRIVATE_KEY_B64: "YOUR_BASE64_ENCODED_PRIVATE_KEY"
-      node: 20
+      node: 18.17.0
       xcode: latest
       cocoapods: default
-    triggering:
-      events:
-        - push
-      branch_patterns:
-        - pattern: 'main'
-          include: true
-          source: true
-      cancel_previous_builds: true
+      vars:
+        BUNDLE_ID: "com.fernandafaria.yoappsocial"
+        TEAM_ID: "CL333T73L8"
     scripts:
-      - name: Update iOS bundle identifier
-        script: |
-          # Update bundle identifier if BUNDLE_ID environment variable is set
-          if [ -n "$BUNDLE_ID" ]; then
-            echo "Updating iOS bundle identifier to: $BUNDLE_ID"
-            ./scripts/update_bundle_id_ios.sh "$BUNDLE_ID"
-          else
-            echo "BUNDLE_ID not set, skipping bundle identifier update"
-          fi
-
-      - name: Decode App Store Connect private key
-        script: |
-          # Decode App Store Connect API private key from base64
-          if [ -n "$APP_STORE_KEY_ID" ] && [ -n "$APP_STORE_PRIVATE_KEY_B64" ]; then
-            echo "Decoding App Store Connect private key..."
-            ./scripts/decode_appstore_key.sh "$APP_STORE_KEY_ID" "$APP_STORE_PRIVATE_KEY_B64"
-          else
-            echo "APP_STORE_KEY_ID or APP_STORE_PRIVATE_KEY_B64 not set, skipping key decode"
-          fi
-
       - name: Install npm dependencies
         script: |
-          npm install
-
-      - name: Build web application
-        script: |
-          npm run build
-
-      - name: Update Capacitor iOS
-        script: |
-          npx cap sync ios
-
-      - name: Set up keychain
-        script: |
-          keychain initialize
-
-      - name: Fetch signing files
-        script: |
-          # Remove --create se você já tem certificados criados manualmente
-          # ou se não tem permissão Account Holder/Admin no Apple Developer
-          app-store-connect fetch-signing-files "com.fernandafaria.yoappsocial" \
-            --type IOS_APP_STORE
+          npm ci --prefer-offline --no-audit
       
-          # Fetch signing files from App Store Connect
-          # This uses the decoded private key from /tmp/AuthKey_${APP_STORE_KEY_ID}.p8
-          # Example: app-store-connect fetch-signing-files
-          app-store-connect fetch-signing-files "com.yoapp.mobile" \
-            --type IOS_APP_STORE \
-            --create
-
-      - name: Set up signing certificate
+      - name: Install CocoaPods
         script: |
-          keychain add-certificates
-
-      - name: Update project settings
+          cd ios && pod install --repo-update
+      
+      - name: Build iOS Simulator
         script: |
-          xcode-project use-profiles
-
-      - name: Build iOS app
-        script: |
-          # Build and archive iOS app
-          # Replace this with your actual build commands
-          # Example using xcode-project:
-          xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
-            --scheme "$XCODE_SCHEME"
-
-    artifacts:
-      - build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
-
-    publishing:
-      email:
-        recipients:
-          - seu-email@exemplo.com
-        notify:
-          success: true
-          failure: true
-
-      app_store_connect:
-        # Configurar no Codemagic UI:
-        # - App Store Connect API key
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-
-        # Submit para TestFlight
-        submit_to_testflight: true
-
-        # Opcional: Submit para App Store Review
-        # submit_to_app_store: true
-
-  ios-debug:
-    name: iOS Debug Build
-    instance_type: mac_mini_m1
-    max_build_duration: 30
-    environment:
-      groups:
-        - app_secrets
-      vars:
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
-        XCODE_SCHEME: "App"
-      node: 20
-      xcode: latest
-      cocoapods: default
-    triggering:
-      events:
-        - pull_request
-      cancel_previous_builds: true
-    scripts:
-      - name: Install dependencies
-        script: npm install
-
-      - name: Build web
-        script: npm run build
-
-      - name: Sync Capacitor
-        script: npx cap sync ios
-
-      - name: Run lint
-        script: npm run lint
-
-      - name: Build iOS (debug)
-        script: |
-          xcodebuild \
-            -workspace "$XCODE_WORKSPACE" \
-            -scheme "$XCODE_SCHEME" \
+          cd ios
+          # Build para simulador sem assinatura
+          xcodebuild -workspace *.xcworkspace \
+            -scheme "*" \
             -configuration Debug \
             -sdk iphonesimulator \
-            CODE_SIGN_IDENTITY="" \
+            -derivedDataPath build \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
-
-    artifacts:
-      - /tmp/xcodebuild_logs/*.log
+            
+      - name: Build iOS Device (Unsigned)
+        script: |
+          cd ios
+          # Build sem assinatura para teste
+
