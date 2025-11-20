@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.yoapp.mobile',
+  appId: 'com.fernandafaria.yoappsocial',
   appName: 'YO',
   webDir: 'dist'
 };

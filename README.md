@@ -110,7 +110,7 @@ Este projeto suporta builds iOS na nuvem usando:
 
 ### Status de Preparação
 
-- ✅ App ID válido para iOS: `com.yoapp.mobile`
+- ✅ App ID válido para iOS: `com.fernandafaria.yoappsocial`
 - ✅ Versão 1.0.0 configurada
 - ✅ Plataforma iOS adicionada
 - ✅ Permissões iOS configuradas (Location, Camera, Photos)

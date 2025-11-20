@@ -22,7 +22,7 @@ This will create the complete `ios/` directory structure including:
 ## What's Already Configured
 
 The following files are already configured and ready:
-- ✅ `capacitor.config.ts` - App ID: `com.yoapp.mobile`
+- ✅ `capacitor.config.ts` - App ID: `com.fernandafaria.yoappsocial`
 - ✅ `ionic.config.json` - Ionic integration
 - ✅ `package.json` - iOS build scripts
 - ✅ `.gitignore` - iOS-specific ignores
