@@ -1,0 +1,122 @@
+name: Build iOS App
+
+on:
+  push:
+    branches:
+      - main
+      - 'devin/*'
+    paths:
+      - 'ios/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - '.github/workflows/build-ios.yml'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build iOS App
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync Capacitor
+        run: npx cap sync ios
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Build iOS App (Debug - No Signing)
+        working-directory: ios/App
+        run: |
+          xcodebuild -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: yo-app-ios-debug
+          path: ios/App/build/Build/Products/Debug-iphonesimulator/
+          retention-days: 30
+
+  # Release build requires signing certificates
+  # Uncomment and configure when you have Apple Developer credentials
+  # build-release:
+  #   name: Build iOS Release
+  #   runs-on: macos-latest
+  #   needs: build
+  #   if: github.ref == 'refs/heads/main'
+  #   
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20'
+  #         cache: 'npm'
+  #
+  #     - name: Install dependencies
+  #       run: npm ci
+  #
+  #     - name: Sync Capacitor
+  #       run: npx cap sync ios
+  #
+  #     - name: Import Code Signing Certificates
+  #       uses: apple-actions/import-codesign-certs@v2
+  #       with:
+  #         p12-file-base64: ${{ secrets.IOS_DISTRIBUTION_CERT_P12 }}
+  #         p12-password: ${{ secrets.IOS_DISTRIBUTION_CERT_PASSWORD }}
+  #
+  #     - name: Import Provisioning Profile
+  #       uses: apple-actions/download-provisioning-profiles@v1
+  #       with:
+  #         bundle-id: app.yo.mobile
+  #         issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+  #         api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+  #         api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+  #
+  #     - name: Build and Archive
+  #       working-directory: ios/App
+  #       run: |
+  #         xcodebuild -workspace App.xcworkspace \
+  #           -scheme App \
+  #           -configuration Release \
+  #           -archivePath build/App.xcarchive \
+  #           archive
+  #
+  #     - name: Export IPA
+  #       working-directory: ios/App
+  #       run: |
+  #         xcodebuild -exportArchive \
+  #           -archivePath build/App.xcarchive \
+  #           -exportPath build/export \
+  #           -exportOptionsPlist ExportOptions.plist
+  #
+  #     - name: Upload IPA
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: yo-app-ios-release
+  #         path: ios/App/build/export/*.ipa
+  #         retention-days: 30
