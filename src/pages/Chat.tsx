@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getPhotoUrl } from "@/lib/utils";
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -65,14 +66,6 @@ const Chat = () => {
   const receiverId = currentMatch.user1_id === user?.id 
     ? currentMatch.user2_id 
     : currentMatch.user1_id;
-
-  const getPhotoUrl = (photoPath: string) => {
-    if (!photoPath) return "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
-    // If already a full URL, return as is. Otherwise, build public URL from storage.
-    if (/^https?:\/\//i.test(photoPath)) return photoPath;
-    const { data } = supabase.storage.from("profile-photos").getPublicUrl(photoPath);
-    return data.publicUrl;
-  };
 
   const handleSend = async () => {
     if (!message.trim() || !matchId || !receiverId) return;

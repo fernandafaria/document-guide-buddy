@@ -7,10 +7,10 @@ import { Filter, X, Heart } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useDiscovery, DiscoveryFilters } from "@/hooks/useDiscovery";
-import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FilterState } from "@/pages/Filters";
+import { getPhotoUrl } from "@/lib/utils";
 
 const Discovery = () => {
   const navigate = useNavigate();
@@ -37,19 +37,6 @@ const Discovery = () => {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state]);
-
-  const getPhotoUrl = (photoPath: string) => {
-    if (!photoPath) return "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
-    
-    // Se já for uma URL completa, retorna direto
-    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
-      return photoPath;
-    }
-    
-    // Caso contrário, gera a URL pública do storage
-    const { data } = supabase.storage.from("profile-photos").getPublicUrl(photoPath);
-    return data.publicUrl;
-  };
 
   const getTimeRemaining = (expiresAt: string) => {
     const now = new Date();

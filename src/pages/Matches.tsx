@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState, useEffect } from "react";
+import { getPhotoUrl } from "@/lib/utils";
 
 const Matches = () => {
   const navigate = useNavigate();
@@ -29,14 +30,6 @@ const Matches = () => {
     };
     fetchMyProfile();
   }, [user]);
-
-  const getPhotoUrl = (photoPath: string) => {
-    if (!photoPath) return "https://api.dicebear.com/7.x/avataaars/svg?seed=User";
-    // If already a full URL, return as is. Otherwise, build public URL from storage.
-    if (/^https?:\/\//i.test(photoPath)) return photoPath;
-    const { data } = supabase.storage.from("profile-photos").getPublicUrl(photoPath);
-    return data.publicUrl;
-  };
 
   const formatTime = (date: string) => {
     return formatDistanceToNow(new Date(date), { addSuffix: true, locale: ptBR });
