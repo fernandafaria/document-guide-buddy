@@ -1,0 +1,34 @@
+{
+  "name": "yo-app-mobile",
+  "version": "1.0.0",
+  "description": "YO! - Mobile app for iOS and Android. Connect with people nearby at events, bars and locations.",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'No build step needed - using remote URL'",
+    "cap:add:ios": "npx cap add ios",
+    "cap:add:android": "npx cap add android",
+    "cap:sync": "npx cap sync",
+    "cap:open:ios": "npx cap open ios",
+    "cap:open:android": "npx cap open android",
+    "cap:run:ios": "npx cap run ios",
+    "cap:run:android": "npx cap run android",
+    "ios": "npm run cap:sync && npm run cap:open:ios",
+    "android": "npm run cap:sync && npm run cap:open:android"
+  },
+  "keywords": ["capacitor", "ios", "android", "mobile", "social", "location"],
+  "author": "YO! Team",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/camera": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/geolocation": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "@capacitor/push-notifications": "^8.0.0",
+    "@capacitor/splash-screen": "^8.0.0",
+    "@capacitor/status-bar": "^8.0.0"
+  }
+}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#FF5722">
+  <title>YO!</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .logo {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 64px;
+      font-weight: 700;
+      color: #FF5722;
+      margin-bottom: 20px;
+    }
+    .loading {
+      color: #6B7280;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #F3F4F6;
+      border-top-color: #FF5722;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .offline-message {
+      display: none;
+      text-align: center;
+      color: #6B7280;
+      margin-top: 20px;
+    }
+    .offline .offline-message {
+      display: block;
+    }
+    .offline .loading,
+    .offline .spinner {
+      display: none;
+    }
+    .retry-btn {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background-color: #FF5722;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .retry-btn:active {
+      transform: scale(0.95);
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="logo">Yo!</div>
+  <p class="loading">Carregando...</p>
+  <div class="spinner"></div>
+  <div class="offline-message">
+    <p>Sem conexao com a internet</p>
+    <button class="retry-btn" onclick="location.reload()">Tentar novamente</button>
+  </div>
+  <script>
+    if (!navigator.onLine) {
+      document.body.classList.add('offline');
+    }
+    window.addEventListener('offline', () => {
+      document.body.classList.add('offline');
+    });
+    window.addEventListener('online', () => {
+      document.body.classList.remove('offline');
+      location.reload();
+    });
+    setTimeout(() => {
+      if (navigator.onLine) {
+        window.location.href = 'https://document-guide-buddy.lovable.app';
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

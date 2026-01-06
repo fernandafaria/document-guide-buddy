@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+
+# iOS
+ios/App/Pods/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcuserstate
+*.xcuserdatad
+*.xcscmblueprint
+*.xccheckout
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/*.iml
+android/.idea/
+*.apk
+*.aab
+
+# Capacitor
+.capacitor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Keystore (keep these secure and out of version control!)
+*.keystore
+*.jks
+release-key.*
