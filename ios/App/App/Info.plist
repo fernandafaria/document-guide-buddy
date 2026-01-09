@@ -45,5 +45,17 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+
+	<!-- Privacy Usage Descriptions (Required for App Store) -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>YO precisa da sua localização para mostrar lugares próximos e permitir check-ins.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>YO precisa da sua localização para mostrar lugares próximos e permitir check-ins.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>YO precisa acessar sua câmera para tirar fotos do perfil.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>YO precisa acessar suas fotos para você escolher uma foto de perfil.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>YO precisa salvar fotos na sua biblioteca.</string>
 </dict>
 </plist>
