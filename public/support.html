@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suporte - YO App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9fafb;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        h1 {
+            color: #111827;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+        h2 {
+            color: #1f2937;
+            font-size: 1.4rem;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        .faq-item {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .faq-question {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        .faq-answer {
+            color: #4b5563;
+        }
+        .contact-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .contact-card h2 {
+            color: white;
+            margin-top: 0;
+        }
+        .contact-card a {
+            color: white;
+            font-size: 1.2rem;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 25px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 25px;
+        }
+        .contact-card a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .links {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        .links a {
+            color: #2563eb;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid #2563eb;
+            border-radius: 8px;
+        }
+        .links a:hover {
+            background: #2563eb;
+            color: white;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Central de Suporte</h1>
+            <p class="subtitle">YO App - Estamos aqui para ajudar!</p>
+        </header>
+
+        <main>
+            <div class="contact-card">
+                <h2>Precisa de Ajuda?</h2>
+                <p>Nossa equipe esta pronta para responder suas duvidas</p>
+                <a href="mailto:fernandafaria@gmail.com">fernandafaria@gmail.com</a>
+            </div>
+
+            <h2>Perguntas Frequentes (FAQ)</h2>
+
+            <div class="faq-item">
+                <p class="faq-question">Como faco check-in em um local?</p>
+                <p class="faq-answer">Abra o mapa no app, localize o estabelecimento desejado e toque nele. Em seguida, toque no botao "Check-in" para confirmar sua presenca no local.</p>
+            </div>
+
+            <div class="faq-item">
+                <p class="faq-question">Como funciona o sistema de matches?</p>
+                <p class="faq-answer">Quando voce da "YO" em alguem e essa pessoa tambem da "YO" em voce, voces fazem um match! A partir dai, podem iniciar uma conversa pelo chat.</p>
+            </div>
+
+            <div class="faq-item">
+                <p class="faq-question">Minha localizacao fica sempre visivel?</p>
+                <p class="faq-answer">Nao! Sua localizacao so e compartilhada quando voce faz check-in em um local. Voce pode fazer checkout a qualquer momento para deixar de aparecer no mapa.</p>
+            </div>
+
+            <div class="faq-item">
+                <p class="faq-question">Como altero meu perfil?</p>
+                <p class="faq-answer">Acesse a aba "Perfil" no menu inferior do app. Toque no icone de edicao para alterar suas fotos, nome, biografia e outras informacoes.</p>
+            </div>
+
+            <div class="faq-item">
+                <p class="faq-question">Como denuncio um usuario?</p>
+                <p class="faq-answer">No perfil do usuario, toque no icone de tres pontos e selecione "Denunciar". Descreva o problema e nossa equipe analisara o caso.</p>
+            </div>
+
+            <div class="faq-item">
+                <p class="faq-question">Como excluo minha conta?</p>
+                <p class="faq-answer">Acesse Perfil > Configuracoes > Conta > Excluir conta. Lembre-se que essa acao e irreversivel e todos os seus dados serao apagados.</p>
+            </div>
+
+            <div class="faq-item">
+                <p class="faq-question">O app e gratuito?</p>
+                <p class="faq-answer">Sim! O YO e totalmente gratuito para download e uso. Todas as funcionalidades principais estao disponiveis sem custo.</p>
+            </div>
+
+            <div class="faq-item">
+                <p class="faq-question">Qual a idade minima para usar o app?</p>
+                <p class="faq-answer">O YO e destinado exclusivamente para maiores de 18 anos.</p>
+            </div>
+
+            <h2>Outras Informacoes</h2>
+
+            <div class="links">
+                <a href="privacy-policy.html">Politica de Privacidade</a>
+                <a href="terms-of-service.html">Termos de Servico</a>
+            </div>
+
+        </main>
+
+        <footer>
+            <p>&copy; 2026 YO App. Todos os direitos reservados.</p>
+            <p>Versao 1.0.0</p>
+        </footer>
+    </div>
+</body>
+</html>
