@@ -33,8 +33,7 @@ workflows:
           app-store-connect fetch-signing-files \
             "$BUNDLE_ID" \
             --type IOS_APP_STORE \
-            --create \
-            --team-id "$TEAM_ID"
+            --create
       - name: Set up code signing
         script: |
           xcode-project use-profiles --team-id "$TEAM_ID"
