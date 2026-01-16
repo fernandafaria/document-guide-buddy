@@ -9,6 +9,7 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.produtize.yoappsocial
+        certificate: Produtize4
       node: 20.10.0
       xcode: latest
       cocoapods: default
@@ -28,21 +29,19 @@ workflows:
       - name: Install CocoaPods
         script: |
           cd ios/App && pod install --repo-update
-      - name: Fetch signing files
-        script: |
-          app-store-connect fetch-signing-files \
-            "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --create
       - name: Set up code signing
         script: |
-          xcode-project use-profiles --team-id "$TEAM_ID"
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
       - name: Build IPA
         script: |
           xcode-project build-ipa \
             --workspace "ios/App/App.xcworkspace" \
-            --scheme "App" \
-            --team-id "$TEAM_ID"
+            --scheme "App"
     artifacts:
       - build/ios/ipa/*.ipa
       - ios/App/build/*.ipa
