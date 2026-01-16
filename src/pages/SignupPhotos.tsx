@@ -130,13 +130,17 @@ const SignupPhotos = () => {
         return;
       }
 
-      // Tenta criar a conta; se já existir, faz login automaticamente
-      const { data: signUpData, error: signUpError } = await signUp(email, password, {
-        name,
-        age,
-        gender,
-        intentions,
-      });
+      // Tenta criar a conta com timeout de 30 segundos
+      const { data: signUpData, error: signUpError } = await withTimeout(
+        signUp(email, password, {
+          name,
+          age,
+          gender,
+          intentions,
+        }),
+        30000,
+        'Tempo limite excedido ao criar conta. Verifique sua conexão.'
+      );
 
       let authUser = signUpData?.user || null;
 
@@ -144,7 +148,12 @@ const SignupPhotos = () => {
         const msg = String(signUpError.message || "").toLowerCase();
         if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
           toast({ title: "Conta já existe", description: "Entrando com suas credenciais..." });
-          const { data: signInData, error: signInError } = await signIn(email, password);
+          // SignIn também com timeout de 30 segundos
+          const { data: signInData, error: signInError } = await withTimeout(
+            signIn(email, password),
+            30000,
+            'Tempo limite excedido ao entrar. Verifique sua conexão.'
+          );
           if (signInError) {
             throw new Error(`Não foi possível entrar: ${signInError.message}`);
           }
@@ -216,9 +225,9 @@ const SignupPhotos = () => {
         });
       }
 
-      // Upsert do perfil (com normalização de gênero)
+      // Upsert do perfil com timeout de 30 segundos
       const normalizedGender = normalizeGender(gender);
-      const { error: profileError } = await supabase
+      const profileUpsertPromise = supabase
         .from('profiles')
         .upsert({
           id: authUser.id,
@@ -238,6 +247,12 @@ const SignupPhotos = () => {
           musical_styles: musical_styles || [],
           about_me: about_me || null,
         });
+
+      const { error: profileError } = await withTimeout(
+        profileUpsertPromise,
+        30000,
+        'Tempo limite excedido ao salvar perfil. Verifique sua conexão.'
+      );
 
       if (profileError) {
         console.error("Error upserting profile:", profileError);
