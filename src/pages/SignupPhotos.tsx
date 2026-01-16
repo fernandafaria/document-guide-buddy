@@ -6,12 +6,40 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Camera, X, ArrowLeft } from "lucide-react";
 
+interface PhotoItem {
+  file: File;
+  preview: string;
+}
+
+// Helper function to convert DataURL to Blob efficiently (without fetch)
+const dataURLtoBlob = (dataURL: string): Blob => {
+  const arr = dataURL.split(',');
+  const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+};
+
+// Helper function to add timeout to promises
+const withTimeout = <T,>(promise: Promise<T>, ms: number, errorMsg: string): Promise<T> => {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(errorMsg)), ms)
+    )
+  ]);
+};
+
 const SignupPhotos = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const { signUp, signIn } = useAuth();
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   const userData = location.state || {};
@@ -32,7 +60,7 @@ const SignupPhotos = () => {
     const file = files[0];
     const reader = new FileReader();
     reader.onloadend = () => {
-      setPhotos([...photos, reader.result as string]);
+      setPhotos([...photos, { file, preview: reader.result as string }]);
     };
     reader.readAsDataURL(file);
   };
@@ -130,26 +158,63 @@ const SignupPhotos = () => {
         throw new Error("Erro ao autenticar usuário");
       }
 
-      // Upload das fotos em paralelo para ser mais rápido
-      const uploadPromises = photos.map(async (photo, i) => {
+      // Upload das fotos em paralelo com timeout e melhor tratamento de erros
+      const uploadErrors: string[] = [];
+      const uploadPromises = photos.map(async (photoItem, i) => {
         const fileName = `${authUser.id}/photo-${i}-${Date.now()}.jpg`;
-        const blob = await fetch(photo).then(res => res.blob());
-        const { error: uploadError } = await supabase.storage
-          .from('profile-photos')
-          .upload(fileName, blob);
 
-        if (uploadError) {
-          console.error("Error uploading photo:", uploadError);
+        // Use the original File object directly for better performance
+        // Fall back to converting DataURL to Blob if File is not available
+        const uploadData = photoItem.file || dataURLtoBlob(photoItem.preview);
+
+        try {
+          const uploadPromise = supabase.storage
+            .from('profile-photos')
+            .upload(fileName, uploadData);
+
+          // Add 30 second timeout for each upload
+          const { error: uploadError } = await withTimeout(
+            uploadPromise,
+            30000,
+            `Upload da foto ${i + 1} excedeu o tempo limite`
+          );
+
+          if (uploadError) {
+            console.error(`Error uploading photo ${i + 1}:`, uploadError);
+            uploadErrors.push(`Foto ${i + 1}: ${uploadError.message}`);
+            return null;
+          }
+
+          const { data: urlData } = supabase.storage
+            .from('profile-photos')
+            .getPublicUrl(fileName);
+          return urlData.publicUrl;
+        } catch (error: any) {
+          console.error(`Error uploading photo ${i + 1}:`, error);
+          uploadErrors.push(`Foto ${i + 1}: ${error.message || 'Erro desconhecido'}`);
           return null;
         }
-        
-        const { data: urlData } = supabase.storage
-          .from('profile-photos')
-          .getPublicUrl(fileName);
-        return urlData.publicUrl;
       });
 
       const uploadedPhotoUrls = (await Promise.all(uploadPromises)).filter(url => url !== null) as string[];
+
+      // Validate that at least one photo was uploaded successfully
+      if (uploadedPhotoUrls.length === 0) {
+        throw new Error(
+          uploadErrors.length > 0
+            ? `Nenhuma foto foi enviada. Erros: ${uploadErrors.join('; ')}`
+            : 'Nenhuma foto foi enviada. Verifique sua conexão e tente novamente.'
+        );
+      }
+
+      // Warn user if some photos failed but at least one succeeded
+      if (uploadErrors.length > 0 && uploadedPhotoUrls.length > 0) {
+        toast({
+          title: "Algumas fotos não foram enviadas",
+          description: `${uploadedPhotoUrls.length} de ${photos.length} fotos foram enviadas com sucesso.`,
+          variant: "destructive",
+        });
+      }
 
       // Upsert do perfil (com normalização de gênero)
       const normalizedGender = normalizeGender(gender);
@@ -234,7 +299,7 @@ const SignupPhotos = () => {
             {photos[index] ? (
               <div className="relative aspect-square rounded-xl overflow-hidden">
                 <img
-                  src={photos[index]}
+                  src={photos[index].preview}
                   alt={`Photo ${index + 1}`}
                   className="w-full h-full object-cover"
                 />
