@@ -38,9 +38,12 @@ workflows:
           xcode-project use-profiles
       - name: Build IPA
         script: |
+          set -x
           xcode-project build-ipa \
             --workspace "ios/App/App.xcworkspace" \
-            --scheme "App"
+            --scheme "App" \
+            --archive-flags="-verbose" \
+            2>&1 | tee build_output.log || (cat /tmp/xcodebuild_logs/*.log && exit 1)
     artifacts:
       - build/ios/ipa/*.ipa
       - ios/App/build/*.ipa
