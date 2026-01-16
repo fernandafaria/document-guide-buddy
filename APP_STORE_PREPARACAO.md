@@ -5,7 +5,7 @@ Este documento contém todos os passos necessários para preparar e publicar o a
 ## ✅ Status Atual
 
 ### Configurações Concluídas
-- [x] App ID corrigido para formato válido iOS: `com.fernandafaria.yoappsocial`
+- [x] App ID corrigido para formato válido iOS: `com.produtize.yoappsocial`
 - [x] Nome do app configurado: `YO`
 - [x] Versão do app atualizada: `1.0.0`
 - [x] Plataforma iOS adicionada ao projeto
@@ -32,7 +32,7 @@ ionic link
 1. **Criar o App**
    - Acesse: https://appstoreconnect.apple.com
    - My Apps → "+" → "New App"
-   - Bundle ID: `com.fernandafaria.yoappsocial`
+   - Bundle ID: `com.produtize.yoappsocial`
 
 2. **Preencher Informações**
    - Nome: YO
