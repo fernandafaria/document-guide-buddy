@@ -19,9 +19,15 @@ workflows:
       - name: Install npm dependencies
         script: |
           npm ci --prefer-offline --no-audit
+      - name: Build web app
+        script: |
+          npm run build
+      - name: Sync Capacitor iOS
+        script: |
+          npx cap sync ios
       - name: Install CocoaPods
         script: |
-          cd ios && pod install --repo-update
+          cd ios/App && pod install --repo-update
       - name: Fetch signing files
         script: |
           app-store-connect fetch-signing-files \
@@ -34,13 +40,13 @@ workflows:
           xcode-project use-profiles --team-id "$TEAM_ID"
       - name: Build IPA
         script: |
-          cd ios
           xcode-project build-ipa \
-            --workspace "*.xcworkspace" \
-            --scheme "*" \
+            --workspace "ios/App/App.xcworkspace" \
+            --scheme "App" \
             --team-id "$TEAM_ID"
     artifacts:
       - build/ios/ipa/*.ipa
+      - ios/App/build/*.ipa
       - /tmp/xcodebuild_logs/*.log
     publishing:
       email:
@@ -52,5 +58,3 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        beta_groups:
-          - group_name: "Internal Testing"
