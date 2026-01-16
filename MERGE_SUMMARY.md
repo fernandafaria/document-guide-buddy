@@ -14,7 +14,7 @@ Successfully merged iOS App Store preparation work from PR #1 (`copilot/prepare-
    - Android patterns for future use
 
 2. **`capacitor.config.ts`** - Production-ready configuration
-   - Changed App ID: `app.lovable.*` → `com.fernandafaria.yoappsocial`
+   - Changed App ID: `app.lovable.*` → `com.produtize.yoappsocial`
    - Removed development server configuration
    - Clean production setup
 
@@ -116,7 +116,7 @@ The `ios/` directory with Xcode project files was not included in this merge bec
 
 ### After (merged)
 - Professional app name: "YO"
-- Production App ID: `com.fernandafaria.yoappsocial`
+- Production App ID: `com.produtize.yoappsocial`
 - Comprehensive iOS documentation (Portuguese)
 - Version 1.0.0
 - Complete iOS development workflow
@@ -154,7 +154,7 @@ The `ios/` directory with Xcode project files was not included in this merge bec
 
 ```bash
 # Verify configuration
-cat capacitor.config.ts  # Should show com.fernandafaria.yoappsocial
+cat capacitor.config.ts  # Should show com.produtize.yoappsocial
 cat package.json  # Should show version 1.0.0 and iOS scripts
 cat ionic.config.json  # Should exist
 

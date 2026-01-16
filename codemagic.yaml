@@ -8,12 +8,12 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.fernandafaria.yoappsocial
+        bundle_identifier: com.produtize.yoappsocial
       node: 18.17.0
       xcode: latest
       cocoapods: default
       vars:
-        BUNDLE_ID: "com.fernandafaria.yoappsocial"
+        BUNDLE_ID: "com.produtize.yoappsocial"
         TEAM_ID: "CL333T73L8"
     scripts:
       - name: Install npm dependencies
