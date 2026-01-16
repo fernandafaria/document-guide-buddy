@@ -9,7 +9,6 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.produtize.yoappsocial
-        certificate: Produtize4
       node: 20.10.0
       xcode: latest
       cocoapods: default
