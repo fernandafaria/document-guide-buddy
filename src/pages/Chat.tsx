@@ -22,11 +22,16 @@ const Chat = () => {
   useEffect(() => {
     const fetchMyProfile = async () => {
       if (!user) return;
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("gender")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching my profile:", error);
+        return;
+      }
       setMyGender(data?.gender || "");
     };
     fetchMyProfile();
