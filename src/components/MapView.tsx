@@ -40,6 +40,7 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
   const [sheetOpen, setSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [apiInitialized, setApiInitialized] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const defaultCenter: google.maps.LatLngLiteral = useMemo(() => 
@@ -58,17 +59,15 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
         const { data, error } = await supabase.functions.invoke('get-google-maps-key');
         
         if (error) {
-          toast({
-            title: "Erro ao carregar mapa",
-            description: "Não foi possível obter a chave da API",
-            variant: "destructive"
-          });
+          console.error('Error getting API key:', error);
+          setApiError("Não foi possível obter a chave da API do Google Maps");
           setIsLoading(false);
           return;
         }
 
         const apiKey = data?.apiKey;
         if (!apiKey) {
+          setApiError("Chave da API do Google Maps não configurada");
           setIsLoading(false);
           return;
         }
@@ -80,11 +79,8 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
 
         setApiInitialized(true);
       } catch (error) {
-        toast({
-          title: "Erro ao carregar mapa",
-          description: "Ocorreu um erro ao inicializar o Google Maps",
-          variant: "destructive"
-        });
+        console.error('Error initializing API:', error);
+        setApiError("Erro ao inicializar o Google Maps");
         setIsLoading(false);
       }
     };
@@ -390,11 +386,19 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
 
   return (
     <>
-      <div 
-        ref={mapContainer} 
-        className="absolute inset-0 z-0 rounded-lg"
+      <div
+        ref={mapContainer}
+        className="absolute inset-0 z-0 rounded-lg bg-gray-100"
       />
-      {isLoading && (
+      {apiError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+          <div className="text-center p-6">
+            <p className="text-red-500 font-medium mb-2">Erro ao carregar mapa</p>
+            <p className="text-gray-500 text-sm">{apiError}</p>
+          </div>
+        </div>
+      )}
+      {isLoading && !apiError && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
