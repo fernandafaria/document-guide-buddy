@@ -98,15 +98,19 @@ Deno.serve(async (req) => {
       console.error('Error fetching database locations:', dbError);
     }
 
-    // Fetch POIs from OpenStreetMap Overpass API with reduced radius for performance
-    const overpassRadius = Math.min(radius * 1000, 3000); // Convert km to meters, max 3km for performance
+    // Fetch POIs from OpenStreetMap Overpass API with expanded radius and more categories
+    const overpassRadius = Math.min(radius * 1000, 10000); // Convert km to meters, max 10km
     const overpassQuery = `
-      [out:json][timeout:15];
+      [out:json][timeout:25];
       (
-        node["amenity"~"bar|pub|restaurant|cafe|nightclub"](around:${overpassRadius},${latitude},${longitude});
-        node["leisure"~"park|sports_centre"](around:${overpassRadius},${latitude},${longitude});
-        way["amenity"~"bar|pub|restaurant|cafe|nightclub"](around:${overpassRadius},${latitude},${longitude});
-        way["leisure"~"park|sports_centre"](around:${overpassRadius},${latitude},${longitude});
+        node["amenity"~"bar|pub|restaurant|cafe|nightclub|cinema|theatre|bank|pharmacy|hospital|university|college|library|community_centre"](around:${overpassRadius},${latitude},${longitude});
+        node["leisure"~"park|sports_centre|fitness_centre|swimming_pool|stadium|beach_resort"](around:${overpassRadius},${latitude},${longitude});
+        node["shop"~"mall|shopping_centre|supermarket"](around:${overpassRadius},${latitude},${longitude});
+        node["tourism"~"hotel|hostel|museum|attraction|viewpoint"](around:${overpassRadius},${latitude},${longitude});
+        way["amenity"~"bar|pub|restaurant|cafe|nightclub|cinema|theatre|bank|pharmacy|hospital|university|college|library|community_centre"](around:${overpassRadius},${latitude},${longitude});
+        way["leisure"~"park|sports_centre|fitness_centre|swimming_pool|stadium|beach_resort"](around:${overpassRadius},${latitude},${longitude});
+        way["shop"~"mall|shopping_centre|supermarket"](around:${overpassRadius},${latitude},${longitude});
+        way["tourism"~"hotel|hostel|museum|attraction|viewpoint"](around:${overpassRadius},${latitude},${longitude});
       );
       out center ${limit};
     `;
@@ -132,15 +136,16 @@ Deno.serve(async (req) => {
             
             return {
               id: `poi_${element.id}`,
-              name: tags.name || tags.amenity || tags.leisure || 'Local sem nome',
+              name: tags.name || tags.amenity || tags.leisure || tags.shop || tags.tourism || 'Local sem nome',
               address: tags['addr:street'] 
                 ? `${tags['addr:street']}${tags['addr:housenumber'] ? ', ' + tags['addr:housenumber'] : ''}`
-                : null,
+                : tags['addr:full'] || null,
               latitude: lat,
               longitude: lon,
               active_users_count: 0,
               distance,
-              type: tags.amenity || tags.leisure || 'other',
+              type: tags.amenity || tags.leisure || tags.shop || tags.tourism || 'other',
+              category: tags.amenity ? 'amenity' : tags.leisure ? 'leisure' : tags.shop ? 'shop' : tags.tourism ? 'tourism' : 'other',
               cuisine: tags.cuisine,
               opening_hours: tags.opening_hours,
             };
