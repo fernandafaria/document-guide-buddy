@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 interface PlaceSearchProps {
   onPlaceSelect: (place: { lat: number; lng: number; name: string; address?: string }) => void;
   googleMapsApiKey: string;
+  userLocation?: { lat: number; lng: number } | null;
 }
 
 interface PlaceSuggestion {
@@ -20,7 +21,7 @@ interface PlaceSuggestion {
   };
 }
 
-export const PlaceSearch = ({ onPlaceSelect, googleMapsApiKey }: PlaceSearchProps) => {
+export const PlaceSearch = ({ onPlaceSelect, googleMapsApiKey, userLocation }: PlaceSearchProps) => {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,9 +67,16 @@ export const PlaceSearch = ({ onPlaceSelect, googleMapsApiKey }: PlaceSearchProp
     setLoading(true);
     
     try {
-      const request = {
+      const request: google.maps.places.AutocompletionRequest = {
         input: searchQuery,
-        componentRestrictions: { country: "br" }, // Restrict to Brazil
+        componentRestrictions: { country: "br" },
+        // Add location bias if user location is available (50km radius)
+        ...(userLocation && {
+          location: new google.maps.LatLng(userLocation.lat, userLocation.lng),
+          radius: 50000, // 50km radius for better local results
+        }),
+        // Include all establishment types for more results
+        types: ['establishment', 'geocode'],
       };
 
       autocompleteService.current.getPlacePredictions(
@@ -77,8 +85,31 @@ export const PlaceSearch = ({ onPlaceSelect, googleMapsApiKey }: PlaceSearchProp
           setLoading(false);
           
           if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
-            setSuggestions(predictions as PlaceSuggestion[]);
+            // Show up to 10 results instead of default 5
+            setSuggestions(predictions.slice(0, 10) as PlaceSuggestion[]);
             setShowSuggestions(true);
+          } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+            // Try again without type restrictions if no results
+            const fallbackRequest: google.maps.places.AutocompletionRequest = {
+              input: searchQuery,
+              componentRestrictions: { country: "br" },
+              ...(userLocation && {
+                location: new google.maps.LatLng(userLocation.lat, userLocation.lng),
+                radius: 100000, // Expand to 100km
+              }),
+            };
+            
+            autocompleteService.current?.getPlacePredictions(
+              fallbackRequest,
+              (fallbackPredictions, fallbackStatus) => {
+                if (fallbackStatus === google.maps.places.PlacesServiceStatus.OK && fallbackPredictions) {
+                  setSuggestions(fallbackPredictions.slice(0, 10) as PlaceSuggestion[]);
+                  setShowSuggestions(true);
+                } else {
+                  setSuggestions([]);
+                }
+              }
+            );
           } else {
             setSuggestions([]);
           }

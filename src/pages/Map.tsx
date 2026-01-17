@@ -246,14 +246,14 @@ const Map = () => {
     const distance = calculateDistance(latitude, longitude, location.latitude, location.longitude);
     
     // Show warning if far from location
-    if (distance > 100) {
+    if (distance > 500) {
       const distanceMessage = distance < 1000 
         ? `${Math.round(distance)} metros`
         : `${(distance / 1000).toFixed(2)} km`;
         
       toast({
         title: "Você está muito longe",
-        description: `Você está a ${distanceMessage} do local. Aproxime-se até 100 metros para fazer check-in.`,
+        description: `Você está a ${distanceMessage} do local. Aproxime-se até 500 metros para fazer check-in.`,
         variant: "destructive",
       });
       // Destacar o local no mapa por alguns segundos
@@ -376,11 +376,11 @@ const Map = () => {
   const handlePlaceSelect = useCallback((place: { lat: number; lng: number; name: string; address?: string }) => {
     setMapCenter({ lat: place.lat, lng: place.lng });
     
-    // Calculate distance to validate if within 100 meters
+    // Calculate distance to validate if within 500 meters
     if (latitude && longitude) {
       const distance = calculateDistance(latitude, longitude, place.lat, place.lng);
       
-      if (distance <= 100) {
+      if (distance <= 500) {
         // Within range - show check-in button
         setSearchMarker(place);
         toast({
@@ -480,6 +480,7 @@ const Map = () => {
           <PlaceSearch
             onPlaceSelect={handlePlaceSelect}
             googleMapsApiKey={googleMapsApiKey}
+            userLocation={latitude && longitude ? { lat: latitude, lng: longitude } : null}
           />
         )}
 
