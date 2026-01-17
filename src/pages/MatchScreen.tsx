@@ -23,26 +23,34 @@ const MatchScreen = () => {
     // Fetch current user's profile to get their photo and gender
     const fetchMyProfile = async () => {
       if (!user) return;
-      
-      const { data } = await supabase
+
+      const { data, error } = await supabase
         .from("profiles")
         .select("photos, gender")
         .eq("id", user.id)
-        .single();
-      
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching my profile:", error);
+        return;
+      }
       setMyProfile(data);
     };
 
     // Fetch match data to check conversation status
     const fetchMatchData = async () => {
       if (!matchId) return;
-      
-      const { data } = await supabase
+
+      const { data, error } = await supabase
         .from("matches")
         .select("conversation_started, first_message_by")
         .eq("id", matchId)
-        .single();
-      
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching match data:", error);
+        return;
+      }
       setMatchData(data);
     };
 
@@ -55,18 +63,28 @@ const MatchScreen = () => {
     const loadOther = async () => {
       if (!user || !matchId) return;
       try {
-        const { data: matchRow } = await supabase
+        const { data: matchRow, error: matchError } = await supabase
           .from("matches")
           .select("user1_id, user2_id")
           .eq("id", matchId)
-          .single();
-        if (!matchRow) return;
+          .maybeSingle();
+
+        if (matchError || !matchRow) {
+          console.error("Error fetching match row:", matchError);
+          return;
+        }
+
         const otherId = matchRow.user1_id === user.id ? matchRow.user2_id : matchRow.user1_id;
-        const { data } = await supabase
+        const { data, error: profileError } = await supabase
           .from("profiles")
           .select("name, photos, gender")
           .eq("id", otherId)
-          .single();
+          .maybeSingle();
+
+        if (profileError) {
+          console.error("Error fetching other profile:", profileError);
+          return;
+        }
         if (data) setOtherProfile(data);
       } catch (e) {
         console.error("Error fetching other profile", e);
@@ -88,11 +106,17 @@ const MatchScreen = () => {
 
     const isHetero = (isMale(myG) && isFemale(otherG)) || (isFemale(myG) && isMale(otherG));
 
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
     if (!isHetero) {
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         navigate(`/chat/${matchId}`);
       }, 2000);
     }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [myProfile, otherProfile, matchProfile, matchId, navigate]);
 
   const getPhotoUrl = (photoPath: string) => {

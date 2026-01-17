@@ -78,10 +78,15 @@ export const NotificationBell = () => {
   };
 
   const markAsRead = async (notificationId: string) => {
-    await supabase
+    const { error } = await supabase
       .from('notifications')
       .update({ read: true })
       .eq('id', notificationId);
+
+    if (error) {
+      console.error('Error marking notification as read:', error);
+      return;
+    }
 
     fetchNotifications();
   };
@@ -89,11 +94,16 @@ export const NotificationBell = () => {
   const markAllAsRead = async () => {
     if (!user) return;
 
-    await supabase
+    const { error } = await supabase
       .from('notifications')
       .update({ read: true })
       .eq('user_id', user.id)
       .eq('read', false);
+
+    if (error) {
+      console.error('Error marking all notifications as read:', error);
+      return;
+    }
 
     fetchNotifications();
   };

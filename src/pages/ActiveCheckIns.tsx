@@ -169,28 +169,90 @@ const ActiveCheckIns = () => {
   };
 
   const fetchCheckInHistory = async () => {
+    if (!user) return;
+
     try {
       setHistoryLoading(true);
-      
-      // Simular histórico (em produção, você teria uma tabela check_in_history)
-      const mockHistory: CheckInHistoryItem[] = [
-        {
-          location_id: '1',
-          location_name: "D'Villas Bar",
-          checked_in_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          checked_out_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-          latitude: -23.5590986,
-          longitude: -46.7815891,
-        },
-      ];
 
-      setHistory(mockHistory);
-      
-      const uniqueLocs = new Set(mockHistory.map(h => h.location_id)).size;
+      // Fetch current active check-in
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('current_check_in')
+        .eq('id', user.id)
+        .single();
+
+      // Fetch check-in history from database
+      const { data: historyData, error: historyError } = await supabase
+        .from('check_in_history')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('checked_in_at', { ascending: false })
+        .limit(20);
+
+      if (historyError) {
+        console.error('Error fetching history:', historyError);
+      }
+
+      const historyItems: CheckInHistoryItem[] = [];
+
+      // Add current active check-in at the top if exists
+      if (profile?.current_check_in) {
+        const currentCheckIn = profile.current_check_in as {
+          location_id: string;
+          location_name: string;
+          latitude: number;
+          longitude: number;
+          checked_in_at: string;
+        };
+        historyItems.push({
+          location_id: currentCheckIn.location_id,
+          location_name: currentCheckIn.location_name,
+          checked_in_at: currentCheckIn.checked_in_at,
+          checked_out_at: null, // Active check-in
+          latitude: currentCheckIn.latitude,
+          longitude: currentCheckIn.longitude,
+        });
+      }
+
+      // Add history items
+      if (historyData) {
+        historyItems.push(
+          ...historyData.map((item: any) => ({
+            location_id: item.location_id,
+            location_name: item.location_name,
+            checked_in_at: item.checked_in_at,
+            checked_out_at: item.checked_out_at,
+            latitude: item.latitude,
+            longitude: item.longitude,
+          }))
+        );
+      }
+
+      setHistory(historyItems);
+
+      // Calculate stats
+      const allCheckIns = historyData || [];
+      const totalCount = allCheckIns.length + (profile?.current_check_in ? 1 : 0);
+      const uniqueLocs = new Set([
+        ...allCheckIns.map((h: any) => h.location_id),
+        ...(profile?.current_check_in ? [(profile.current_check_in as any).location_id] : []),
+      ]).size;
+
+      // Find favorite location (most visited)
+      const locationCounts: Record<string, { count: number; name: string }> = {};
+      allCheckIns.forEach((h: any) => {
+        if (!locationCounts[h.location_id]) {
+          locationCounts[h.location_id] = { count: 0, name: h.location_name };
+        }
+        locationCounts[h.location_id].count++;
+      });
+
+      const favoriteEntry = Object.values(locationCounts).sort((a, b) => b.count - a.count)[0];
+
       setStats({
-        totalCheckIns: mockHistory.length,
+        totalCheckIns: totalCount,
         uniqueLocations: uniqueLocs,
-        favoriteLocation: mockHistory[0]?.location_name || 'Nenhum',
+        favoriteLocation: favoriteEntry?.name || historyItems[0]?.location_name || 'Nenhum',
       });
     } catch (error: any) {
       console.error('Error fetching check-in history:', error);

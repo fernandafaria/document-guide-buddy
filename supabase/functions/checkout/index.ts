@@ -21,8 +21,14 @@ Deno.serve(async (req) => {
       }
     );
 
+    // Service role client for inserting history
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    
+
     if (authError || !user) {
       console.error('Auth error:', authError);
       return new Response(
@@ -41,13 +47,41 @@ Deno.serve(async (req) => {
       .single();
 
     if (profile?.current_check_in) {
-      const locationId = profile.current_check_in.location_id;
+      const checkInData = profile.current_check_in as {
+        location_id: string;
+        location_name: string;
+        address?: string;
+        latitude: number;
+        longitude: number;
+        checked_in_at: string;
+      };
+
+      // Save to check-in history
+      const { error: historyError } = await supabaseAdmin
+        .from('check_in_history')
+        .insert({
+          user_id: user.id,
+          location_id: checkInData.location_id,
+          location_name: checkInData.location_name,
+          address: checkInData.address || null,
+          latitude: checkInData.latitude,
+          longitude: checkInData.longitude,
+          checked_in_at: checkInData.checked_in_at,
+          checked_out_at: new Date().toISOString(),
+        });
+
+      if (historyError) {
+        console.error('Error saving to history:', historyError);
+        // Continue with checkout even if history fails
+      } else {
+        console.log(`Saved check-in history for user ${user.id}`);
+      }
 
       // Decrement active users count
       const { data: location } = await supabaseClient
         .from('locations')
         .select('active_users_count')
-        .eq('id', locationId)
+        .eq('id', checkInData.location_id)
         .single();
 
       if (location && location.active_users_count > 0) {
@@ -57,9 +91,9 @@ Deno.serve(async (req) => {
             active_users_count: location.active_users_count - 1,
             last_activity: new Date().toISOString(),
           })
-          .eq('id', locationId);
-        
-        console.log(`Decremented location ${locationId} count`);
+          .eq('id', checkInData.location_id);
+
+        console.log(`Decremented location ${checkInData.location_id} count`);
       }
     }
 

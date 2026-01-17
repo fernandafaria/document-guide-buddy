@@ -271,18 +271,20 @@ export const MapView = React.memo(({ locations, userLocation, onCheckIn, center,
         if (currentInfoWindow.current) {
           currentInfoWindow.current.close();
         }
-        
+
         infoWindow.open(map.current, marker);
         currentInfoWindow.current = infoWindow;
-        
+
         setTimeout(() => {
           const btn = document.getElementById(`checkin-btn-${location.id}`);
-          if (btn) {
-            btn.addEventListener('click', () => {
+          if (btn && !btn.dataset.listenerAttached) {
+            // Mark as attached to prevent duplicate listeners
+            btn.dataset.listenerAttached = 'true';
+            btn.onclick = () => {
               onCheckIn(location);
               infoWindow.close();
               currentInfoWindow.current = null;
-            });
+            };
           }
         }, 100);
       });
