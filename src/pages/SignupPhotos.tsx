@@ -41,6 +41,7 @@ const SignupPhotos = () => {
   const { signUp, signIn } = useAuth();
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
 
   const userData = location.state || {};
 
@@ -99,13 +100,14 @@ const SignupPhotos = () => {
 
     try {
       setLoading(true);
+      setLoadingMessage("Validando dados...");
 
-      const { 
-        email, 
-        password, 
-        name, 
-        age, 
-        gender, 
+      const {
+        email,
+        password,
+        name,
+        age,
+        gender,
         intentions,
         profession,
         education,
@@ -123,14 +125,17 @@ const SignupPhotos = () => {
       if (!email || !password) {
         toast({
           title: "Erro",
-          description: "Dados de cadastro incompletos",
+          description: "Dados de cadastro incompletos. Por favor, volte e preencha todos os campos.",
           variant: "destructive",
         });
+        setLoading(false);
+        setLoadingMessage("");
         navigate("/login");
         return;
       }
 
       // Tenta criar a conta; se já existir, faz login automaticamente
+      setLoadingMessage("Criando sua conta...");
       const { data: signUpData, error: signUpError } = await signUp(email, password, {
         name,
         age,
@@ -144,7 +149,7 @@ const SignupPhotos = () => {
       if (signUpError) {
         const msg = String(signUpError.message || "").toLowerCase();
         if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
-          toast({ title: "Conta já existe", description: "Entrando com suas credenciais..." });
+          setLoadingMessage("Conta já existe, entrando...");
           const { data: signInData, error: signInError } = await signIn(email, password);
           if (signInError) {
             throw new Error(`Não foi possível entrar: ${signInError.message}`);
@@ -159,6 +164,7 @@ const SignupPhotos = () => {
       // Se signup foi bem-sucedido mas não há sessão (ex: confirmação de email habilitada),
       // tenta fazer login para criar uma sessão ativa
       if (authUser && !hasSession) {
+        setLoadingMessage("Autenticando...");
         const { data: signInData, error: signInError } = await signIn(email, password);
         if (signInError) {
           // Se não conseguiu fazer login, pode ser que o email precise ser confirmado
@@ -173,6 +179,7 @@ const SignupPhotos = () => {
       }
 
       // Upload das fotos em paralelo com timeout e melhor tratamento de erros
+      setLoadingMessage("Enviando fotos...");
       const uploadErrors: string[] = [];
       const uploadPromises = photos.map(async (photoItem, i) => {
         const fileName = `${authUser.id}/photo-${i}-${Date.now()}.jpg`;
@@ -231,6 +238,7 @@ const SignupPhotos = () => {
       }
 
       // Upsert do perfil (com normalização de gênero)
+      setLoadingMessage("Salvando perfil...");
       const normalizedGender = normalizeGender(gender);
       const { error: profileError } = await supabase
         .from('profiles')
@@ -272,6 +280,7 @@ const SignupPhotos = () => {
 
       navigate("/profile");
     } catch (error: any) {
+      console.error("Signup error:", error);
       toast({
         title: "Erro ao criar conta",
         description: error.message || "Ocorreu um erro. Tente novamente.",
@@ -279,6 +288,7 @@ const SignupPhotos = () => {
       });
     } finally {
       setLoading(false);
+      setLoadingMessage("");
     }
   };
 
@@ -354,7 +364,7 @@ const SignupPhotos = () => {
 
       {/* Continue Button */}
       <Button className="w-full h-14" onClick={handleContinue} disabled={loading}>
-        {loading ? "Criando conta..." : "Criar conta"}
+        {loading ? (loadingMessage || "Criando conta...") : "Criar conta"}
       </Button>
     </div>
   );
