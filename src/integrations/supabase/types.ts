@@ -56,6 +56,45 @@ export type Database = {
           },
         ]
       }
+      check_in_history: {
+        Row: {
+          id: string
+          user_id: string
+          location_id: string
+          location_name: string
+          address: string | null
+          latitude: number
+          longitude: number
+          checked_in_at: string
+          checked_out_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          location_id: string
+          location_name: string
+          address?: string | null
+          latitude: number
+          longitude: number
+          checked_in_at: string
+          checked_out_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          location_id?: string
+          location_name?: string
+          address?: string | null
+          latitude?: number
+          longitude?: number
+          checked_in_at?: string
+          checked_out_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       locations: {
         Row: {
           active_users_count: number | null
