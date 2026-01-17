@@ -139,6 +139,7 @@ const SignupPhotos = () => {
       });
 
       let authUser = signUpData?.user || null;
+      let hasSession = !!signUpData?.session;
 
       if (signUpError) {
         const msg = String(signUpError.message || "").toLowerCase();
@@ -149,12 +150,25 @@ const SignupPhotos = () => {
             throw new Error(`Não foi possível entrar: ${signInError.message}`);
           }
           authUser = signInData.user;
+          hasSession = !!signInData.session;
         } else {
           throw signUpError;
         }
       }
 
-      if (!authUser) {
+      // Se signup foi bem-sucedido mas não há sessão (ex: confirmação de email habilitada),
+      // tenta fazer login para criar uma sessão ativa
+      if (authUser && !hasSession) {
+        const { data: signInData, error: signInError } = await signIn(email, password);
+        if (signInError) {
+          // Se não conseguiu fazer login, pode ser que o email precise ser confirmado
+          throw new Error("Conta criada! Verifique seu email para confirmar o cadastro e depois faça login.");
+        }
+        authUser = signInData.user;
+        hasSession = !!signInData.session;
+      }
+
+      if (!authUser || !hasSession) {
         throw new Error("Erro ao autenticar usuário");
       }
 
