@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Toaster } from "@/components/ui/toaster";
+import { useKeyboardVisibility } from "@/hooks/useKeyboardVisibility";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
@@ -35,9 +36,13 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
+// Inner component that uses hooks
+const AppContent = () => {
+  // Initialize keyboard visibility detection for iOS
+  useKeyboardVisibility();
+
+  return (
+    <>
       <Toaster />
       <Routes>
         <Route path="/" element={<Index />} />
@@ -71,6 +76,14 @@ const App = () => (
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+    </>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   </QueryClientProvider>
 );
