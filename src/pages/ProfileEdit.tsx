@@ -201,12 +201,17 @@ const ProfileEdit = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen bg-white safe-area-bottom">
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-light px-6 py-4 flex items-center gap-4 z-10">
+      <div 
+        className="sticky top-0 bg-white border-b border-gray-light px-6 pb-4 flex items-center gap-4 z-10"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+        }}
+      >
         <button
           onClick={() => navigate("/profile")}
-          className="text-gray-dark hover:text-black-soft transition-colors"
+          className="text-gray-dark hover:text-black-soft transition-colors active:scale-95"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>

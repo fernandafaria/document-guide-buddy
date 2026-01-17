@@ -239,14 +239,18 @@ const ProfileDetail = () => {
       ];
 
   return (
-    <div className="min-h-screen bg-white pb-24">
+    <div className="min-h-screen bg-white safe-area-bottom">
       {/* Header with Notification Bell */}
       <Header />
       
-      {/* Back Button */}
+      {/* Back Button - positioned below safe area */}
       <button
         onClick={handleBackClick}
-        className="fixed top-6 left-6 z-10 w-12 h-12 bg-white rounded-full shadow-elevated flex items-center justify-center hover:scale-105 transition-transform"
+        className="fixed z-10 w-12 h-12 bg-white rounded-full shadow-elevated flex items-center justify-center active:scale-95 transition-transform"
+        style={{
+          top: 'calc(env(safe-area-inset-top, 0px) + 24px)',
+          left: '24px',
+        }}
         aria-label="Voltar"
       >
         <ArrowLeft className="w-6 h-6 text-black-soft" />
@@ -406,7 +410,12 @@ const ProfileDetail = () => {
 
       {/* Like Button - apenas se não for o próprio perfil */}
       {user?.id !== id && (
-        <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-light">
+        <div 
+          className="fixed bottom-0 left-0 right-0 px-6 pt-4 bg-white border-t border-gray-light"
+          style={{
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
+          }}
+        >
           <Button 
             className={`w-full h-14 ${hasLiked ? 'bg-gray-medium hover:bg-gray-dark' : ''}`}
             onClick={handleLikeToggle} 

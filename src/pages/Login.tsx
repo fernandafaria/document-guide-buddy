@@ -101,7 +101,7 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 safe-area-all">
       {/* Logo */}
       <h1 className="text-7xl font-fredoka font-bold text-coral tracking-tight mb-8">
         Yo!

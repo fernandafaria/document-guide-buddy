@@ -293,11 +293,11 @@ const SignupPhotos = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col px-6 py-8">
+    <div className="min-h-screen bg-white flex flex-col px-6 safe-area-all" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 32px)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="mb-6 flex items-center gap-2 text-gray-dark hover:text-coral transition-colors"
+        className="mb-6 flex items-center gap-2 text-gray-dark hover:text-coral transition-colors active:scale-95"
       >
         <ArrowLeft className="w-5 h-5" />
         <span className="text-base font-medium">Voltar</span>

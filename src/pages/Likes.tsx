@@ -172,7 +172,7 @@ export default function Likes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white pb-20">
+      <div className="min-h-screen bg-white pb-bottom-nav">
         <Header />
         <div className="p-6">
           <h1 className="text-2xl font-bold mb-6">Curtidas</h1>
@@ -186,7 +186,7 @@ export default function Likes() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen bg-white pb-bottom-nav">
       <Header />
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-6">Curtidas</h1>

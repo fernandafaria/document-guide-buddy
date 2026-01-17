@@ -79,7 +79,7 @@ const Discovery = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white pb-20">
+      <div className="min-h-screen bg-white pb-bottom-nav">
         <Header />
         <div className="px-6 space-y-4 mt-4">
           {[1, 2, 3].map((i) => (
@@ -102,7 +102,7 @@ const Discovery = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen bg-white pb-bottom-nav">
       <Header />
 
       {/* Quick Filters */}

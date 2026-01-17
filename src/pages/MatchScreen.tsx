@@ -141,7 +141,7 @@ const MatchScreen = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6 relative overflow-hidden safe-area-all">
       {/* Animated Confetti */}
       <div className="absolute inset-0 pointer-events-none">
         {[...Array(30)].map((_, i) => (

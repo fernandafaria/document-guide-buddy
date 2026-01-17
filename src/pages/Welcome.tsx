@@ -6,7 +6,7 @@ const Welcome = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col overflow-hidden">
+    <div className="h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col overflow-hidden safe-area-all">
       {/* Hero Section */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-6">
         {/* Logo */}

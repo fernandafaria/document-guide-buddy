@@ -78,13 +78,18 @@ const Filters = () => {
 
   if (showCategory) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white safe-area-top">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-light px-6 py-4 z-10">
+        <div 
+          className="sticky top-0 bg-white border-b border-gray-light px-6 pb-4 z-10"
+          style={{
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+          }}
+        >
           <div className="flex items-center">
             <button
               onClick={() => setShowCategory(null)}
-              className="text-gray-medium hover:text-black-soft"
+              className="text-gray-medium hover:text-black-soft active:scale-95"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
@@ -213,7 +218,12 @@ const Filters = () => {
         </div>
 
         {/* Bottom Actions */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-light px-6 py-4 flex gap-4">
+        <div 
+          className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-light px-6 pt-4 flex gap-4"
+          style={{
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+          }}
+        >
           <Button
             variant="outline"
             onClick={handleClear}
@@ -230,13 +240,18 @@ const Filters = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white safe-area-top">
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-light px-6 py-4 z-10">
+      <div 
+        className="sticky top-0 bg-white border-b border-gray-light px-6 pb-4 z-10"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+        }}
+      >
         <div className="flex items-center">
           <button
             onClick={() => navigate("/discovery")}
-            className="text-gray-medium hover:text-black-soft"
+            className="text-gray-medium hover:text-black-soft active:scale-95"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -265,7 +280,12 @@ const Filters = () => {
       </div>
 
       {/* Bottom Actions */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-light px-6 py-4 flex gap-4">
+      <div 
+        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-light px-6 pt-4 flex gap-4"
+        style={{
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+        }}
+      >
         <Button
           variant="outline"
           onClick={handleClear}
