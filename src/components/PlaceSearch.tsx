@@ -67,16 +67,16 @@ export const PlaceSearch = ({ onPlaceSelect, googleMapsApiKey, userLocation }: P
     setLoading(true);
     
     try {
+      // Remove type restrictions to show ALL types of places
       const request: google.maps.places.AutocompletionRequest = {
         input: searchQuery,
         componentRestrictions: { country: "br" },
-        // Add location bias if user location is available (50km radius)
+        // Add location bias if user location is available (100km radius for more results)
         ...(userLocation && {
           location: new google.maps.LatLng(userLocation.lat, userLocation.lng),
-          radius: 50000, // 50km radius for better local results
+          radius: 100000, // 100km radius for better coverage
         }),
-        // Include all establishment types for more results
-        types: ['establishment', 'geocode'],
+        // No type restrictions = more results (establishments, addresses, regions, etc.)
       };
 
       autocompleteService.current.getPlacePredictions(
