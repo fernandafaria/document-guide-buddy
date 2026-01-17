@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
 
       console.log(`Distance from user to location: ${distance.toFixed(2)} meters`);
 
-      if (distance > 300) {
+      if (distance > 500) {
         const distanceMessage = distance < 1000 
           ? `${Math.round(distance)} metros`
           : `${(distance / 1000).toFixed(2)} km`;
@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
           JSON.stringify({ 
             error: 'Você está muito longe do local',
             distance: Math.round(distance),
-            message: `Você está a ${distanceMessage} do local. Aproxime-se até 300 metros para fazer check-in.`
+            message: `Você está a ${distanceMessage} do local. Aproxime-se até 500 metros para fazer check-in.`
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         );
