@@ -526,7 +526,7 @@ const Map = () => {
             {searchMarker && !confirmDialogOpen && latitude && longitude && (
               (() => {
                 const distance = calculateDistance(latitude, longitude, searchMarker.lat, searchMarker.lng);
-                const isWithinRange = distance <= 100;
+                const isWithinRange = distance <= 500;
                 
                 return (
                   <div className="absolute left-1/2 -translate-x-1/2 bottom-24 z-10 flex flex-col items-center gap-2">

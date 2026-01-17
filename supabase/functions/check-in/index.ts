@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
 
     const { latitude, longitude, name, address, userLatitude, userLongitude } = parsed.data;
 
-    // Validate distance (max 100 meters)
+    // Validate distance (max 500 meters)
     if (userLatitude !== undefined && userLongitude !== undefined) {
       const R = 6371e3; // Earth radius in meters
       const φ1 = userLatitude * Math.PI / 180;
