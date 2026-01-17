@@ -437,9 +437,15 @@ const Map = () => {
   }, [locations, searchQuery, filters]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col pb-16">
+    <div className="min-h-screen bg-background flex flex-col pb-bottom-nav">
       {/* Header with Logo and Action Buttons */}
-      <div className="w-full py-4 px-6 flex items-center justify-between bg-background border-b border-border">
+      <div 
+        className="w-full px-6 flex items-center justify-between bg-background border-b border-border"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+          paddingBottom: '16px',
+        }}
+      >
         <h1 className="text-5xl font-fredoka font-bold text-coral tracking-tight">
           Yo!
         </h1>

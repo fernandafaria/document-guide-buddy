@@ -47,12 +47,18 @@ const Settings = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white safe-area-bottom">
       {/* Header */}
-      <div className="px-6 py-4 flex items-center gap-4 border-b border-gray-light">
+      <div 
+        className="px-6 flex items-center gap-4 border-b border-gray-light"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+          paddingBottom: '16px',
+        }}
+      >
         <button
           onClick={() => navigate(-1)}
-          className="text-gray-medium hover:text-black-soft transition-colors"
+          className="text-gray-medium hover:text-black-soft transition-colors active:scale-95"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>

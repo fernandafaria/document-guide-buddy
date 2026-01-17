@@ -56,7 +56,7 @@ const Matches = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white pb-20">
+      <div className="min-h-screen bg-white pb-bottom-nav">
         <Header />
         <div className="divide-y divide-gray-light">
           {[1, 2, 3, 4].map((i) => (
@@ -76,7 +76,7 @@ const Matches = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen bg-white pb-bottom-nav">
       <Header />
 
       {/* Matches List */}

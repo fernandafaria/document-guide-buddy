@@ -165,7 +165,7 @@ const ActiveCheckIns = () => {
     return (
       <div className="min-h-screen bg-white">
         <Header />
-        <div className="max-w-2xl mx-auto p-4 space-y-4 pb-24">
+        <div className="max-w-2xl mx-auto p-4 space-y-4 pb-bottom-nav">
           {[1, 2, 3].map((i) => (
             <Card key={i}>
               <CardContent className="p-4">
@@ -182,7 +182,7 @@ const ActiveCheckIns = () => {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <div className="max-w-2xl mx-auto p-4 space-y-4 pb-24">
+      <div className="max-w-2xl mx-auto p-4 space-y-4 pb-bottom-nav">
 
         {locations.length === 0 ? (
           <Card>

@@ -102,7 +102,7 @@ const CheckInSuccess = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden safe-area-top">
       {/* Confetti Animation - Otimizado */}
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none z-50">
@@ -197,7 +197,12 @@ const CheckInSuccess = () => {
       </div>
 
       {/* Bottom Actions with improved styling */}
-      <div className="p-6 bg-background border-t shadow-elevated space-y-3">
+      <div 
+        className="px-6 pt-4 bg-background border-t shadow-elevated space-y-3"
+        style={{
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
+        }}
+      >
         <Button
           onClick={() => navigate("/discovery")}
           className="w-full h-14 text-base font-semibold shadow-button hover:shadow-elevated transition-all hover:scale-[1.02]"

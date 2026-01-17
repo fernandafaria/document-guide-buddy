@@ -104,23 +104,29 @@ const Chat = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
-      <div className="bg-gradient-header px-6 py-4 flex items-center gap-4 shadow-sm">
+      <div 
+        className="bg-gradient-header px-6 flex items-center gap-4 shadow-sm"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+          paddingBottom: '16px',
+        }}
+      >
         <button
           onClick={() => navigate("/matches")}
-          className="text-white hover:opacity-80 transition-opacity"
+          className="text-white hover:opacity-80 transition-opacity active:scale-95"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
         
         <button
           onClick={() => navigate(`/profile/${otherUser.id}`, { state: { fromChat: true } })}
-          className="flex items-center gap-3 flex-1 hover:opacity-90 transition-opacity"
+          className="flex items-center gap-3 flex-1 hover:opacity-90 transition-opacity active:scale-95"
         >
           <img
             src={photo}
             alt={otherUser.name}
             loading="lazy"
-            className="w-10 h-10 rounded-full object-cover ring-2 ring-white transition-transform duration-200 hover:scale-110"
+            className="w-10 h-10 rounded-full object-cover ring-2 ring-white transition-transform duration-200"
           />
           
           <h2 className="text-lg font-bold text-white">{otherUser.name}</h2>
@@ -180,7 +186,12 @@ const Chat = () => {
       </div>
 
       {/* Input */}
-      <div className="px-6 py-4 bg-white border-t border-gray-light">
+      <div 
+        className="px-6 pt-4 bg-white border-t border-gray-light"
+        style={{
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+        }}
+      >
         {isInputDisabled ? (
           <div className="text-center py-3">
             <p className="text-gray-medium text-sm">
