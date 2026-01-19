@@ -13,7 +13,9 @@
     "ios:open": "npx cap open ios",
     "ios:sync": "npx cap sync ios",
     "ios:copy": "npx cap copy ios",
-    "ios:build": "npm run build && npx cap sync ios && npx cap open ios"
+    "ios:build": "npm run build && npx cap sync ios && npx cap open ios",
+    "simulate": "node scripts/simulation/run-simulation.js",
+    "simulate:ts": "npx tsx scripts/simulation/simulate-users.ts"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
